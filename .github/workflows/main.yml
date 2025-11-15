@@ -4,12 +4,12 @@ on: [push, pull_request]
 
 jobs:
   build:
-    name: Build for ${{ matrix.buildProperties.platform }}
+    name: Build for ${{ matrix.targetPlatform.platform }}
     runs-on: ubuntu-latest
     strategy:
         fail-fast: false
         matrix:
-            buildProperties:
+            targetPlatform:
                 - platform: StandaloneWindows64
                   buildDirectory: Windows
                   clientMethod: BuildScript.BuildWindowsClient
@@ -50,31 +50,31 @@ jobs:
           restore-keys: |
             Library-
 
-      - name: Client ${{ matrix.buildProperties.platform }}
+      - name: Client ${{ matrix.targetPlatform.platform }}
         uses: game-ci/unity-builder@v4
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
-          targetPlatform: ${{ matrix.buildProperties.platform }}
+          targetPlatform: ${{ matrix.targetPlatform.platform }}
           versioning: Semantic
-          buildMethod: ${{ matrix.buildProperties.clientMethod }}
+          buildMethod: ${{ matrix.targetPlatform.clientMethod }}
           allowDirtyBuild: true     
           
-      - name: Server ${{ matrix.buildProperties.platform }}
+      - name: Server ${{ matrix.targetPlatform.platform }}
         uses: game-ci/unity-builder@v4
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
-          targetPlatform: ${{ matrix.buildProperties.platform }}
+          targetPlatform: ${{ matrix.targetPlatform.platform }}
           versioning: Semantic
           allowDirtyBuild: true
-          buildMethod: ${{ matrix.buildProperties.serverMethod }}
+          buildMethod: ${{ matrix.targetPlatform.serverMethod }}
    
       - uses: actions/upload-artifact@v4
         with:
-          name: Build-${{ matrix.buildProperties.platform }}
-          path: Builds/${{ matrix.buildProperties.buildDirectory }}
+          name: Build-${{ matrix.targetPlatform.platform }}
+          path: Builds/${{ matrix.targetPlatform.buildDirectory }}
