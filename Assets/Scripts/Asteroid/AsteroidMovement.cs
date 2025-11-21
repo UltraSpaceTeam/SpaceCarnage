@@ -3,30 +3,28 @@ using UnityEngine;
 
 public class AsteroidMovement : NetworkBehaviour
 {
-	[SerializeField] [Range(1, 20f)]
-	float _thrustForce = 1f,
-		  _pitchForce,
-		  _rollForce,
-		  _yawForce;
+	[SerializeField]
+	private Rigidbody _rigidBody;
 	
-	Rigidbody _rigidBody;
-	float _thrustAmout, _pitchAmount, _rollAmount, _yawAmount = 0;
+    [SyncVar] private float _thrustForce;
+    [SyncVar] private Vector3 _initialForce;
+    [SyncVar] private Vector3 _initialTorque;
 	
 	public override void OnStartServer()
 	{
 		base.OnStartServer();
 		_rigidBody = GetComponent<Rigidbody>();
-		
-		Vector3 flatten = new Vector3(1, 1, 0);
-        Vector3 randomDirection = Random.insideUnitCircle.normalized;
-		Vector3 force =  new Vector3(randomDirection.x, 0, randomDirection.y) * _thrustForce;
-		Vector3 torque = new Vector3(
-            Random.Range(-1f, 1f),
-            Random.Range(-1f, 1f),
-            Random.Range(-1f, 1f)
-        ) * _thrustForce;
-		
-		_rigidBody.AddForce(force, ForceMode.Impulse);
-		_rigidBody.AddTorque(torque, ForceMode.Impulse);
-	}
+				
+		//_rigidBody.AddForce(_initialForce, ForceMode.Impulse);
+		_rigidBody.AddTorque(_initialTorque, ForceMode.Impulse);
+	}	
+	
+	// Метод для установки параметров движения при спавне
+    [Server]
+    public void SetMovementParameters(float thrustForce, Vector3 force, Vector3 torque)
+    {
+        _thrustForce = thrustForce;
+        _initialForce = force;
+        _initialTorque = torque;
+    }
 }
