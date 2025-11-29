@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 07ce4c7112d447640bf961842293f9cf, type: 3}
+  m_Name: ShipPartDatabase
+  m_EditorClassIdentifier: 
+  hulls:
+  - {fileID: 11400000, guid: 7247bb25cd7ebb44ba43c96922e7b915, type: 2}
+  - {fileID: 11400000, guid: 50116eb04a3a81544b5a788acd7be2ff, type: 2}
+  - {fileID: 11400000, guid: dbf8f38314106fe499babbfbff23549d, type: 2}
+  - {fileID: 11400000, guid: 92cb02c6245ffc44ca803d392ea875c3, type: 2}
+  weapons:
+  - {fileID: 11400000, guid: b55fd533ee424644a863a2829c23cc8d, type: 2}
+  - {fileID: 11400000, guid: e014a6391eb58ec47a5e9f850747f95a, type: 2}
+  - {fileID: 11400000, guid: 2896408d8a714414eb68a8d822332458, type: 2}
+  - {fileID: 11400000, guid: 0cfcbc81f2a36924caac9818fe1fd400, type: 2}
+  engines:
+  - {fileID: 11400000, guid: 7640a997d0e37004098f45df1baf1284, type: 2}
