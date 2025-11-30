@@ -45,7 +45,6 @@ public class PlayerCamera : MonoBehaviour
 
         Quaternion lookRotation = Quaternion.LookRotation(directionToShip, target.up);
 
-        // Смешиваем
         Quaternion targetRotation = Quaternion.Lerp(hullRotation, lookRotation, lookAtTargetStrength);
 
         transform.rotation = Quaternion.Slerp(
