@@ -23,7 +23,7 @@ public class ShipNetworkSync : NetworkBehaviour
     public override void OnStartLocalPlayer()
     {
         int hIndex = 2;
-        int wIndex = 3;
+        int wIndex = 2;
         int eIndex = 0;
 
         CmdSetupShip(hIndex, wIndex, eIndex);
@@ -40,6 +40,10 @@ public class ShipNetworkSync : NetworkBehaviour
         _hullIndex = hullIdx;
         _weaponIndex = weaponIdx;
         _engineIndex = engineIdx;
+
+        OnHullChanged(-1, _hullIndex);
+        OnWeaponChanged(-1, _weaponIndex);
+        OnEngineChanged(-1, _engineIndex);
     }
 
 
