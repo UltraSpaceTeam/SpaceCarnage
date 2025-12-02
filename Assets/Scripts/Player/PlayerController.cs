@@ -9,7 +9,7 @@ public class PlayerController : NetworkBehaviour
 {
     private Rigidbody rb;
     private ShipAssembler shipAssembler;
-    
+
     private float thrustInput;
     private Vector3 rotationInput;
 
@@ -23,7 +23,6 @@ public class PlayerController : NetworkBehaviour
     {
         rb = GetComponent<Rigidbody>();
         shipAssembler = GetComponent<ShipAssembler>();
-
 
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
@@ -91,6 +90,17 @@ public class PlayerController : NetworkBehaviour
 
             Vector3 torque = new Vector3(pitch, yaw, roll);
             rb.AddRelativeTorque(torque, ForceMode.Force);
+        }
+
+        if (shipAssembler.CurrentEngine == null)
+        {
+            Debug.LogWarning("No engine equipped!");
+            return;
+        }
+        EngineData engine = shipAssembler.CurrentEngine;
+        if (Input.GetMouseButton(0))
+        {
+            engine.ability.RunAbility();
         }
     }
 

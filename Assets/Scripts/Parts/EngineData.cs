@@ -4,4 +4,5 @@ using UnityEngine;
 public class EngineData : ShipPartData
 {
     public float maxSpeed;
+    public AbstractAbility ability;
 }
