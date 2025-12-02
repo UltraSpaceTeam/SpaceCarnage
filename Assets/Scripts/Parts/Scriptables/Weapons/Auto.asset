@@ -16,6 +16,6 @@ MonoBehaviour:
   partName: Auto
   partType: 1
   prefab: {fileID: 595135914896999659, guid: ca0c47d93fa5e3d4ba72e11bba7d1ba4, type: 3}
-  weight: 0
+  mass: 5
   damage: 0
   fireRate: 0

@@ -141,7 +141,7 @@ Rigidbody:
   m_GameObject: {fileID: 7355391291780638397}
   serializedVersion: 4
   m_Mass: 100
-  m_Drag: 1
+  m_Drag: 4
   m_AngularDrag: 4
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
@@ -176,6 +176,7 @@ MonoBehaviour:
   syncInterval: 0
   mouseSensivity: 1
   invertY: 0
+  overSpeedDragFactor: 1
 --- !u!114 &703890252711067340
 MonoBehaviour:
   m_ObjectHideFlags: 0

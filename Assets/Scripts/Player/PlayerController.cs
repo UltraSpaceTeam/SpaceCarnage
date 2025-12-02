@@ -13,11 +13,17 @@ public class PlayerController : NetworkBehaviour
     private float thrustInput;
     private Vector3 rotationInput;
 
+    private bool activateAbility;
+    private float abilityCooldownTimer = 0f;
+
     [Header("Input Settings")]
     [SerializeField] private float mouseSensivity = 2.0f;
     [SerializeField] private bool invertY = false;
 
     private Vector2 mouseCursorPos = Vector2.zero;
+
+    [Header("Physics Settings")]
+    [SerializeField] private float overSpeedDragFactor = 1f;
 
     void Awake()
     {
@@ -52,14 +58,17 @@ public class PlayerController : NetworkBehaviour
 
         mouseCursorPos += new Vector2(mouseX, mouseY);
         Vector3 curRotationInput = new Vector3(mouseCursorPos.y, mouseCursorPos.x, -roll);
-        CmdUpdateInputs(thrustInput, curRotationInput);
+
+        bool abilityPressed = Input.GetKeyDown(KeyCode.Space);
+        CmdUpdateInputs(thrustInput, curRotationInput, abilityPressed);
     }
 
     [Command]
-    void CmdUpdateInputs(float thrust, Vector3 rotation)
+    void CmdUpdateInputs(float thrust, Vector3 rotation, bool abilityPressed)
     {
         thrustInput = thrust;
         rotationInput = rotation;
+        activateAbility |= abilityPressed;
     }
 
     private void FixedUpdate()
@@ -71,18 +80,33 @@ public class PlayerController : NetworkBehaviour
             return;
         }
         HullData hull = shipAssembler.CurrentHull;
+
+        if (shipAssembler.CurrentEngine == null)
+        {
+            Debug.LogWarning("No engine equipped!");
+            return;
+        }
+        EngineData engine = shipAssembler.CurrentEngine;
+
+        if (shipAssembler.CurrentWeapon == null)
+        {
+            Debug.LogWarning("No weapon equipped!");
+            return;
+        }
+        WeaponData weapon = shipAssembler.CurrentWeapon;
+
+        float sumMass = weapon.mass + engine.mass + hull.mass;
+        rb.mass = sumMass;
+        rb.linearDamping = hull.linearDamping;
+        rb.angularDamping = hull.rotationDamping;
+
         if (Mathf.Abs(thrustInput) > 0.01f)
         {
-            Vector3 force = Vector3.forward * thrustInput * hull.acceleration;
+            Vector3 force = Vector3.forward * thrustInput * engine.power;
             rb.AddRelativeForce(force, ForceMode.Acceleration);
         }
 
-
-        if (rb.linearVelocity.magnitude > hull.maxSpeed)
-        {
-            rb.linearVelocity = rb.linearVelocity.normalized * hull.maxSpeed;
-        }
-        if (rotationInput.sqrMagnitude > 0.01f)
+        if (rotationInput.sqrMagnitude > 0.001f)
         {
             float pitch = rotationInput.x * hull.rotationXYSpeed;
             float yaw = rotationInput.y * hull.rotationXYSpeed;
@@ -92,16 +116,18 @@ public class PlayerController : NetworkBehaviour
             rb.AddRelativeTorque(torque, ForceMode.Force);
         }
 
-        if (shipAssembler.CurrentEngine == null)
+        abilityCooldownTimer -= Time.fixedDeltaTime;
+        if (activateAbility)
         {
-            Debug.LogWarning("No engine equipped!");
-            return;
+            if (abilityCooldownTimer <= 0)
+            {
+                engine.ability.RunAbility(rb);
+                abilityCooldownTimer = engine.ability.cooldown;
+            }
         }
-        EngineData engine = shipAssembler.CurrentEngine;
-        if (Input.GetMouseButton(0))
-        {
-            engine.ability.RunAbility();
-        }
+        activateAbility = false;
+
+        Debug.Log("Speed at end of FixedUpdate: " + rb.linearVelocity.magnitude);
     }
 
     void OnGUI()

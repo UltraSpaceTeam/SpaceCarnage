@@ -16,7 +16,7 @@ public abstract class ShipPartData : ScriptableObject
     public GameObject prefab;
 
     [Header("Stats")]
-    public float weight;
+    public float mass;
 }
 
 

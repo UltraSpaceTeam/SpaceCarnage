@@ -16,10 +16,10 @@ MonoBehaviour:
   partName: Whale
   partType: 0
   prefab: {fileID: 560063309565180913, guid: 1f33aad6f0d4ea34e81ccbfae6f1e3e9, type: 3}
-  weight: 70
+  mass: 70
   maxHealth: 200
   baseDefense: 80
-  acceleration: 15
+  linearDamping: 2
+  rotationDamping: 10
   rotationXYSpeed: 120
   rotationZSpeed: 70
-  maxSpeed: 60

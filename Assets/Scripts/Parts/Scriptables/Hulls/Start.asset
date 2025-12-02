@@ -16,10 +16,10 @@ MonoBehaviour:
   partName: Start
   partType: 0
   prefab: {fileID: 560063309565180913, guid: 1a7a861c064d21c498828c759095654f, type: 3}
-  weight: 10
+  mass: 10
   maxHealth: 100
   baseDefense: 30
-  acceleration: 20
+  linearDamping: 2
+  rotationDamping: 10
   rotationXYSpeed: 160
   rotationZSpeed: 200
-  maxSpeed: 120
