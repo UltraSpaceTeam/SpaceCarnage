@@ -448,6 +448,9 @@ MonoBehaviour:
   playerSpawnMethod: 0
   spawnPrefabs:
   - {fileID: 1468997837196811053, guid: aecbd52c23c85a048ac4c0380091b0cd, type: 3}
+  - {fileID: 5003006577081230700, guid: 6e2f1e07e70b1684da81cd4fef4dcc4a, type: 3}
+  - {fileID: 5003006577081230700, guid: da81de8d0bd40914b9c9e44b8696e005, type: 3}
+  - {fileID: 7355391291780638397, guid: 2fedcb40000960246bcfa51695ea60ee, type: 3}
   - {fileID: 4084070796588274974, guid: bc8ffca35b791ab4dba8318bf5774f74, type: 3}
   exceptionsDisconnect: 1
   snapshotSettings:
@@ -505,9 +508,9 @@ MonoBehaviour:
   MaximizeSocketBuffers: 1
   ReliableMaxMessageSize: 297433
   UnreliableMaxMessageSize: 1194
-  debugLog: 1
+  debugLog: 0
   statisticsGUI: 1
-  statisticsLog: 1
+  statisticsLog: 0
 --- !u!1 &901473871
 GameObject:
   m_ObjectHideFlags: 0

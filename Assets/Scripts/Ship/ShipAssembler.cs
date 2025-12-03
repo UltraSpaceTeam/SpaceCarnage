@@ -9,6 +9,7 @@ public class ShipAssembler : MonoBehaviour
 
     public HullData CurrentHull { get; private set; }
     public WeaponData CurrentWeapon { get; private set; }
+    public GameObject CurrentWeaponObject { get; private set; }
     public EngineData CurrentEngine { get; private set; }
 
     private GameObject _currentHullObject;
@@ -39,7 +40,7 @@ public class ShipAssembler : MonoBehaviour
         CurrentWeapon = weaponData;
         if (_activeSockets == null || _activeSockets.Count == 0) return;
 
-        AttachPartToSocket(weaponData, PartType.Weapon);
+        AttachWeaponToSocket(weaponData);
     }
 
     public void EquipEngine(EngineData engineData)
@@ -66,6 +67,28 @@ public class ShipAssembler : MonoBehaviour
                 GameObject newPart = Instantiate(partData.prefab, targetSocket.transform);
                 newPart.transform.localPosition = Vector3.zero;
                 newPart.transform.localRotation = Quaternion.identity;
+            }
+        }
+    }
+
+    private void AttachWeaponToSocket(WeaponData partData)
+    {
+        PartSocket targetSocket = _activeSockets.FirstOrDefault(s => s.socketType == PartType.Weapon);
+
+        if (targetSocket != null)
+        {
+            for (int i = targetSocket.transform.childCount - 1; i >= 0; i--)
+            {
+                Destroy(targetSocket.transform.GetChild(i).gameObject);
+            }
+
+            if (partData != null && partData.prefab != null)
+            {
+                GameObject newPart = Instantiate(partData.prefab, targetSocket.transform);
+                newPart.transform.localPosition = Vector3.zero;
+                newPart.transform.localRotation = Quaternion.identity;
+
+                CurrentWeaponObject = newPart;
             }
         }
     }

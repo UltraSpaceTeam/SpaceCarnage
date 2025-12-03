@@ -17,5 +17,12 @@ MonoBehaviour:
   partType: 1
   prefab: {fileID: 595135914896999659, guid: 29b644c180454454993b26d22a265ed1, type: 3}
   weight: 3
+  strategy: {fileID: 11400000, guid: dd97fbd55eaaa7e49a8ebf994a48bfac, type: 2}
   damage: 40
   fireRate: 0.4
+  range: 10
+  ammo: 1
+  projectileSpeed: 100
+  projectilePrefab: {fileID: 0}
+  hitVFX: {fileID: 0}
+  muzzleFlashVFX: {fileID: 0}
