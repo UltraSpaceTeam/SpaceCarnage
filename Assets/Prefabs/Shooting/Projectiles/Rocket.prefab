@@ -128,7 +128,8 @@ MonoBehaviour:
   syncDirection: 0
   syncMode: 0
   syncInterval: 0
-  damage: 0
+  damage: 60
+  _hitVFX: {fileID: 0}
 --- !u!114 &9005357769185050131
 MonoBehaviour:
   m_ObjectHideFlags: 0
