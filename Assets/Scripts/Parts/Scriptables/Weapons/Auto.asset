@@ -25,5 +25,5 @@ MonoBehaviour:
   reload: 0.7
   projectileSpeed: 100
   projectilePrefab: {fileID: 5003006577081230700, guid: 6e2f1e07e70b1684da81cd4fef4dcc4a, type: 3}
-  hitVFX: {fileID: 0}
-  muzzleFlashVFX: {fileID: 0}
+  hitVFX: {fileID: 3737296553817654341, guid: 15d9acd62f78eca4b87500448951d8c3, type: 3}
+  muzzleFlashVFX: {fileID: 3737296553817654341, guid: ec0529c350587f7459efae1f9c38dac9, type: 3}

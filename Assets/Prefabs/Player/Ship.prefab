@@ -18,7 +18,7 @@ GameObject:
   - component: {fileID: 703890252711067340}
   - component: {fileID: 2366990887147708466}
   - component: {fileID: -5732933078604654896}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Ship
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -86,7 +86,7 @@ MonoBehaviour:
   syncRotation: 1
   syncScale: 0
   onlySyncOnChange: 1
-  compressRotation: 1
+  compressRotation: 0
   interpolatePosition: 1
   interpolateRotation: 1
   interpolateScale: 1
@@ -97,9 +97,9 @@ MonoBehaviour:
   overlayColor: {r: 0, g: 0, b: 0, a: 0.5}
   onlySyncOnChangeCorrectionMultiplier: 2
   useFixedUpdate: 0
-  rotationSensitivity: 0.01
-  positionPrecision: 0.01
-  scalePrecision: 0.01
+  rotationSensitivity: 0.001
+  positionPrecision: 0.0001
+  scalePrecision: 0.0001
 --- !u!114 &2096342467473842246
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -120,7 +120,7 @@ MonoBehaviour:
   syncRotation: 1
   syncScale: 0
   onlySyncOnChange: 1
-  compressRotation: 1
+  compressRotation: 0
   interpolatePosition: 1
   interpolateRotation: 1
   interpolateScale: 1
@@ -178,6 +178,8 @@ MonoBehaviour:
   syncInterval: 0
   mouseSensivity: 1
   invertY: 0
+  cursorReturnStrength: 0.5
+  cursorSmoothTime: 0.1
 --- !u!114 &703890252711067340
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -233,6 +235,10 @@ PrefabInstance:
     - target: {fileID: 1378776716757305967, guid: 3c6124f8c1539af4e9fbaf3ca5c00e1c, type: 3}
       propertyPath: m_Name
       value: LaserEffect
+      objectReference: {fileID: 0}
+    - target: {fileID: 1378776716757305967, guid: 3c6124f8c1539af4e9fbaf3ca5c00e1c, type: 3}
+      propertyPath: m_Layer
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 2032022430842417826, guid: 3c6124f8c1539af4e9fbaf3ca5c00e1c, type: 3}
       propertyPath: m_UseWorldSpace

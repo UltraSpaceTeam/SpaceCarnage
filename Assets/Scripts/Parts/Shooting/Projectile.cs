@@ -1,64 +1,90 @@
 using UnityEngine;
 using Mirror;
+using System.Collections;
 
 [RequireComponent(typeof(Rigidbody))]
+[RequireComponent(typeof(Health))]
+[RequireComponent(typeof(NetworkIdentity))]
 public class Projectile : NetworkBehaviour
 {
-    [SyncVar]
-    private float _syncSpeed;
+    [SyncVar] private float _syncSpeed;
 
-    private float _damage;
-    private GameObject _hitVFX;
-    private uint _ownerId;
+    public float damage;
+    [SerializeField] private GameObject _hitVFX;
+    public GameObject HitVFX { get { return _hitVFX; } }
+    public uint OwnerId { get; private set; }
+    private IDieable dieable;
+    private Rigidbody _rb;
+    private Collider _col;
+    private bool _isImpacted = false;
 
     public void Initialize(float damage, float speed, float lifetime, GameObject hitPrefab, uint ownerId)
     {
-        _damage = damage;
+        this.damage = damage;
         _hitVFX = hitPrefab;
-        _ownerId = ownerId;
+        OwnerId = ownerId;
         _syncSpeed = speed;
+        dieable = GetComponent<IDieable>();
+        _rb = GetComponent<Rigidbody>();
+        _col = GetComponent<Collider>();
 
-        Invoke(nameof(DestroySelf), lifetime);
+        Invoke(nameof(TimeOut), lifetime);
     }
 
-    public override void OnStartServer()
-    {
-        Launch();
-    }
-
-    public override void OnStartClient()
-    {
-        Launch();
-    }
+    public override void OnStartServer() => Launch();
+    public override void OnStartClient() => Launch();
 
     private void Launch()
     {
-        Rigidbody rb = GetComponent<Rigidbody>();
-        rb.useGravity = false;
-        rb.linearVelocity = transform.forward * _syncSpeed;
+        if (_rb == null) _rb = GetComponent<Rigidbody>();
+        _rb.useGravity = false;
+        _rb.linearVelocity = transform.forward * _syncSpeed;
     }
 
     [ServerCallback]
     private void OnTriggerEnter(Collider other)
     {
+        if (_isImpacted || dieable.IsDead) return;
+
         if (other.attachedRigidbody != null)
+        {
             if (other.attachedRigidbody.TryGetComponent<NetworkIdentity>(out var hitNetIdentity))
             {
-                if (hitNetIdentity.netId == _ownerId) return;
+                if (hitNetIdentity.netId == OwnerId) return;
             }
-        Debug.Log("XDD" + other.gameObject.name); //затычка
+            if (other.attachedRigidbody.TryGetComponent<IDieable>(out var targetDieable))
+            {
+                targetDieable.TakeDamage(damage, "Projectile");
+            }
+        }
 
-        DestroySelf();
+        Debug.Log("XDD Hit: " + other.gameObject.name);
+        if (_hitVFX != null)
+        {
+            GameObject vfx = Instantiate(_hitVFX, transform.position, transform.rotation);
+            NetworkServer.Spawn(vfx);
+        }
+
+        dieable.Die("Hit");
     }
 
-    [ClientRpc]
-    private void RpcSpawnExplosion(Vector3 pos, Quaternion rot)
+    private void StopPhysics()
     {
+        _isImpacted = true;
+        _rb.linearVelocity = Vector3.zero;
+        _rb.isKinematic = true;
+        if (_col != null) _col.enabled = false;
     }
 
     [Server]
-    private void DestroySelf()
+    private void TimeOut()
     {
-        NetworkServer.Destroy(gameObject);
+        if (!dieable.IsDead) dieable.Die("Timeout");
+    }
+
+    [ClientRpc]
+    public void RpcSpawnExplosion(Vector3 pos, Quaternion rot)
+    {
+        if (_hitVFX != null) Instantiate(_hitVFX, pos, rot);
     }
 }

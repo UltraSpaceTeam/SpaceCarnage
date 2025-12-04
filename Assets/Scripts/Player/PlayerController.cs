@@ -16,8 +16,14 @@ public class PlayerController : NetworkBehaviour
     [Header("Input Settings")]
     [SerializeField] private float mouseSensivity = 2.0f;
     [SerializeField] private bool invertY = false;
+    [SerializeField] private float cursorReturnStrength = 0.5f;
+    [SerializeField] private float cursorSmoothTime = 0.1f;
 
     private Vector2 mouseCursorPos = Vector2.zero;
+
+    private Vector2 _targetCursorPos = Vector2.zero;
+
+    private Vector2 _cursorVelocity;
 
     void Awake()
     {
@@ -49,9 +55,20 @@ public class PlayerController : NetworkBehaviour
         float roll = Input.GetAxis("Horizontal");
         float mouseX = Input.GetAxis("Mouse X") * mouseSensivity * Time.deltaTime;
         float mouseY = Input.GetAxis("Mouse Y") * mouseSensivity * Time.deltaTime * (invertY ? 1 : -1);
+
+        _targetCursorPos += new Vector2(mouseX, mouseY);
+
+        if (cursorReturnStrength > 0)
+        {
+            Vector2 springReturn = Vector2.Lerp(_targetCursorPos, Vector2.zero, cursorReturnStrength * Time.deltaTime);
+
+            float minReturnSpeed = 0.3f;
+            _targetCursorPos = Vector2.MoveTowards(springReturn, Vector2.zero, minReturnSpeed * Time.deltaTime);
+        }
+
+        mouseCursorPos = Vector2.SmoothDamp(mouseCursorPos, _targetCursorPos, ref _cursorVelocity, cursorSmoothTime);
         mouseCursorPos = Vector2.ClampMagnitude(mouseCursorPos, 1.0f);
 
-        mouseCursorPos += new Vector2(mouseX, mouseY);
         Vector3 curRotationInput = new Vector3(mouseCursorPos.y, mouseCursorPos.x, -roll);
         CmdUpdateInputs(thrustInput, curRotationInput);
     }
@@ -83,7 +100,7 @@ public class PlayerController : NetworkBehaviour
         {
             rb.linearVelocity = rb.linearVelocity.normalized * hull.maxSpeed;
         }
-        if (rotationInput.sqrMagnitude > 0.01f)
+        if (rotationInput.sqrMagnitude > 0.001f)
         {
             float pitch = rotationInput.x * hull.rotationXYSpeed;
             float yaw = rotationInput.y * hull.rotationXYSpeed;
@@ -100,6 +117,9 @@ public class PlayerController : NetworkBehaviour
 
         float x = (Screen.width / 2) + (mouseCursorPos.x * Screen.height / 2);
         float y = (Screen.height / 2) + (mouseCursorPos.y * Screen.height / 2);
-        GUI.Box(new Rect(x - 5, y - 5, 10, 10), "");
+        GUI.color = Color.black;
+        GUI.Box(new Rect(x - 6, y - 6, 12, 12), "");
+        GUI.color = Color.white;
+        GUI.Box(new Rect(x - 4, y - 4, 8, 8), "");
     }
 }

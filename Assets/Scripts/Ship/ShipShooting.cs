@@ -16,7 +16,11 @@ public class ShipShooting : NetworkBehaviour
     [Header("Components")]
     [SerializeField] private LineRenderer laserBeamRenderer;
 
+    private const float DEFAULT_AIM_DISTANCE = 1000f;
+
     public WeaponData CurrentWeaponData => _assembler.CurrentWeapon;
+
+
 
     void Awake()
     {
@@ -35,10 +39,10 @@ public class ShipShooting : NetworkBehaviour
     void Update()
     {
         if (!isLocalPlayer) return;
+
         if (_assembler.CurrentWeapon == null) return;
 
         if (_cachedWeapon != CurrentWeaponData) ResetWeaponState();
-
         if (_isReloading) return;
 
         if (_currentAmmo <= 0)
@@ -64,9 +68,42 @@ public class ShipShooting : NetworkBehaviour
                 _lastFireTime = Time.time;
                 _currentAmmo--;
 
-                CmdFire(_muzzlePoint.position, _muzzlePoint.rotation);
+                Quaternion aimRotation = GetAimRotation();
+
+                CmdFire(_muzzlePoint.position, aimRotation);
             }
         }
+    }
+
+    private Quaternion GetAimRotation()
+    {
+        if (Camera.main == null) return _muzzlePoint.rotation;
+
+        Ray ray = Camera.main.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
+        Vector3 targetPoint = GetTargetPoint(ray);
+
+        Vector3 aimDirection = (targetPoint - _muzzlePoint.position).normalized;
+        return Quaternion.LookRotation(aimDirection);
+    }
+
+    
+
+    private Vector3 GetTargetPoint(Ray ray)
+    {
+        RaycastHit[] hits = Physics.RaycastAll(ray, DEFAULT_AIM_DISTANCE);
+        System.Array.Sort(hits, (x, y) => x.distance.CompareTo(y.distance));
+
+        foreach (var hit in hits)
+        {
+            if (hit.collider.transform.root == transform) continue;
+
+            Vector3 dirToHit = hit.point - _muzzlePoint.position;
+            if (Vector3.Dot(_muzzlePoint.forward, dirToHit.normalized) > 0)
+            {
+                return hit.point;
+            }
+        }
+        return ray.GetPoint(DEFAULT_AIM_DISTANCE);
     }
 
     private void ResetWeaponState()
@@ -92,8 +129,31 @@ public class ShipShooting : NetworkBehaviour
     public void RefreshMuzzlePoint()
     {
         if (_assembler.CurrentWeaponObject != null)
+        {
             _muzzlePoint = _assembler.CurrentWeaponObject.transform.Find("Muzzle");
-        if (_muzzlePoint == null) _muzzlePoint = transform;
+
+            if (_muzzlePoint == null)
+            {
+                var allTransforms = _assembler.CurrentWeaponObject.GetComponentsInChildren<Transform>();
+                foreach (var t in allTransforms)
+                {
+                    if (t.name == "Muzzle")
+                    {
+                        _muzzlePoint = t;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (_muzzlePoint != null)
+        {
+            Debug.Log($"Muzzle found on {_muzzlePoint.parent.name}");
+        }
+        else
+        {
+            _muzzlePoint = transform;
+        }
     }
 
     [Command]
@@ -156,4 +216,6 @@ public class ShipShooting : NetworkBehaviour
 
         laserBeamRenderer.enabled = false;
     }
+
+    
 }

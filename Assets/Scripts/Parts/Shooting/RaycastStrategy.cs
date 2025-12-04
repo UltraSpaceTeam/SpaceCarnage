@@ -20,6 +20,13 @@ public class RaycastStrategy : WeaponStrategy
                 endPoint = hit.point;
 
                 Debug.Log("Raycast hit: " + hit.collider.gameObject.name);
+                if (hit.collider.attachedRigidbody != null)
+                {
+                    if (hit.collider.attachedRigidbody.TryGetComponent<IDieable>(out var dieable))
+                    {
+                        dieable.TakeDamage(stats.damage);
+                    }
+                }
 
                 shooter.RpcSpawnHitEffect(hit.point, Quaternion.LookRotation(hit.normal));
             }
