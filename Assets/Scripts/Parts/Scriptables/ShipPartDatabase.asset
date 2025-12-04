@@ -18,8 +18,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: dbf8f38314106fe499babbfbff23549d, type: 2}
   - {fileID: 11400000, guid: 92cb02c6245ffc44ca803d392ea875c3, type: 2}
   weapons:
-  - {fileID: 11400000, guid: b55fd533ee424644a863a2829c23cc8d, type: 2}
   - {fileID: 11400000, guid: e014a6391eb58ec47a5e9f850747f95a, type: 2}
+  - {fileID: 11400000, guid: b55fd533ee424644a863a2829c23cc8d, type: 2}
   - {fileID: 11400000, guid: 2896408d8a714414eb68a8d822332458, type: 2}
   - {fileID: 11400000, guid: 0cfcbc81f2a36924caac9818fe1fd400, type: 2}
   engines:

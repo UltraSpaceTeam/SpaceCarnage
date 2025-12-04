@@ -1,3 +1,4 @@
+using System.Collections;
 using Mirror;
 using UnityEngine;
 
@@ -14,6 +15,7 @@ public class Health : NetworkBehaviour, IDieable
     // Реализация свойства из интерфейса
     public bool IsDead => isDead;
     
+    public event System.Action<string> OnDeath;
     // Событие для UI (опционально)
     public event System.Action<float, float> OnHealthUpdate;
     
@@ -26,41 +28,40 @@ public class Health : NetworkBehaviour, IDieable
     }
     
     [Server]
-    public void TakeDamage(float damage)
+    public void TakeDamage(float damage, string source="unknown")
     {
         if (isDead) return;
         
         currentHealth -= damage;
-        
+        Debug.Log($"[Health] Took {damage} damage, current health: {currentHealth}/{maxHealth}");
         if (currentHealth <= 0)
         {
             currentHealth = 0;
-            Die();
+            Die(source);
         }
     }
     
     [Server]
-    public void Die()
+    public void Die(string source = "unknown")
     {
         if (isDead) return;
-        
+        Debug.Log(gameObject.name + " died due to " + source);
         isDead = true;
-        RpcDie();
-        
-    }
-    
-    [ClientRpc]
-    private void RpcDie()
-    {
+
+        OnDeath?.Invoke(source);
+        if (GetComponent<Player>() != null) return;
+
+        NetworkServer.Destroy(gameObject);
 
     }
-    
+
+
     private void OnHealthChanged(float oldHealth, float newHealth)
     {
         // Обновление UI здоровья
         OnHealthUpdate?.Invoke(newHealth, maxHealth);
     }
-    
+
     public float GetHealthPercentage()
     {
         return currentHealth / maxHealth;
