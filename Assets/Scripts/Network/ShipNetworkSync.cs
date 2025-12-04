@@ -22,8 +22,8 @@ public class ShipNetworkSync : NetworkBehaviour
 
     public override void OnStartLocalPlayer()
     {
-        int hIndex = 2;
-        int wIndex = 1;
+        int hIndex = 3;
+        int wIndex = 3;
         int eIndex = 0;
 
         CmdSetupShip(hIndex, wIndex, eIndex);

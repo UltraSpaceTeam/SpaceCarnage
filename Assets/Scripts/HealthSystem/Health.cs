@@ -33,7 +33,7 @@ public class Health : NetworkBehaviour, IDieable
         if (isDead) return;
         
         currentHealth -= damage;
-        Debug.Log($"[Health] Took {damage} damage, current health: {currentHealth}/{maxHealth}");
+        Debug.Log($"{gameObject.name} Took {damage} damage, current health: {currentHealth}/{maxHealth}");
         if (currentHealth <= 0)
         {
             currentHealth = 0;

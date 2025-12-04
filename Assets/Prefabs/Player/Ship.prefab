@@ -144,7 +144,7 @@ Rigidbody:
   serializedVersion: 4
   m_Mass: 100
   m_Drag: 1
-  m_AngularDrag: 4
+  m_AngularDrag: 2
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
   m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
@@ -176,10 +176,16 @@ MonoBehaviour:
   syncDirection: 0
   syncMode: 0
   syncInterval: 0
-  mouseSensivity: 1
   invertY: 0
-  cursorReturnStrength: 0.5
-  cursorSmoothTime: 0.1
+  centeringSpeed: 0.25
+  centeringDelay: 0.5
+  centeringSmoothTime: 0.2
+  sensitivityCurve: 0.8
+  deadzoneRadius: 0.05
+  mouseSensitivity: 0.5
+  cursorInputSmoothTime: 0.02
+  pFactor: 0.4
+  dFactor: 0.5
 --- !u!114 &703890252711067340
 MonoBehaviour:
   m_ObjectHideFlags: 0
