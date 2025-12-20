@@ -1,32 +1,265 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using Mirror;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
+
+[RequireComponent(typeof(Health))]
+[RequireComponent(typeof(PlayerController))]
+[RequireComponent(typeof(ShipShooting))]
+[RequireComponent(typeof(ShipAssembler))]
 public class Player : NetworkBehaviour
 {
     private Health health;
+    private PlayerController controller;
+    private ShipShooting shooting;
+    private ShipAssembler assembler;
 
+
+    [Header("Respawn Settings")]
+    [SerializeField] private float invulnerabilityDuration = 3.0f;
+
+    [Header("Death VFX")]
+    [SerializeField] private float explosionForce = 500f;
+    [SerializeField] private float explosionRadius = 5f;
+    [SerializeField] private float debrisLifetime = 10f;
 
     private void Awake()
     {
         health = GetComponent<Health>();
+        controller = GetComponent<PlayerController>();
+        shooting = GetComponent<ShipShooting>();
+        assembler = GetComponent<ShipAssembler>();
+
     }
 
     public override void OnStartServer()
     {
         base.OnStartServer();
-        health.OnDeath += HandleDeath;
+        health.OnDeath += ServerHandleDeath;
     }
     public override void OnStopServer()
     {
         base.OnStopServer();
-        health.OnDeath -= HandleDeath;
+        health.OnDeath -= ServerHandleDeath;
     }
 
-    private void HandleDeath(string source)
+    public override void OnStartLocalPlayer()
+    {
+        base.OnStartLocalPlayer();
+        health.OnHealthUpdate += HandleHealthUpdate;
+        UIManager.Instance.UpdateHealth(100, 100);
+    }
+    public override void OnStopLocalPlayer()
+    {
+        base.OnStopLocalPlayer();
+        if (health != null) health.OnHealthUpdate -= HandleHealthUpdate;
+    }
+
+    private void HandleHealthUpdate(float current, float max)
+    {
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.UpdateHealth(current, max);
+        }
+    }
+
+    [Server]
+    private void ServerHandleDeath(string source)
     {
         Debug.Log("Player " + gameObject.name + " died due to " + source);
+        RpcSpawnDebris();
+
+        SetPlayerState(false);
+
+        TargetShowDeathScreen(connectionToClient, source);
+
+        //TODO add killfeed
     }
-    
+
+    [ClientRpc]
+    private void RpcSpawnDebris()
+    {
+        List<GameObject> partsToExplode = new List<GameObject>();
+
+        if (assembler.CurrentHullObject != null) partsToExplode.Add(assembler.CurrentHullObject);
+        if (assembler.CurrentWeaponObject != null) partsToExplode.Add(assembler.CurrentWeaponObject);
+
+        if (partsToExplode.Count == 0)
+        {
+            foreach (Transform t in transform) partsToExplode.Add(t.gameObject);
+        }
+
+        foreach (var originalPart in partsToExplode)
+        {
+            if (originalPart == null) continue;
+
+            GameObject debrisPart = Instantiate(originalPart, originalPart.transform.position, originalPart.transform.rotation);
+
+            SetupDebrisRecursive(debrisPart.transform);
+
+            Destroy(debrisPart, debrisLifetime);
+        }
+    }
+
+    private void SetupDebrisRecursive(Transform parent)
+    {
+        var allRenderers = parent.GetComponentsInChildren<Renderer>(true);
+
+        foreach (var r in allRenderers)
+        {
+            if (r is LineRenderer || r is TrailRenderer || r is ParticleSystemRenderer)
+            {
+                Destroy(r.gameObject);
+                continue;
+            }
+
+            GameObject go = r.gameObject;
+
+            r.enabled = true;
+            r.material.color = Color.gray;
+
+            foreach (var col in go.GetComponents<Collider>()) Destroy(col);
+            foreach (var comp in go.GetComponents<MonoBehaviour>()) Destroy(comp);
+
+            Rigidbody rb = go.GetComponent<Rigidbody>();
+            if (rb == null) rb = go.AddComponent<Rigidbody>();
+
+            rb.useGravity = false;
+            rb.linearDamping = 0.5f;
+            rb.angularDamping = 0.5f;
+
+            Vector3 randomDir = Random.insideUnitSphere;
+            rb.AddForce(randomDir * explosionForce, ForceMode.Impulse);
+            rb.AddTorque(Random.insideUnitSphere * explosionForce, ForceMode.Impulse);
+
+            if (go.transform != parent)
+            {
+                go.transform.SetParent(null);
+
+                Destroy(go, debrisLifetime);
+            }
+        }
+    }
+
+    [TargetRpc]
+    private void TargetShowDeathScreen(NetworkConnection target, string source)
+    {
+        Debug.Log("YOU DIED! Source: " + source);
+
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.ShowDeathScreen(source);
+        }
+        else
+        {
+            Debug.LogWarning("UIManager instance is null!");
+        }
+    }
+
+
+    [Command]
+    public void CmdRequestRespawn()
+    {
+        if (!health.IsDead) return;
+
+        StartCoroutine(RespawnRoutine());
+    }
+
+    [Server]
+    private IEnumerator RespawnRoutine()
+    {
+        Transform spawnPoint = GetSafeSpawnPoint();
+
+        Rigidbody rb = GetComponent<Rigidbody>();
+        if (rb != null)
+        {
+            rb.isKinematic = true;
+            rb.linearVelocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+        }
+
+        transform.position = spawnPoint.position;
+        transform.rotation = spawnPoint.rotation;
+
+        yield return new WaitForSeconds(0.1f); 
+
+        if (rb != null) rb.isKinematic = false;
+
+        health.Ressurect();
+
+        SetPlayerState(true);
+
+        health.SetInvincibility(true);
+        TargetRespawnFeedback(connectionToClient);
+
+        yield return new WaitForSeconds(invulnerabilityDuration);
+
+        health.SetInvincibility(false);
+    }
+
+    [Server]
+    private void SetPlayerState(bool isActive)
+    {
+        controller.enabled = isActive;
+        shooting.enabled = isActive;
+
+        var colliders = GetComponentsInChildren<Collider>();
+        var renderers = GetComponentsInChildren<Renderer>();
+
+        foreach (var c in colliders) c.enabled = isActive;
+        foreach (var r in renderers)
+        {
+            if(r is LineRenderer || r is TrailRenderer || r is ParticleSystemRenderer)
+            {
+                continue;
+            }
+            r.enabled = isActive;
+
+        }
+
+        RpcSetState(isActive);
+    }
+
+    [ClientRpc]
+    private void RpcSetState(bool isActive)
+    {
+        Debug.Log("Setting player state to " + isActive);
+        controller.enabled = isActive;
+        shooting.enabled = isActive;
+
+        foreach (var c in GetComponentsInChildren<Collider>()) c.enabled = isActive;
+        foreach (var r in GetComponentsInChildren<Renderer>()) r.enabled = isActive;
+    }
+
+
+    [TargetRpc]
+    private void TargetRespawnFeedback(NetworkConnection target)
+    {
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.HideDeathScreen();
+        }
+    }
+
+    [Server]
+    private Transform GetSafeSpawnPoint()
+    {
+        var startPositions = NetworkManager.startPositions;
+        foreach (var pos in startPositions)
+        {
+            if (Physics.OverlapSphere(pos.position, 10f).Length == 0)
+            {
+                return pos;
+            }
+        }
+        if (startPositions.Count > 0)
+            return startPositions[Random.Range(0, startPositions.Count)];
+
+        return NetworkManager.singleton.GetStartPosition();
+    }
+
 }
 
