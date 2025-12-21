@@ -39,6 +39,16 @@ public class Player : NetworkBehaviour
     {
         base.OnStartServer();
         health.OnDeath += ServerHandleDeath;
+
+        if (assembler != null)
+        {
+            assembler.OnHullEquipped += HandleHullChange;
+
+            if (assembler.CurrentHull != null)
+            {
+                HandleHullChange(assembler.CurrentHull);
+            }
+        }
     }
     public override void OnStopServer()
     {
@@ -63,6 +73,15 @@ public class Player : NetworkBehaviour
         if (UIManager.Instance != null)
         {
             UIManager.Instance.UpdateHealth(current, max);
+        }
+    }
+
+    [Server]
+    private void HandleHullChange(HullData newHull)
+    {
+        if (newHull != null)
+        {
+            health.SetMaxHealth(newHull.maxHealth);
         }
     }
 
@@ -231,7 +250,14 @@ public class Player : NetworkBehaviour
         shooting.enabled = isActive;
 
         foreach (var c in GetComponentsInChildren<Collider>()) c.enabled = isActive;
-        foreach (var r in GetComponentsInChildren<Renderer>()) r.enabled = isActive;
+        foreach (var r in GetComponentsInChildren<Renderer>())
+        {
+            if(r is LineRenderer||  r is TrailRenderer || r is ParticleSystemRenderer)
+            {
+                continue;
+            }
+            r.enabled = isActive;
+        }
     }
 
 

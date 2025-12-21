@@ -4,7 +4,8 @@ using UnityEngine;
 
 public class Health : NetworkBehaviour, IDieable
 {
-    [Header("Health Settings")]
+    [Header("Health info(readonly)")]
+    [SyncVar(hook = nameof(OnMaxHealthChanged))]
     [SerializeField] private float maxHealth = 100f;
     [SyncVar(hook = nameof(OnHealthChanged))] 
     private float currentHealth;
@@ -20,7 +21,14 @@ public class Health : NetworkBehaviour, IDieable
     public event System.Action<string> OnDeath;
     // Событие для UI (опционально)
     public event System.Action<float, float> OnHealthUpdate;
-    
+
+    [Server]
+    public void SetMaxHealth(float value)
+    {
+        maxHealth = value;
+        currentHealth = value;
+    }
+
     private void Start()
     {
         if (isServer)
@@ -83,8 +91,9 @@ public class Health : NetworkBehaviour, IDieable
     [ClientRpc]
     private void RpcResurrect()
     {
-        foreach (var r in GetComponentsInChildren<Renderer>()) r.enabled = true;
-        foreach (var c in GetComponentsInChildren<Collider>()) c.enabled = true;
+        //мб удалить
+        // foreach (var r in GetComponentsInChildren<Renderer>()) r.enabled = true;
+        // foreach (var c in GetComponentsInChildren<Collider>()) c.enabled = true;
     }
 
 
@@ -92,6 +101,10 @@ public class Health : NetworkBehaviour, IDieable
     {
         // Обновление UI здоровья
         OnHealthUpdate?.Invoke(newHealth, maxHealth);
+    }
+    private void OnMaxHealthChanged(float oldMax, float newMax)
+    {
+        OnHealthUpdate?.Invoke(currentHealth, newMax);
     }
 
     public float GetHealthPercentage()

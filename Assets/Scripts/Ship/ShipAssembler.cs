@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
+using System;
 
 public class ShipAssembler : MonoBehaviour
 {
@@ -14,6 +15,7 @@ public class ShipAssembler : MonoBehaviour
 
     public GameObject CurrentHullObject;
     private List<PartSocket> _activeSockets = new List<PartSocket>();
+    public event Action<HullData> OnHullEquipped;
 
     public void EquipHull(HullData newHullData)
     {
@@ -31,6 +33,8 @@ public class ShipAssembler : MonoBehaviour
         CurrentHull = newHullData;
 
         _activeSockets = CurrentHullObject.GetComponentsInChildren<PartSocket>(true).ToList();
+
+        OnHullEquipped?.Invoke(newHullData);
 
         if (CurrentWeapon != null) EquipWeapon(CurrentWeapon);
         if (CurrentEngine != null) EquipEngine(CurrentEngine);
