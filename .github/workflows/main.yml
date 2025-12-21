@@ -18,10 +18,6 @@ jobs:
                   buildDirectory: Linux
                   clientMethod: BuildScript.BuildLinuxClient
                   serverMethod: BuildScript.BuildLinuxServer
-                - platform: StandaloneOSX
-                  buildDirectory: Mac   
-                  clientMethod: BuildScript.BuildMacClient
-                  serverMethod: BuildScript.BuildMacServer
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
