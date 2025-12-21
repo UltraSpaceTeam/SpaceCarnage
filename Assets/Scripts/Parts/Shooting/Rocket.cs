@@ -51,13 +51,13 @@ public class Rocket : NetworkBehaviour
                 if (netId.netId == _projectile.OwnerId) continue;
             }
 
-            _health.Die("Proximity Fuse");
+            _health.Die(DamageContext.Suicide("Proximity fuse"));
             break;
         }
     }
 
     [Server]
-    private void Detonate(string source)
+    private void Detonate(DamageContext source)
     {
         if (_hasExploded) return;
         _hasExploded = true;
@@ -70,13 +70,14 @@ public class Rocket : NetworkBehaviour
             {
                 if (targetRb.TryGetComponent<IDieable>(out var targetHealth))
                 {
-                    targetHealth.TakeDamage(explosionDamage, "Rocket Explosion");
+                    var ctx = DamageContext.Weapon(_projectile.OwnerId, _projectile.ownerName, _projectile.weaponName);
+                    targetHealth.TakeDamage(explosionDamage, ctx);
                 }
                 targetRb.AddExplosionForce(explosionForce, transform.position, explosionRadius);
             }
         }
 
-        if (source != "Hit")
+        if (source.AttackerName != "hit")
         {
             if (_projectile.HitVFX != null)
             {

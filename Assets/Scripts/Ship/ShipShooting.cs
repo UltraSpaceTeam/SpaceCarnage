@@ -6,6 +6,7 @@ using System.Collections;
 public class ShipShooting : NetworkBehaviour
 {
     private ShipAssembler _assembler;
+    private Player _player;
     private float _lastFireTime = 0f;
     private Transform _muzzlePoint;
 
@@ -20,12 +21,14 @@ public class ShipShooting : NetworkBehaviour
 
     public WeaponData CurrentWeaponData => _assembler.CurrentWeapon;
 
+    public string ShooterName => _player != null ? _player.Nickname : "Unknown";
+
 
 
     void Awake()
     {
         _assembler = GetComponent<ShipAssembler>();
-
+        _player = GetComponent<Player>();
         if (laserBeamRenderer == null)
             laserBeamRenderer = GetComponent<LineRenderer>();
 

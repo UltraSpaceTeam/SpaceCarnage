@@ -12,6 +12,12 @@ public class HUDController : MonoBehaviour
     [SerializeField] private float smoothSpeed = 5f;
     [SerializeField] private Gradient colorGradient;
 
+    [Header("Killfeed Settings")]
+    [SerializeField] private Transform killFeedContainer;
+    [SerializeField] private GameObject killFeedItemPrefab;
+    [SerializeField] private int maxKillFeedItems = 5;
+    [SerializeField] private float killFeedDuration = 7f;
+
 
     private float _targetFillAmount = 1f;
 
@@ -45,8 +51,50 @@ public class HUDController : MonoBehaviour
 
     }
 
-    public void AddKillFeed(string killer, string victim)
+    public void AddKillFeed(DamageContext ctx, string victim)
     {
-        
+        GameObject item = Instantiate(killFeedItemPrefab, killFeedContainer);
+
+        var textComp = item.GetComponentInChildren<TextMeshProUGUI>();
+
+        if (textComp != null)
+        {
+            string message = "";
+
+            switch (ctx.Type)
+            {
+                case DamageType.Suicide:
+                    message = $"<b>{victim}</b> <color=yellow>[SUICIDE]</color>";
+                    break;
+
+                case DamageType.Collision:
+                    message = $"<b>{victim}</b> <color=#AAAAAA>[CRASH]</color> {ctx.WeaponID}";
+                    break;
+
+                case DamageType.Weapon:
+                    if (ctx.AttackerName == victim)
+                    {
+                        message = $"<b>{victim}</b> <color=red>[OWN GOAL]</color> {ctx.WeaponID}";
+                    }
+                    else
+                    {
+                        message = $"<b>{ctx.AttackerName}</b> <color=red>[{ctx.WeaponID}]</color> <b>{victim}</b>";
+                    }
+                    break;
+
+                default:
+                    message = $"<b>{victim}</b> died";
+                    break;
+            }
+
+            textComp.text = message;
+        }
+
+        if (killFeedContainer.childCount > maxKillFeedItems)
+        {
+            Destroy(killFeedContainer.GetChild(0).gameObject);
+        }
+
+        Destroy(item, killFeedDuration);
     }
 }

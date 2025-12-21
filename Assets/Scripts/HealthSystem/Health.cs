@@ -18,7 +18,7 @@ public class Health : NetworkBehaviour, IDieable
     // Реализация свойства из интерфейса
     public bool IsDead => isDead;
     
-    public event System.Action<string> OnDeath;
+    public event System.Action<DamageContext> OnDeath;
     // Событие для UI (опционально)
     public event System.Action<float, float> OnHealthUpdate;
 
@@ -38,7 +38,7 @@ public class Health : NetworkBehaviour, IDieable
     }
     
     [Server]
-    public void TakeDamage(float damage, string source="unknown")
+    public void TakeDamage(float damage, DamageContext source)
     {
         if (isDead || isInvincible) return;
         
@@ -52,7 +52,7 @@ public class Health : NetworkBehaviour, IDieable
     }
     
     [Server]
-    public void Die(string source = "unknown")
+    public void Die(DamageContext source)
     {
         if (isDead) return;
         Debug.Log(gameObject.name + " died due to " + source);

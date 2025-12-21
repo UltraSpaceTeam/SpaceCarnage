@@ -24,7 +24,8 @@ public class RaycastStrategy : WeaponStrategy
                 {
                     if (hit.collider.attachedRigidbody.TryGetComponent<IDieable>(out var dieable))
                     {
-                        dieable.TakeDamage(stats.damage);
+                        var ctx = DamageContext.Weapon(shooter.netId, shooter.ShooterName, stats.name);
+                        dieable.TakeDamage(stats.damage, ctx);
                     }
                 }
 

@@ -128,7 +128,7 @@ public class PlayerController : NetworkBehaviour
     {
         if (health != null && !health.IsDead)
         {
-            health.Die("Suicide");
+            health.TakeDamage(9999, DamageContext.Suicide(name));
         }
     }
     private void FixedUpdate()
