@@ -20,7 +20,7 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    public void ShowDeathScreen(string source)
+    public void ShowDeathScreen(DamageContext source)
     {
         deathScreenController.Show(source);
     }
@@ -35,8 +35,8 @@ public class UIManager : MonoBehaviour
         hudController.UpdateHealth(current, max);
     }
 
-    public void AddKillFeedEntry(string killer, string victim)
+    public void AddKillFeedEntry(DamageContext ctx, string victim)
     {
-        hudController.AddKillFeed(killer, victim);
+        hudController.AddKillFeed(ctx, victim);
     }
 }

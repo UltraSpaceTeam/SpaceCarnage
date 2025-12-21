@@ -12,11 +12,15 @@ using Random = UnityEngine.Random;
 [RequireComponent(typeof(ShipAssembler))]
 public class Player : NetworkBehaviour
 {
+    //Все игроки тут
+    public static Dictionary<uint, Player> ActivePlayers = new Dictionary<uint, Player>();
+
     private Health health;
     private PlayerController controller;
     private ShipShooting shooting;
     private ShipAssembler assembler;
 
+    [SyncVar] public string Nickname = "Player";
 
     [Header("Respawn Settings")]
     [SerializeField] private float invulnerabilityDuration = 3.0f;
@@ -33,6 +37,24 @@ public class Player : NetworkBehaviour
         shooting = GetComponent<ShipShooting>();
         assembler = GetComponent<ShipAssembler>();
 
+    }
+
+    public override void OnStartClient()
+    {
+        base.OnStartClient();
+        if (!ActivePlayers.ContainsKey(netId))
+        {
+            ActivePlayers.Add(netId, this);
+        }
+    }
+
+    public override void OnStopClient()
+    {
+        base.OnStopClient();
+        if (ActivePlayers.ContainsKey(netId))
+        {
+            ActivePlayers.Remove(netId);
+        }
     }
 
     public override void OnStartServer()
@@ -58,6 +80,8 @@ public class Player : NetworkBehaviour
 
     public override void OnStartLocalPlayer()
     {
+        string myName = $"Player {netId}";
+        CmdSetNickname(myName);
         base.OnStartLocalPlayer();
         health.OnHealthUpdate += HandleHealthUpdate;
         UIManager.Instance.UpdateHealth(100, 100);
@@ -86,7 +110,7 @@ public class Player : NetworkBehaviour
     }
 
     [Server]
-    private void ServerHandleDeath(string source)
+    private void ServerHandleDeath(DamageContext source)
     {
         Debug.Log("Player " + gameObject.name + " died due to " + source);
         RpcSpawnDebris();
@@ -95,7 +119,16 @@ public class Player : NetworkBehaviour
 
         TargetShowDeathScreen(connectionToClient, source);
 
-        //TODO add killfeed
+        RpcAddKillFeed(source, Nickname);
+    }
+
+    [ClientRpc]
+    private void RpcAddKillFeed(DamageContext ctx, string victimName)
+    {
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.AddKillFeedEntry(ctx, victimName);
+        }
     }
 
     [ClientRpc]
@@ -164,7 +197,7 @@ public class Player : NetworkBehaviour
     }
 
     [TargetRpc]
-    private void TargetShowDeathScreen(NetworkConnection target, string source)
+    private void TargetShowDeathScreen(NetworkConnection target, DamageContext source)
     {
         Debug.Log("YOU DIED! Source: " + source);
 
@@ -185,6 +218,12 @@ public class Player : NetworkBehaviour
         if (!health.IsDead) return;
 
         StartCoroutine(RespawnRoutine());
+    }
+
+    [Command]
+    private void CmdSetNickname(string newName)
+    {
+        Nickname = newName;
     }
 
     [Server]

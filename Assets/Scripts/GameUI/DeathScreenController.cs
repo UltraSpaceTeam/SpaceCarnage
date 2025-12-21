@@ -17,10 +17,10 @@ public class DeathScreenController : MonoBehaviour
         exitButton.onClick.AddListener(OnExitClicked);
     }
 
-    public void Show(string source)
+    public void Show(DamageContext source)
     {
         panel.SetActive(true);
-        deathSourceText.text = $"Killed by: {source}";
+        deathSourceText.text = $"Killed by: {source.AttackerName} with {source.WeaponID}";
 
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;

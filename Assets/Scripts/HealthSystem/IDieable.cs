@@ -3,7 +3,7 @@ using UnityEngine;
 
 public interface IDieable
 {
-    void Die(string source = "unknown"); //пока строкой
+    void Die(DamageContext source);
     bool IsDead { get; } 
-    void TakeDamage(float damage, string source = "unknown"); 
+    void TakeDamage(float damage, DamageContext source); 
 }

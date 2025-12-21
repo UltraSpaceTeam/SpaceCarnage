@@ -15,7 +15,7 @@ public class ProjectileStrategy : WeaponStrategy
         if (projScript != null)
         {
             float lifetime = stats.range / stats.projectileSpeed;
-            projScript.Initialize(stats.damage, stats.projectileSpeed, lifetime, stats.hitVFX, shooter.netId);
+            projScript.Initialize(stats, shooter.netId, shooter.ShooterName);
         }
 
         NetworkServer.Spawn(bullet);

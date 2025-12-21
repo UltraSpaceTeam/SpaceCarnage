@@ -13,21 +13,26 @@ public class Projectile : NetworkBehaviour
     [SerializeField] private GameObject _hitVFX;
     public GameObject HitVFX { get { return _hitVFX; } }
     public uint OwnerId { get; private set; }
+    public string ownerName;
+    public string weaponName;
     private IDieable dieable;
     private Rigidbody _rb;
     private Collider _col;
     private bool _isImpacted = false;
 
-    public void Initialize(float damage, float speed, float lifetime, GameObject hitPrefab, uint ownerId)
+    public void Initialize(WeaponData data, uint ownerId, string ownerName)
     {
-        this.damage = damage;
-        _hitVFX = hitPrefab;
+        damage = data.damage;
+        _hitVFX = data.hitVFX;
         OwnerId = ownerId;
-        _syncSpeed = speed;
+        this.ownerName = ownerName;
+        _syncSpeed = data.projectileSpeed;
         dieable = GetComponent<IDieable>();
         _rb = GetComponent<Rigidbody>();
         _col = GetComponent<Collider>();
+        weaponName = data.name;
 
+        float lifetime = data.range / Mathf.Max(data.projectileSpeed, 1f);
         Invoke(nameof(TimeOut), lifetime);
     }
 
@@ -54,7 +59,7 @@ public class Projectile : NetworkBehaviour
             }
             if (other.attachedRigidbody.TryGetComponent<IDieable>(out var targetDieable))
             {
-                targetDieable.TakeDamage(damage, "Projectile");
+                targetDieable.TakeDamage(damage, DamageContext.Weapon(OwnerId, ownerName, weaponName));
             }
         }
 
@@ -65,7 +70,7 @@ public class Projectile : NetworkBehaviour
             NetworkServer.Spawn(vfx);
         }
 
-        dieable.Die("Hit");
+        dieable.Die(DamageContext.Suicide("hit"));
     }
 
     private void StopPhysics()
@@ -79,7 +84,7 @@ public class Projectile : NetworkBehaviour
     [Server]
     private void TimeOut()
     {
-        if (!dieable.IsDead) dieable.Die("Timeout");
+        if (!dieable.IsDead) dieable.Die(DamageContext.Suicide("timeout"));
     }
 
     [ClientRpc]
