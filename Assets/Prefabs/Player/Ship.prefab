@@ -9,7 +9,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2670521280389508925}
-  - component: {fileID: 6926252396595547307}
   - component: {fileID: 9138416596917959554}
   - component: {fileID: 6308443995555474309}
   - component: {fileID: 2096342467473842246}
@@ -18,9 +17,11 @@ GameObject:
   - component: {fileID: 703890252711067340}
   - component: {fileID: 2366990887147708466}
   - component: {fileID: -5732933078604654896}
+  - component: {fileID: 4741931126300241042}
+  - component: {fileID: -5202303669781032900}
   m_Layer: 6
   m_Name: Ship
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -41,14 +42,6 @@ Transform:
   - {fileID: 789378795229755239}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!33 &6926252396595547307
-MeshFilter:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7355391291780638397}
-  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!114 &9138416596917959554
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -181,6 +174,7 @@ MonoBehaviour:
   centeringDelay: 0.5
   centeringSmoothTime: 0.2
   sensitivityCurve: 0.8
+  reverseModifier: 0.2
   deadzoneRadius: 0.05
   mouseSensitivity: 0.5
   cursorInputSmoothTime: 0.02
@@ -199,6 +193,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   shipRoot: {fileID: 2670521280389508925}
+  CurrentHullObject: {fileID: 0}
 --- !u!114 &2366990887147708466
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -230,6 +225,40 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0
   laserBeamRenderer: {fileID: 8804165017098108952}
+--- !u!114 &4741931126300241042
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7355391291780638397}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9eccb5fd95c6a2f4e929b778b12ad739, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  syncDirection: 0
+  syncMode: 0
+  syncInterval: 0
+  maxHealth: 100
+--- !u!114 &-5202303669781032900
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7355391291780638397}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f33e86fee3a04c44eaaf9729b752d593, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  syncDirection: 0
+  syncMode: 0
+  syncInterval: 0
+  invulnerabilityDuration: 3
+  explosionForce: 30
+  explosionRadius: 5
 --- !u!1001 &7358209773595079354
 PrefabInstance:
   m_ObjectHideFlags: 0

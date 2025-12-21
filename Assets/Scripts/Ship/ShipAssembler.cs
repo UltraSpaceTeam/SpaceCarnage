@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
+using System;
 
 public class ShipAssembler : MonoBehaviour
 {
@@ -12,25 +13,28 @@ public class ShipAssembler : MonoBehaviour
     public GameObject CurrentWeaponObject { get; private set; }
     public EngineData CurrentEngine { get; private set; }
 
-    private GameObject _currentHullObject;
+    public GameObject CurrentHullObject;
     private List<PartSocket> _activeSockets = new List<PartSocket>();
+    public event Action<HullData> OnHullEquipped;
 
     public void EquipHull(HullData newHullData)
     {
         if (newHullData == null || newHullData.prefab == null) return;
 
-        if (_currentHullObject != null)
+        if (CurrentHullObject != null)
         {
-            CleanUpObject(_currentHullObject);
+            CleanUpObject(CurrentHullObject);
         }
 
-        _currentHullObject = Instantiate(newHullData.prefab, shipRoot);
-        _currentHullObject.transform.localPosition = Vector3.zero;
-        _currentHullObject.transform.localRotation = Quaternion.identity;
+        CurrentHullObject = Instantiate(newHullData.prefab, shipRoot);
+        CurrentHullObject.transform.localPosition = Vector3.zero;
+        CurrentHullObject.transform.localRotation = Quaternion.identity;
 
         CurrentHull = newHullData;
 
-        _activeSockets = _currentHullObject.GetComponentsInChildren<PartSocket>(true).ToList();
+        _activeSockets = CurrentHullObject.GetComponentsInChildren<PartSocket>(true).ToList();
+
+        OnHullEquipped?.Invoke(newHullData);
 
         if (CurrentWeapon != null) EquipWeapon(CurrentWeapon);
         if (CurrentEngine != null) EquipEngine(CurrentEngine);

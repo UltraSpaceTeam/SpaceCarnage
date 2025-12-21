@@ -5,6 +5,7 @@ using Unity.VisualScripting.Antlr3.Runtime.Misc;
 
 [RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(ShipAssembler))]
+[RequireComponent(typeof(Health))] //temp
 public class PlayerController : NetworkBehaviour
 {
     private Rigidbody rb;
@@ -39,13 +40,16 @@ public class PlayerController : NetworkBehaviour
     private Vector2 _targetRawPos = new Vector2(0.5f, 0.5f);
 
 
+    private Health health; //temp
+
+
 
     void Awake()
     {
         rb = GetComponent<Rigidbody>();
         shipAssembler = GetComponent<ShipAssembler>();
 
-
+        health = GetComponent<Health>(); //temp
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
 
@@ -65,6 +69,12 @@ public class PlayerController : NetworkBehaviour
         if (!isLocalPlayer)
         {
             return;
+        }
+        if (health != null && health.IsDead) return;
+
+        if (Input.GetKeyDown(KeyCode.Delete)) //temp
+        {
+            CmdSelfDestruct();
         }
 
         float rawThrust = Input.GetAxis("Vertical");
@@ -113,6 +123,14 @@ public class PlayerController : NetworkBehaviour
         aimTargetInput = rotation;
     }
 
+    [Command]
+    void CmdSelfDestruct()//temp
+    {
+        if (health != null && !health.IsDead)
+        {
+            health.Die("Suicide");
+        }
+    }
     private void FixedUpdate()
     {
         if (!isServer) return;

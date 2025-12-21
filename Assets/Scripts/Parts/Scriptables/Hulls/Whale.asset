@@ -20,6 +20,6 @@ MonoBehaviour:
   maxHealth: 200
   baseDefense: 80
   acceleration: 15
-  rotationXYSpeed: 120
+  rotationXYSpeed: 10
   rotationZSpeed: 70
   maxSpeed: 60
