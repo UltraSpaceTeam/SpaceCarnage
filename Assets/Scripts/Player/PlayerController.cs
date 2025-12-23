@@ -5,7 +5,7 @@ using Unity.VisualScripting.Antlr3.Runtime.Misc;
 
 [RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(ShipAssembler))]
-[RequireComponent(typeof(Health))] //temp
+[RequireComponent(typeof(Health))] // temp
 public class PlayerController : NetworkBehaviour
 {
     private Rigidbody rb;
@@ -43,7 +43,7 @@ public class PlayerController : NetworkBehaviour
     private Vector2 _targetRawPos = new Vector2(0.5f, 0.5f);
 
 
-    private Health health; //temp
+    private Health health; // temp
 
 
 
@@ -55,10 +55,8 @@ public class PlayerController : NetworkBehaviour
         rb = GetComponent<Rigidbody>();
         shipAssembler = GetComponent<ShipAssembler>();
 
-<<<<<<< HEAD
-=======
-        health = GetComponent<Health>(); //temp
->>>>>>> master
+
+        health = GetComponent<Health>(); // temp
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
 
@@ -81,26 +79,11 @@ public class PlayerController : NetworkBehaviour
         }
         if (health != null && health.IsDead) return;
 
-        if (Input.GetKeyDown(KeyCode.Delete)) //temp
+        if (Input.GetKeyDown(KeyCode.Delete)) // temp
         {
             CmdSelfDestruct();
         }
 
-<<<<<<< HEAD
-        mouseCursorPos += new Vector2(mouseX, mouseY);
-        Vector3 curRotationInput = new Vector3(mouseCursorPos.y, mouseCursorPos.x, -roll);
-
-        bool abilityPressed = Input.GetKeyDown(KeyCode.Space);
-        CmdUpdateInputs(thrustInput, curRotationInput, abilityPressed);
-    }
-
-    [Command]
-    void CmdUpdateInputs(float thrust, Vector3 rotation, bool abilityPressed)
-    {
-        thrustInput = thrust;
-        rotationInput = rotation;
-        activateAbility |= abilityPressed;
-=======
         float rawThrust = Input.GetAxis("Vertical");
         float rawRoll = Input.GetAxis("Horizontal");
         float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
@@ -132,33 +115,37 @@ public class PlayerController : NetworkBehaviour
         float curvedY = Mathf.Sign(rawInput.y) * Mathf.Pow(Mathf.Abs(rawInput.y), sensitivityCurve);
 
         Vector2 targetViewport = new Vector2(curvedX, curvedY);
-        if(rawThrust < 0)
+        if (rawThrust < 0)
         {
             rawThrust *= reverseModifier;
         }
-        CmdUpdateInputs(rawThrust, rawRoll, targetViewport);
+
+        bool abilityPressed = Input.GetKeyDown(KeyCode.Space);
+        CmdUpdateInputs(rawThrust, rawRoll, targetViewport, abilityPressed);
     }
 
     [Command]
-    void CmdUpdateInputs(float thrust, float roll, Vector2 rotation)
+    void CmdUpdateInputs(float thrust, float roll, Vector2 rotation, bool abilityPressed)
     {
         thrustInput = thrust;
         rollInput = roll;
         aimTargetInput = rotation;
->>>>>>> master
+        activateAbility |= abilityPressed;
     }
 
     [Command]
-    void CmdSelfDestruct()//temp
+    void CmdSelfDestruct() // temp
     {
         if (health != null && !health.IsDead)
         {
             health.TakeDamage(9999, DamageContext.Suicide(name));
         }
     }
+
     private void FixedUpdate()
     {
         if (!isServer) return;
+
         if (shipAssembler.CurrentHull == null)
         {
             Debug.LogWarning("No hull equipped!");
@@ -191,18 +178,23 @@ public class PlayerController : NetworkBehaviour
             rb.AddRelativeForce(force, ForceMode.Acceleration);
         }
 
-<<<<<<< HEAD
-        if (rotationInput.sqrMagnitude > 0.001f)
-        {
-            float pitch = rotationInput.x * hull.rotationXYSpeed;
-            float yaw = rotationInput.y * hull.rotationXYSpeed;
-            float roll = rotationInput.z * hull.rotationZSpeed;
+        float targetYaw = aimTargetInput.x;
+        float targetPitch = aimTargetInput.y;
 
-            Vector3 torque = new Vector3(pitch, yaw, roll);
-            rb.AddRelativeTorque(torque, ForceMode.Force);
-        }
+        if (Mathf.Abs(targetYaw) < deadzoneRadius) targetYaw = 0;
+        if (Mathf.Abs(targetPitch) < deadzoneRadius) targetPitch = 0;
 
+        Vector3 desiredAngularVel = new Vector3(-targetPitch * hull.rotationXYSpeed,
+        targetYaw * hull.rotationXYSpeed,
+        -rollInput * hull.rotationZSpeed);
+
+        Vector3 currentAngularVel = transform.InverseTransformDirection(rb.angularVelocity);
+        Vector3 error = desiredAngularVel - currentAngularVel;
+        Vector3 torque = (error * pFactor) - (currentAngularVel * dFactor);
+
+        rb.AddRelativeTorque(torque, ForceMode.Acceleration);
         abilityCooldownTimer -= Time.fixedDeltaTime;
+
         if (activateAbility)
         {
             if (abilityCooldownTimer <= 0)
@@ -211,33 +203,8 @@ public class PlayerController : NetworkBehaviour
                 abilityCooldownTimer = engine.ability.cooldown;
             }
         }
+
         activateAbility = false;
-
-        Debug.Log("Speed at end of FixedUpdate: " + rb.linearVelocity.magnitude);
-=======
-
-        if (rb.linearVelocity.magnitude > hull.maxSpeed)
-        {
-            rb.linearVelocity = rb.linearVelocity.normalized * hull.maxSpeed;
-        }
-
-
-        float targetYaw = aimTargetInput.x;
-        float targetPitch = aimTargetInput.y;
-
-        if (Mathf.Abs(targetYaw) < deadzoneRadius) targetYaw = 0;
-        if (Mathf.Abs(targetPitch) < deadzoneRadius) targetPitch = 0;
-
-        Vector3 desiredAngularVel = new Vector3(-targetPitch * hull.rotationXYSpeed,
-                                                targetYaw * hull.rotationXYSpeed,
-                                                -rollInput * hull.rotationZSpeed);
-
-        Vector3 currentAngularVel = transform.InverseTransformDirection(rb.angularVelocity);
-        Vector3 error = desiredAngularVel - currentAngularVel;
-
-        Vector3 torque = (error * pFactor) - (currentAngularVel * dFactor);
-        rb.AddRelativeTorque(torque, ForceMode.Acceleration);
->>>>>>> master
     }
 
     void OnGUI()

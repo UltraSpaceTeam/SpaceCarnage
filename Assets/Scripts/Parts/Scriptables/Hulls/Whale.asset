@@ -19,12 +19,7 @@ MonoBehaviour:
   mass: 70
   maxHealth: 200
   baseDefense: 80
-<<<<<<< HEAD
   linearDamping: 2
   rotationDamping: 10
   rotationXYSpeed: 120
-=======
-  acceleration: 15
-  rotationXYSpeed: 10
->>>>>>> master
   rotationZSpeed: 70
