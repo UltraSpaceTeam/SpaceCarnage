@@ -39,17 +39,16 @@ public class PlayerCamera : MonoBehaviour
             _currentVelocity = Vector3.Project(_currentVelocity, lagVector.normalized);
         }
 
-        Quaternion hullRotation = target.rotation;
+        Vector3 lookAtPoint = target.position + (target.forward * 1000f);
 
-        Vector3 directionToShip = target.position - transform.position;
+        Vector3 direction = lookAtPoint - transform.position;
 
-        Quaternion lookRotation = Quaternion.LookRotation(directionToShip, target.up);
+        Quaternion lookRotation = Quaternion.LookRotation(direction, target.up);
 
-        Quaternion targetRotation = Quaternion.Lerp(hullRotation, lookRotation, lookAtTargetStrength);
 
         transform.rotation = Quaternion.Slerp(
             transform.rotation,
-            targetRotation,
+            lookRotation,
             Time.deltaTime * rotationSmoothSpeed
         );
     }

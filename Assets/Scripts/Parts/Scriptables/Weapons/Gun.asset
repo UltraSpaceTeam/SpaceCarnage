@@ -16,6 +16,20 @@ MonoBehaviour:
   partName: Gun
   partType: 1
   prefab: {fileID: 595135914896999659, guid: d1dcd2b65a37ee048b50022e886c94f5, type: 3}
+<<<<<<< HEAD
   mass: 5
   damage: 0
   fireRate: 0
+=======
+  weight: 0
+  strategy: {fileID: 11400000, guid: dd97fbd55eaaa7e49a8ebf994a48bfac, type: 2}
+  damage: 80
+  fireRate: 1
+  range: 200
+  ammo: 10
+  reload: 2
+  projectileSpeed: 50
+  projectilePrefab: {fileID: 5003006577081230700, guid: da81de8d0bd40914b9c9e44b8696e005, type: 3}
+  hitVFX: {fileID: 3737296553817654341, guid: 15d9acd62f78eca4b87500448951d8c3, type: 3}
+  muzzleFlashVFX: {fileID: 3737296553817654341, guid: ec0529c350587f7459efae1f9c38dac9, type: 3}
+>>>>>>> master

@@ -16,6 +16,20 @@ MonoBehaviour:
   partName: Laser
   partType: 1
   prefab: {fileID: 595135914896999659, guid: b7c2450b1146769478be099f4a23c655, type: 3}
+<<<<<<< HEAD
   mass: 5
   damage: 0
   fireRate: 0
+=======
+  weight: 3
+  strategy: {fileID: 11400000, guid: 249925ed106214c43a5aa5899baa2d30, type: 2}
+  damage: 3
+  fireRate: 100
+  range: 300
+  ammo: 60
+  reload: 6
+  projectileSpeed: 100
+  projectilePrefab: {fileID: 0}
+  hitVFX: {fileID: 0}
+  muzzleFlashVFX: {fileID: 0}
+>>>>>>> master

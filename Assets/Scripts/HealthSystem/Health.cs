@@ -1,22 +1,34 @@
+using System.Collections;
 using Mirror;
 using UnityEngine;
 
 public class Health : NetworkBehaviour, IDieable
 {
-    [Header("Health Settings")]
+    [Header("Health info(readonly)")]
+    [SyncVar(hook = nameof(OnMaxHealthChanged))]
     [SerializeField] private float maxHealth = 100f;
     [SyncVar(hook = nameof(OnHealthChanged))] 
     private float currentHealth;
     
     [SyncVar]
     private bool isDead = false;
-    
+    [SyncVar]
+    private bool isInvincible = false;
+
     // Реализация свойства из интерфейса
     public bool IsDead => isDead;
     
+    public event System.Action<DamageContext> OnDeath;
     // Событие для UI (опционально)
     public event System.Action<float, float> OnHealthUpdate;
-    
+
+    [Server]
+    public void SetMaxHealth(float value)
+    {
+        maxHealth = value;
+        currentHealth = value;
+    }
+
     private void Start()
     {
         if (isServer)
@@ -26,41 +38,75 @@ public class Health : NetworkBehaviour, IDieable
     }
     
     [Server]
-    public void TakeDamage(float damage)
+    public void TakeDamage(float damage, DamageContext source)
     {
-        if (isDead) return;
+        if (isDead || isInvincible) return;
         
         currentHealth -= damage;
-        
+        Debug.Log($"{gameObject.name} Took {damage} damage, current health: {currentHealth}/{maxHealth}");
         if (currentHealth <= 0)
         {
             currentHealth = 0;
-            Die();
+            Die(source);
         }
     }
     
     [Server]
-    public void Die()
+    public void Die(DamageContext source)
     {
         if (isDead) return;
-        
+        Debug.Log(gameObject.name + " died due to " + source);
         isDead = true;
-        RpcDie();
+
+        if (OnDeath == null)
+        {
+        }
+        else
+        {
+            OnDeath.Invoke(source);
+        }
         
-    }
-    
-    [ClientRpc]
-    private void RpcDie()
-    {
+        if (TryGetComponent<Player>(out Player playerScript))
+        {
+            return;
+        }
+
+        NetworkServer.Destroy(gameObject);
 
     }
-    
+
+    [Server]
+    public void Ressurect()
+    {
+        isDead = false;
+        currentHealth = maxHealth;
+        RpcResurrect();
+    }
+    [Server]
+    public void SetInvincibility(bool value)
+    {
+        isInvincible = value;
+    }
+
+    [ClientRpc]
+    private void RpcResurrect()
+    {
+        //мб удалить
+        // foreach (var r in GetComponentsInChildren<Renderer>()) r.enabled = true;
+        // foreach (var c in GetComponentsInChildren<Collider>()) c.enabled = true;
+    }
+
+
     private void OnHealthChanged(float oldHealth, float newHealth)
     {
         // Обновление UI здоровья
         OnHealthUpdate?.Invoke(newHealth, maxHealth);
     }
-    
+    private void OnMaxHealthChanged(float oldMax, float newMax)
+    {
+        OnHealthUpdate?.Invoke(currentHealth, newMax);
+    }
+
     public float GetHealthPercentage()
     {
         return currentHealth / maxHealth;

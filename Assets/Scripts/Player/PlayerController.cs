@@ -5,22 +5,47 @@ using Unity.VisualScripting.Antlr3.Runtime.Misc;
 
 [RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(ShipAssembler))]
+[RequireComponent(typeof(Health))] //temp
 public class PlayerController : NetworkBehaviour
 {
     private Rigidbody rb;
     private ShipAssembler shipAssembler;
 
     private float thrustInput;
-    private Vector3 rotationInput;
+    private float rollInput;
+    private Vector2 aimTargetInput;
 
     private bool activateAbility;
     private float abilityCooldownTimer = 0f;
 
     [Header("Input Settings")]
-    [SerializeField] private float mouseSensivity = 2.0f;
     [SerializeField] private bool invertY = false;
+    [SerializeField] private float centeringSpeed = 0.5f;
+    [SerializeField] private float centeringDelay = 0.5f;
+    [SerializeField] private float centeringSmoothTime = 0.2f;
+    [SerializeField] private float sensitivityCurve = 2.0f;
+    [SerializeField] private float reverseModifier = 0.2f;
 
-    private Vector2 mouseCursorPos = Vector2.zero;
+
+    [Header("Aim Settings")]
+    [SerializeField] private float deadzoneRadius = 0.15f;
+    [SerializeField] private float mouseSensitivity = 1.0f;
+    [SerializeField] private float cursorInputSmoothTime = 0.05f;
+
+    [Header("PID Controller (Physics)")]
+    [SerializeField] private float pFactor = 5.0f;
+    [SerializeField] private float dFactor = 1.0f;
+
+    private Vector2 _clientCursorPos = new Vector2(0.5f, 0.5f);
+
+    private float _inputIdleTime = 0f;
+    private Vector2 _renderVelocity;
+    private Vector2 _targetRawPos = new Vector2(0.5f, 0.5f);
+
+
+    private Health health; //temp
+
+
 
     [Header("Physics Settings")]
     [SerializeField] private float overSpeedDragFactor = 1f;
@@ -30,8 +55,13 @@ public class PlayerController : NetworkBehaviour
         rb = GetComponent<Rigidbody>();
         shipAssembler = GetComponent<ShipAssembler>();
 
+<<<<<<< HEAD
+=======
+        health = GetComponent<Health>(); //temp
+>>>>>>> master
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+
     }
     public override void OnStartLocalPlayer()
     {
@@ -49,13 +79,14 @@ public class PlayerController : NetworkBehaviour
         {
             return;
         }
+        if (health != null && health.IsDead) return;
 
-        thrustInput = Input.GetAxis("Vertical");
-        float roll = Input.GetAxis("Horizontal");
-        float mouseX = Input.GetAxis("Mouse X") * mouseSensivity * Time.deltaTime;
-        float mouseY = Input.GetAxis("Mouse Y") * mouseSensivity * Time.deltaTime * (invertY ? 1 : -1);
-        mouseCursorPos = Vector2.ClampMagnitude(mouseCursorPos, 1.0f);
+        if (Input.GetKeyDown(KeyCode.Delete)) //temp
+        {
+            CmdSelfDestruct();
+        }
 
+<<<<<<< HEAD
         mouseCursorPos += new Vector2(mouseX, mouseY);
         Vector3 curRotationInput = new Vector3(mouseCursorPos.y, mouseCursorPos.x, -roll);
 
@@ -69,8 +100,62 @@ public class PlayerController : NetworkBehaviour
         thrustInput = thrust;
         rotationInput = rotation;
         activateAbility |= abilityPressed;
+=======
+        float rawThrust = Input.GetAxis("Vertical");
+        float rawRoll = Input.GetAxis("Horizontal");
+        float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
+        float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime * (invertY ? -1 : 1);
+
+        if (Mathf.Abs(mouseX) > 0.0001f || Mathf.Abs(mouseY) > 0.0001f)
+        {
+            _inputIdleTime = 0f;
+            _targetRawPos.x += mouseX;
+            _targetRawPos.y += mouseY;
+        }
+        else
+        {
+            _inputIdleTime += Time.deltaTime;
+            if (_inputIdleTime > centeringDelay)
+            {
+                _targetRawPos = Vector2.MoveTowards(_targetRawPos, new Vector2(0.5f, 0.5f), centeringSpeed * Time.deltaTime);
+            }
+        }
+
+        _targetRawPos.x = Mathf.Clamp01(_targetRawPos.x);
+        _targetRawPos.y = Mathf.Clamp01(_targetRawPos.y);
+
+        _clientCursorPos = Vector2.SmoothDamp(_clientCursorPos, _targetRawPos, ref _renderVelocity, cursorInputSmoothTime);
+
+        Vector2 rawInput = (_clientCursorPos - new Vector2(0.5f, 0.5f)) * 2f;
+
+        float curvedX = Mathf.Sign(rawInput.x) * Mathf.Pow(Mathf.Abs(rawInput.x), sensitivityCurve);
+        float curvedY = Mathf.Sign(rawInput.y) * Mathf.Pow(Mathf.Abs(rawInput.y), sensitivityCurve);
+
+        Vector2 targetViewport = new Vector2(curvedX, curvedY);
+        if(rawThrust < 0)
+        {
+            rawThrust *= reverseModifier;
+        }
+        CmdUpdateInputs(rawThrust, rawRoll, targetViewport);
     }
 
+    [Command]
+    void CmdUpdateInputs(float thrust, float roll, Vector2 rotation)
+    {
+        thrustInput = thrust;
+        rollInput = roll;
+        aimTargetInput = rotation;
+>>>>>>> master
+    }
+
+    [Command]
+    void CmdSelfDestruct()//temp
+    {
+        if (health != null && !health.IsDead)
+        {
+            health.TakeDamage(9999, DamageContext.Suicide(name));
+        }
+    }
     private void FixedUpdate()
     {
         if (!isServer) return;
@@ -106,6 +191,7 @@ public class PlayerController : NetworkBehaviour
             rb.AddRelativeForce(force, ForceMode.Acceleration);
         }
 
+<<<<<<< HEAD
         if (rotationInput.sqrMagnitude > 0.001f)
         {
             float pitch = rotationInput.x * hull.rotationXYSpeed;
@@ -128,14 +214,44 @@ public class PlayerController : NetworkBehaviour
         activateAbility = false;
 
         Debug.Log("Speed at end of FixedUpdate: " + rb.linearVelocity.magnitude);
+=======
+
+        if (rb.linearVelocity.magnitude > hull.maxSpeed)
+        {
+            rb.linearVelocity = rb.linearVelocity.normalized * hull.maxSpeed;
+        }
+
+
+        float targetYaw = aimTargetInput.x;
+        float targetPitch = aimTargetInput.y;
+
+        if (Mathf.Abs(targetYaw) < deadzoneRadius) targetYaw = 0;
+        if (Mathf.Abs(targetPitch) < deadzoneRadius) targetPitch = 0;
+
+        Vector3 desiredAngularVel = new Vector3(-targetPitch * hull.rotationXYSpeed,
+                                                targetYaw * hull.rotationXYSpeed,
+                                                -rollInput * hull.rotationZSpeed);
+
+        Vector3 currentAngularVel = transform.InverseTransformDirection(rb.angularVelocity);
+        Vector3 error = desiredAngularVel - currentAngularVel;
+
+        Vector3 torque = (error * pFactor) - (currentAngularVel * dFactor);
+        rb.AddRelativeTorque(torque, ForceMode.Acceleration);
+>>>>>>> master
     }
 
     void OnGUI()
     {
         if (!isLocalPlayer) return;
 
-        float x = (Screen.width / 2) + (mouseCursorPos.x * Screen.height / 2);
-        float y = (Screen.height / 2) + (mouseCursorPos.y * Screen.height / 2);
-        GUI.Box(new Rect(x - 5, y - 5, 10, 10), "");
+        float x = _clientCursorPos.x * Screen.width;
+        float y = (1f - _clientCursorPos.y) * Screen.height;
+
+        GUI.color = Color.red;
+        GUI.Box(new Rect(x - 10, y - 10, 20, 20), "+");
+        float cx = Screen.width / 2;
+        float cy = Screen.height / 2;
+        GUI.color = new Color(.2f, .2f, 1, 0.4f);
+        GUI.Box(new Rect(cx - 2, cy - 2, 4, 4), ".");
     }
 }

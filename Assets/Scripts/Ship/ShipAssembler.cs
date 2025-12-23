@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
+using System;
 
 public class ShipAssembler : MonoBehaviour
 {
@@ -9,27 +10,31 @@ public class ShipAssembler : MonoBehaviour
 
     public HullData CurrentHull { get; private set; }
     public WeaponData CurrentWeapon { get; private set; }
+    public GameObject CurrentWeaponObject { get; private set; }
     public EngineData CurrentEngine { get; private set; }
 
-    private GameObject _currentHullObject;
+    public GameObject CurrentHullObject;
     private List<PartSocket> _activeSockets = new List<PartSocket>();
+    public event Action<HullData> OnHullEquipped;
 
     public void EquipHull(HullData newHullData)
     {
         if (newHullData == null || newHullData.prefab == null) return;
 
-        if (_currentHullObject != null)
+        if (CurrentHullObject != null)
         {
-            CleanUpObject(_currentHullObject);
+            CleanUpObject(CurrentHullObject);
         }
 
-        _currentHullObject = Instantiate(newHullData.prefab, shipRoot);
-        _currentHullObject.transform.localPosition = Vector3.zero;
-        _currentHullObject.transform.localRotation = Quaternion.identity;
+        CurrentHullObject = Instantiate(newHullData.prefab, shipRoot);
+        CurrentHullObject.transform.localPosition = Vector3.zero;
+        CurrentHullObject.transform.localRotation = Quaternion.identity;
 
         CurrentHull = newHullData;
 
-        _activeSockets = _currentHullObject.GetComponentsInChildren<PartSocket>(true).ToList();
+        _activeSockets = CurrentHullObject.GetComponentsInChildren<PartSocket>(true).ToList();
+
+        OnHullEquipped?.Invoke(newHullData);
 
         if (CurrentWeapon != null) EquipWeapon(CurrentWeapon);
         if (CurrentEngine != null) EquipEngine(CurrentEngine);
@@ -39,7 +44,7 @@ public class ShipAssembler : MonoBehaviour
         CurrentWeapon = weaponData;
         if (_activeSockets == null || _activeSockets.Count == 0) return;
 
-        AttachPartToSocket(weaponData, PartType.Weapon);
+        AttachWeaponToSocket(weaponData);
     }
 
     public void EquipEngine(EngineData engineData)
@@ -66,6 +71,28 @@ public class ShipAssembler : MonoBehaviour
                 GameObject newPart = Instantiate(partData.prefab, targetSocket.transform);
                 newPart.transform.localPosition = Vector3.zero;
                 newPart.transform.localRotation = Quaternion.identity;
+            }
+        }
+    }
+
+    private void AttachWeaponToSocket(WeaponData partData)
+    {
+        PartSocket targetSocket = _activeSockets.FirstOrDefault(s => s.socketType == PartType.Weapon);
+
+        if (targetSocket != null)
+        {
+            for (int i = targetSocket.transform.childCount - 1; i >= 0; i--)
+            {
+                Destroy(targetSocket.transform.GetChild(i).gameObject);
+            }
+
+            if (partData != null && partData.prefab != null)
+            {
+                GameObject newPart = Instantiate(partData.prefab, targetSocket.transform);
+                newPart.transform.localPosition = Vector3.zero;
+                newPart.transform.localRotation = Quaternion.identity;
+
+                CurrentWeaponObject = newPart;
             }
         }
     }

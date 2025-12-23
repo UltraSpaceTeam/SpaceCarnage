@@ -22,7 +22,7 @@ public class ShipNetworkSync : NetworkBehaviour
 
     public override void OnStartLocalPlayer()
     {
-        int hIndex = 2;
+        int hIndex = 1;
         int wIndex = 2;
         int eIndex = 0;
 

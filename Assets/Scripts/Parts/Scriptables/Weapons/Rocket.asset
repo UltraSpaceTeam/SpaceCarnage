@@ -16,6 +16,18 @@ MonoBehaviour:
   partName: Rocket launcher
   partType: 1
   prefab: {fileID: 595135914896999659, guid: 29b644c180454454993b26d22a265ed1, type: 3}
+<<<<<<< HEAD
   mass: 10
+=======
+  weight: 3
+  strategy: {fileID: 11400000, guid: dd97fbd55eaaa7e49a8ebf994a48bfac, type: 2}
+>>>>>>> master
   damage: 40
-  fireRate: 0.4
+  fireRate: 5
+  range: 100
+  ammo: 1
+  reload: 4
+  projectileSpeed: 70
+  projectilePrefab: {fileID: 5003006577081230700, guid: 95f3c66db003ccd40b3feb7edfa74e99, type: 3}
+  hitVFX: {fileID: 3737296553817654341, guid: e39ed80df7d91b640b0e6141e65536ce, type: 3}
+  muzzleFlashVFX: {fileID: 3737296553817654341, guid: ec0529c350587f7459efae1f9c38dac9, type: 3}
