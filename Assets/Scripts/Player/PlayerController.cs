@@ -167,16 +167,19 @@ public class PlayerController : NetworkBehaviour
         }
         WeaponData weapon = shipAssembler.CurrentWeapon;
 
-        // Проверяем смену абилки
-        if (engine.ability != currentAbility)
+        if (engine != null)
         {
-            currentAbility?.OnUnequipped();
-            currentAbility = engine.ability;
-            currentAbility?.OnEquipped();
-        }
+            // Проверяем смену абилки
+            if (engine.ability != currentAbility)
+            {
+                currentAbility?.OnUnequipped();
+                currentAbility = engine.ability;
+                currentAbility?.OnEquipped();
+            }
 
-        // Обновляем абилку каждый тик
-        currentAbility?.ServerUpdate(rb);
+            // Обновляем абилку каждый тик
+            currentAbility?.ServerUpdate(rb);
+        }
 
         // Модификатор скорости от абилки щита
         float speedMult = currentAbility?.GetSpeedMultiplier() ?? 1f;
@@ -188,7 +191,7 @@ public class PlayerController : NetworkBehaviour
 
         if (Mathf.Abs(thrustInput) > 0.01f)
         {
-            Vector3 force = Vector3.forward * thrustInput * engine.power;
+            Vector3 force = Vector3.forward * thrustInput * engine.power * speedMult;
             rb.AddRelativeForce(force, ForceMode.Acceleration);
         }
 
@@ -211,7 +214,7 @@ public class PlayerController : NetworkBehaviour
 
         if (activateAbility)
         {
-            if (abilityCooldownTimer <= 0)
+            if (abilityCooldownTimer <= 0 && engine?.ability != null)
             {
                 engine.ability.RunAbility(rb);
                 abilityCooldownTimer = engine.ability.cooldown;
