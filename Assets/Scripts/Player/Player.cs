@@ -12,7 +12,7 @@ using Random = UnityEngine.Random;
 [RequireComponent(typeof(ShipAssembler))]
 public class Player : NetworkBehaviour
 {
-    //Все игроки тут
+    
     public static Dictionary<uint, Player> ActivePlayers = new Dictionary<uint, Player>();
 
     private Health health;
@@ -29,6 +29,11 @@ public class Player : NetworkBehaviour
     [SerializeField] private float explosionForce = 500f;
     [SerializeField] private float explosionRadius = 5f;
     [SerializeField] private float debrisLifetime = 10f;
+
+    [Header("Ability Visuals")]
+    public GameObject shieldBubblePrefab;
+    private GameObject currentShieldInstance;
+    private Renderer currentShieldRenderer;
 
     private void Awake()
     {
@@ -299,7 +304,6 @@ public class Player : NetworkBehaviour
         }
     }
 
-
     [TargetRpc]
     private void TargetRespawnFeedback(NetworkConnection target)
     {
@@ -326,5 +330,53 @@ public class Player : NetworkBehaviour
         return NetworkManager.singleton.GetStartPosition();
     }
 
+    [ClientRpc]
+    public void RpcSetShipVisible(bool visible)
+    {
+        var invisManager = GetComponent<InvisManager>();
+        if (invisManager != null)
+        {
+            invisManager.SetVisible(visible);  // Это вызовет SyncVar и применит на всех клиентах
+        }
+    }
+
+    [ClientRpc]
+    public void RpcShowShield(bool show, float healthRatio)
+    {
+        if (shieldBubblePrefab == null)
+        {
+            Debug.LogWarning("Shield prefab not assigned in Player!");
+            return;
+        }
+
+        if (show)
+        {
+            // Создаём, если ещё нет
+            if (currentShieldInstance == null)
+            {
+                currentShieldInstance = Instantiate(shieldBubblePrefab, transform);
+                currentShieldInstance.transform.localPosition = Vector3.zero;
+                currentShieldInstance.transform.localRotation = Quaternion.identity;
+                currentShieldRenderer = currentShieldInstance.GetComponentInChildren<Renderer>();
+            }
+
+            currentShieldInstance.SetActive(true);
+
+            // Прозрачность по здоровью щита
+            if (currentShieldRenderer != null)
+            {
+                Color col = currentShieldRenderer.material.color;
+                col.a = Mathf.Lerp(0.1f, 0.4f, healthRatio);  // от слабой до полной видимости
+                currentShieldRenderer.material.color = col;
+            }
+        }
+        else
+        {
+            if (currentShieldInstance != null)
+            {
+                currentShieldInstance.SetActive(false);
+            }
+        }
+    }
 }
 

@@ -9,7 +9,7 @@ public class ShieldAbility : AbstractAbility
     public float regenerationDelay = 5f;
     public float regenerationRate = 20f;
     public float speedReductionPercent = 0.3f;
-    public GameObject shieldPrefab;
+    //public GameObject shieldPrefab;
 
 
     private float currentShieldHealth;
@@ -19,10 +19,13 @@ public class ShieldAbility : AbstractAbility
     private GameObject owner;
     private GameObject shield;
 
+    private Player player;
+
     public override void RunAbility(Rigidbody rb)
     {
         shipRb = rb;
-        
+        owner = rb.gameObject;
+        player = owner.GetComponent<Player>();
 
         // Toggle активации
         isActive = !isActive;
@@ -30,13 +33,15 @@ public class ShieldAbility : AbstractAbility
         if (isActive)
         {
             if (currentShieldHealth <= 0) currentShieldHealth = maxShieldHealth; // полный зар€д при первом включении
-            Debug.Log("ўит включЄн!");
+            Debug.Log("Shield is on!");
             regenTimer = 0f;
+            player?.RpcShowShield(true, currentShieldHealth / maxShieldHealth);
         }
         else
         {
-            Debug.Log("ўит выключен.");
+            Debug.Log("Shield is off.");
             regenTimer = regenerationDelay;
+            player?.RpcShowShield(false, 0f);
         }
     }
 
@@ -45,18 +50,15 @@ public class ShieldAbility : AbstractAbility
         if (shield == null)
         {
             owner = rb.gameObject;
-            shield = Instantiate(shieldPrefab, owner.transform);
-            shield.transform.localPosition = Vector3.zero;
-            shield.GetComponent<Renderer>().enabled = false;
         }
 
         if (isActive)
         {
-            shield.GetComponent<Renderer>().enabled = true;
+            player?.RpcShowShield(true, currentShieldHealth / maxShieldHealth);
         }
         else if (currentShieldHealth < maxShieldHealth)
         {
-            shield.GetComponent<Renderer>().enabled = false;
+            player?.RpcShowShield(false, 0f);
             if (regenTimer > 0)
             {
                 regenTimer -= Time.fixedDeltaTime;
@@ -68,16 +70,16 @@ public class ShieldAbility : AbstractAbility
             }
         } else
         {
-            shield.GetComponent<Renderer>().enabled = false;
+            player?.RpcShowShield(false, 0f);
         }
 
         // јвто-выключение если щит пробит
         if (isActive && currentShieldHealth <= 0)
         {
-            shield.GetComponent<Renderer>().enabled = false;
+            player?.RpcShowShield(false, 0f);
             isActive = false;
             regenTimer = regenerationDelay;
-            Debug.Log("ўит разрушен и выключен!");
+            Debug.Log("Shield broken!");
         }
     }
 
@@ -90,14 +92,15 @@ public class ShieldAbility : AbstractAbility
             float leftover = incomingDamage - currentShieldHealth;
             currentShieldHealth = 0f;
             isActive = false;
+            player?.RpcShowShield(false, 0f);
             regenTimer = regenerationDelay;
-            Debug.Log("ўит сломан! ќстаток урона: " + leftover);
+            Debug.Log("Shield broken! Remaining damage: " + leftover);
             return leftover; // остаток идЄт в корпус
         }
         else
         {
             currentShieldHealth -= incomingDamage;
-            Debug.Log($"ўит поглотил {incomingDamage}. ќсталось: {currentShieldHealth}");
+            Debug.Log($"Shield absorbed {incomingDamage}. Shield has: {currentShieldHealth} health");
             return 0f;
         }
     }
