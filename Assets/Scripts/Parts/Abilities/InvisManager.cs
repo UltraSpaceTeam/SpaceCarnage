@@ -1,0 +1,63 @@
+using Mirror;
+using UnityEngine;
+using System.Collections.Generic;
+using System.Linq;
+
+public class InvisManager : NetworkBehaviour
+{
+    [SyncVar(hook = nameof(OnVisibleChanged))]
+    private bool isVisible = true; // true = видим, false = полностью невидим
+
+    private List<Renderer> shipRenderers = new List<Renderer>();
+    private ShipAssembler assembler;
+
+    private void Awake()
+    {
+        assembler = GetComponent<ShipAssembler>();
+    }
+
+    public override void OnStartClient()
+    {
+        UpdateRendererList();
+        ApplyVisibility(isVisible);
+    }
+
+    [Server]
+    public void SetVisible(bool visible)
+    {
+        isVisible = visible;
+    }
+
+    private void OnVisibleChanged(bool oldValue, bool newValue)
+    {
+        ApplyVisibility(newValue);
+    }
+
+    private void ApplyVisibility(bool visible)
+    {
+        UpdateRendererList();
+        foreach (var renderer in shipRenderers)
+        {
+            if (renderer == null) continue;
+            renderer.enabled = visible;
+        }
+    }
+
+    private void UpdateRendererList()
+    {
+        shipRenderers.Clear();
+        if (assembler != null && assembler.CurrentHullObject != null)
+        {
+            shipRenderers = assembler.CurrentHullObject.GetComponentsInChildren<Renderer>(true).ToList();
+        }
+
+        shipRenderers.RemoveAll(r => r is LineRenderer || r is TrailRenderer || r is ParticleSystemRenderer);
+    }
+
+    // Вызывается при смене частей корабля
+    public void RefreshRenderers()
+    {
+        UpdateRendererList();
+        ApplyVisibility(isVisible);
+    }
+}

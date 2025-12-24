@@ -23,8 +23,6 @@ public class ShipShooting : NetworkBehaviour
 
     public string ShooterName => _player != null ? _player.Nickname : "Unknown";
 
-
-
     void Awake()
     {
         _assembler = GetComponent<ShipAssembler>();
@@ -88,8 +86,6 @@ public class ShipShooting : NetworkBehaviour
         Vector3 aimDirection = (targetPoint - _muzzlePoint.position).normalized;
         return Quaternion.LookRotation(aimDirection);
     }
-
-    
 
     private Vector3 GetTargetPoint(Ray ray)
     {
@@ -166,6 +162,13 @@ public class ShipShooting : NetworkBehaviour
         {
             CurrentWeaponData.strategy.Fire(this, pos, rot);
             RpcMuzzleFlash(pos, rot);
+
+            var assembler = GetComponent<ShipAssembler>();
+            var invisAbility = assembler?.CurrentEngine?.ability as InvisAbility;
+            if (invisAbility != null && invisAbility.breakOnAttack)
+            {
+                invisAbility.BreakInvisibility();
+            }
         }
     }
 
@@ -182,7 +185,6 @@ public class ShipShooting : NetworkBehaviour
         if (CurrentWeaponData.hitVFX != null)
             Instantiate(CurrentWeaponData.hitVFX, pos, rot);
     }
-
 
     [ClientRpc]
     public void RpcSpawnBeam(Vector3 start, Vector3 end)
@@ -219,6 +221,4 @@ public class ShipShooting : NetworkBehaviour
 
         laserBeamRenderer.enabled = false;
     }
-
-    
 }

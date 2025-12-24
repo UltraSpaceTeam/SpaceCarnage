@@ -41,8 +41,23 @@ public class Health : NetworkBehaviour, IDieable
     public void TakeDamage(float damage, DamageContext source)
     {
         if (isDead || isInvincible) return;
-        
+
+        var assembler = GetComponent<ShipAssembler>();
+        if (assembler != null && assembler.CurrentEngine != null)
+        {
+            damage = assembler.CurrentEngine.ability.AbsorbDamage(damage);
+        }
+
+        if (damage <= 0.01f) return;
+
+        var invisAbility = assembler?.CurrentEngine?.ability as InvisAbility;
+        if (invisAbility != null && invisAbility.breakOnDamage)
+        {
+            invisAbility.BreakInvisibility();
+        }
+
         currentHealth -= damage;
+
         Debug.Log($"{gameObject.name} Took {damage} damage, current health: {currentHealth}/{maxHealth}");
         if (currentHealth <= 0)
         {

@@ -44,7 +44,7 @@ public class PlayerController : NetworkBehaviour
 
 
     private Health health; // temp
-
+    private AbstractAbility currentAbility;
 
 
     [Header("Physics Settings")]
@@ -166,6 +166,20 @@ public class PlayerController : NetworkBehaviour
             return;
         }
         WeaponData weapon = shipAssembler.CurrentWeapon;
+
+        // Проверяем смену абилки
+        if (engine.ability != currentAbility)
+        {
+            currentAbility?.OnUnequipped();
+            currentAbility = engine.ability;
+            currentAbility?.OnEquipped();
+        }
+
+        // Обновляем абилку каждый тик
+        currentAbility?.ServerUpdate(rb);
+
+        // Модификатор скорости от абилки щита
+        float speedMult = currentAbility?.GetSpeedMultiplier() ?? 1f;
 
         float sumMass = weapon.mass + engine.mass + hull.mass;
         rb.mass = sumMass;

@@ -9,13 +9,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1a8a1bc66a68877408964e7a0f644246, type: 3}
-  m_Name: Engine
+  m_Script: {fileID: 11500000, guid: be012cd3f43df4e4e825c9e2d1776198, type: 3}
+  m_Name: Invisibility
   m_EditorClassIdentifier: 
-  id: 0
-  partName: Engine
-  partType: 2
-  prefab: {fileID: 5389579586531250488, guid: dcedf9c3611207144af138d851a92080, type: 3}
-  mass: 5
-  power: 100
-  ability: {fileID: 0}
+  cooldown: 20
+  activationDelay: 1.5
+  breakOnAttack: 1
+  breakOnDamage: 1

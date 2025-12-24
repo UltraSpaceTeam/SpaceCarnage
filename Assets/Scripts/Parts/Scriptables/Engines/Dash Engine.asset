@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1a8a1bc66a68877408964e7a0f644246, type: 3}
   m_Name: Dash Engine
   m_EditorClassIdentifier: 
-  id: 0
+  id: 1
   partName: Engine
   partType: 2
   prefab: {fileID: 5389579586531250488, guid: dcedf9c3611207144af138d851a92080, type: 3}
   mass: 5
-  power: 100
+  power: 90
   ability: {fileID: 11400000, guid: 4db1ab6c38b70174e9134d0ee0110ce6, type: 2}

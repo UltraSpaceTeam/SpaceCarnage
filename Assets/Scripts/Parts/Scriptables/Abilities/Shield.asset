@@ -13,3 +13,8 @@ MonoBehaviour:
   m_Name: Shield
   m_EditorClassIdentifier: 
   cooldown: 1
+  maxShieldHealth: 100
+  regenerationDelay: 5
+  regenerationRate: 20
+  speedReductionPercent: 0.3
+  shieldPrefab: {fileID: 1246887265069243449, guid: a1d3497c6c678804590560035945510f, type: 3}
