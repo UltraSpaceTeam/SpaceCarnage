@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1a8a1bc66a68877408964e7a0f644246, type: 3}
+  m_Name: Invis Engine
+  m_EditorClassIdentifier: 
+  id: 3
+  partName: Engine
+  partType: 2
+  prefab: {fileID: 5389579586531250488, guid: dcedf9c3611207144af138d851a92080, type: 3}
+  mass: 15
+  power: 65
+  ability: {fileID: 11400000, guid: bbf3f469811d7aa43a63389f18145f39, type: 2}

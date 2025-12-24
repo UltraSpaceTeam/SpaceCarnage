@@ -16,10 +16,10 @@ MonoBehaviour:
   partName: UFO
   partType: 0
   prefab: {fileID: 560063309565180913, guid: 6d979bb346c74fc4c97f6fe73b76d620, type: 3}
-  weight: 10
+  mass: 10
   maxHealth: 70
   baseDefense: 30
-  acceleration: 50
-  rotationXYSpeed: 30
+  linearDamping: 2
+  rotationDamping: 10
+  rotationXYSpeed: 300
   rotationZSpeed: 200
-  maxSpeed: 100

@@ -16,10 +16,10 @@ MonoBehaviour:
   partName: Rocket
   partType: 0
   prefab: {fileID: 560063309565180913, guid: 4f2c02041eac44c49992fde37a7d4d0c, type: 3}
-  weight: 14
+  mass: 15
   maxHealth: 110
   baseDefense: 20
-  acceleration: 60
-  rotationXYSpeed: 10
+  linearDamping: 2
+  rotationDamping: 10
+  rotationXYSpeed: 300
   rotationZSpeed: 200
-  maxSpeed: 200

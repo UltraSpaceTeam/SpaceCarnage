@@ -5,9 +5,8 @@ public class HullData : ShipPartData
 {
     public float maxHealth;
     public float baseDefense;
-    public float acceleration;
+    public float linearDamping;
+    public float rotationDamping;
     public float rotationXYSpeed;
     public float rotationZSpeed;
-    public float maxSpeed;
-    
 }

@@ -36,12 +36,30 @@ public class Health : NetworkBehaviour, IDieable
             currentHealth = maxHealth;
         }
     }
-    
+
     [Server]
     public void TakeDamage(float damage, DamageContext source)
     {
         if (isDead || isInvincible) return;
-        
+
+        var assembler = GetComponent<ShipAssembler>();
+        var ability = assembler?.CurrentEngine?.ability; // безопасный доступ
+
+        // Если ability есть и это щит — поглощаем
+        if (ability != null)
+        {
+            damage = ability.AbsorbDamage(damage);
+        }
+
+        if (damage <= 0.01f) return;
+
+        // Проверяем инвиз (если есть)
+        var invisAbility = ability as InvisAbility;
+        if (invisAbility != null && invisAbility.breakOnDamage)
+        {
+            invisAbility.BreakInvisibility();
+        }
+
         currentHealth -= damage;
         Debug.Log($"{gameObject.name} Took {damage} damage, current health: {currentHealth}/{maxHealth}");
         if (currentHealth <= 0)
@@ -50,7 +68,7 @@ public class Health : NetworkBehaviour, IDieable
             Die(source);
         }
     }
-    
+
     [Server]
     public void Die(DamageContext source)
     {

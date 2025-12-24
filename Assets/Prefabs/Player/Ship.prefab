@@ -19,6 +19,7 @@ GameObject:
   - component: {fileID: -5732933078604654896}
   - component: {fileID: 4741931126300241042}
   - component: {fileID: -5202303669781032900}
+  - component: {fileID: 2470000224385826209}
   m_Layer: 6
   m_Name: Ship
   m_TagString: Player
@@ -180,6 +181,7 @@ MonoBehaviour:
   cursorInputSmoothTime: 0.02
   pFactor: 0.4
   dFactor: 0.5
+  overSpeedDragFactor: 1
 --- !u!114 &703890252711067340
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -256,9 +258,27 @@ MonoBehaviour:
   syncDirection: 0
   syncMode: 0
   syncInterval: 0
+  Nickname: Player
   invulnerabilityDuration: 3
   explosionForce: 30
   explosionRadius: 5
+  debrisLifetime: 10
+  shieldBubblePrefab: {fileID: 1246887265069243449, guid: a1d3497c6c678804590560035945510f, type: 3}
+--- !u!114 &2470000224385826209
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7355391291780638397}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3e9f25375fa6af8459612f0e7ff64a05, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  syncDirection: 0
+  syncMode: 0
+  syncInterval: 0
 --- !u!1001 &7358209773595079354
 PrefabInstance:
   m_ObjectHideFlags: 0

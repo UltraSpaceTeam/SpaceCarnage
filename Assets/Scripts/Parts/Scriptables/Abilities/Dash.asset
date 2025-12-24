@@ -9,12 +9,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1a8a1bc66a68877408964e7a0f644246, type: 3}
-  m_Name: Engine 1
+  m_Script: {fileID: 11500000, guid: d5969e5505fb0f248b4eaff3622bdc09, type: 3}
+  m_Name: Dash
   m_EditorClassIdentifier: 
-  id: 0
-  partName: Temp
-  partType: 0
-  prefab: {fileID: 5389579586531250488, guid: dcedf9c3611207144af138d851a92080, type: 3}
-  weight: 3
-  maxSpeed: 100
+  cooldown: 10
+  dashVelocityBoost: 1000
