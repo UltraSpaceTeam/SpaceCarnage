@@ -1,35 +1,28 @@
 using UnityEngine;
-using Mirror;
 using System.Collections;
 
 [RequireComponent(typeof(ParticleSystem))]
-[RequireComponent(typeof(NetworkIdentity))]
-public class NetworkEffectDestroyer : NetworkBehaviour
+public class VFXAutoDestroy : MonoBehaviour
 {
-    private float maxTimeout = 10;
-
-    public override void OnStartServer()
+    private void OnEnable()
     {
         StartCoroutine(CheckIfAlive());
     }
 
-    [Server]
     private IEnumerator CheckIfAlive()
     {
         ParticleSystem ps = GetComponent<ParticleSystem>();
 
         yield return null;
 
-        float timer = 0;
-        while (ps != null && ps.IsAlive(true) && timer < maxTimeout)
+        while (ps != null && ps.IsAlive(true))
         {
             yield return new WaitForSeconds(0.5f);
-            timer += 0.5f;
         }
 
         if (gameObject != null)
         {
-            NetworkServer.Destroy(gameObject);
+            Destroy(gameObject);
         }
     }
 }
