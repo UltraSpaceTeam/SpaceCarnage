@@ -1,8 +1,10 @@
 using System;
 using System.Threading.Tasks;
+using Network;
 using TMPro;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class LoginController : MonoBehaviour
@@ -18,7 +20,7 @@ public class LoginController : MonoBehaviour
     [SerializeField] private GameObject feedBackWindow;
     [Header("Settings")]
     [SerializeField] private string allowedSpecialCharacters;
-
+    [SerializeField] private string nextSceneName = "TestMultiplayerScene";
 
 
     private State currentState = State.LOGIN;
@@ -28,12 +30,17 @@ public class LoginController : MonoBehaviour
         ChangeState(State.LOGIN);
         loginButton.onClick.AddListener(() => ChangeState(State.LOGIN));
         registerButton.onClick.AddListener(() => ChangeState(State.REGISTER));
+
+        loginOrRegisterButton.onClick.AddListener(LoginOrRegister);
     }
 
     public void ChangeState(State newState)
     {
         currentState = newState;
         loginButtonText.text = newState == State.LOGIN ? "Login":"Register";//Пока так.
+
+        loginButton.interactable = newState != State.LOGIN;
+        registerButton.interactable = newState != State.REGISTER;
     }
 
     public void LoginOrRegister()
@@ -50,42 +57,67 @@ public class LoginController : MonoBehaviour
             return;
         }
         SwitchButtons(false);
-        if (currentState == State.LOGIN)
+        bool success = false;
+
+        try
         {
-            Debug.Log("Logging in...");
-            if (await Login()) {
-                Debug.Log("Logged in successfully!");
+            AuthRequest requestData = new AuthRequest
+            {
+                username = usernameInput.text,
+                password = passwordInput.text
+            };
+
+            AuthResponse response = null;
+
+            if (currentState == State.LOGIN)
+            {
+                Debug.Log("Sending Login Request...");
+                response = await APINetworkManager.Instance.PostRequestAsync<AuthResponse>("/auth/login", requestData);
             }
             else
             {
-                Debug.Log("Login failed.");
+                Debug.Log("Sending Register Request...");
+                response = await APINetworkManager.Instance.PostRequestAsync<AuthResponse>("/auth/register", requestData);
+            }
+
+            if (response != null)
+            {
+                Debug.Log($"Success! Welcome {response.username}, ID: {response.player_id}");
+
+                PlayerPrefs.SetString("jwt_token", response.token);
+                PlayerPrefs.SetInt("player_id", response.player_id);
+                PlayerPrefs.SetString("username", response.username);
+                PlayerPrefs.Save();
+
+                success = true;
+                LoadNextScene();
             }
         }
-        else if (currentState == State.REGISTER)
+        catch (Exception ex)
         {
-            Debug.Log("Registering...");
-            if (await Register())
+            Debug.LogError($"Auth Error: {ex.Message}");
+
+            ValidationResult serverResult = ParseServerError(ex.Message);
+
+            if (serverResult != ValidationResult.SUCCESS)
             {
-                Debug.Log("Registered successfully!");
+                ShowValidationFeedback(serverResult);
             }
             else
             {
-                Debug.Log("Registration failed.");
+                ShowFeedbackMessage($"Server Error: {ex.Message}");
             }
         }
-        SwitchButtons(true);
+        finally
+        {
+            SwitchButtons(true);
+        }
 
     }
-    private async Task<bool> Login() //Temporary stub
-    {
-        await Task.Delay(2000);
-        return true;
-    }
 
-    private async Task<bool> Register() //Temporary stub
+    private void LoadNextScene()
     {
-        await Task.Delay(2000);
-        return true;
+        SceneManager.LoadScene(nextSceneName);
     }
 
     private void SwitchButtons(bool state)
@@ -151,6 +183,28 @@ public class LoginController : MonoBehaviour
                 break;
         }
     }
+
+    private ValidationResult ParseServerError(string serverError)
+    {
+        string error = serverError.ToLower();
+
+        if (error.Contains("incorrect login/password"))
+        {
+            return ValidationResult.WRONG_PASSWORD;
+        }
+
+        if (error.Contains("cannot use this login") || error.Contains("already exists"))
+        {
+            return ValidationResult.USER_ALREADY_EXISTS;
+        }
+
+        if (error.Contains("user not found"))
+        {
+            return ValidationResult.USER_NOT_FOUND;
+        }
+
+        return ValidationResult.SUCCESS;
+    }
     private void ShowFeedbackMessage(string message)
     {
         feedbackText.text = message;
@@ -181,6 +235,7 @@ public class LoginController : MonoBehaviour
         PASSWORD_INVALID,
         USER_ALREADY_EXISTS,
         USER_NOT_FOUND,
-        WRONG_PASSWORD
+        WRONG_PASSWORD,
+        UNKNOWN_ERROR
     }
 }
