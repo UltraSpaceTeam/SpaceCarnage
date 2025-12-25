@@ -22,9 +22,9 @@ public class ShipNetworkSync : NetworkBehaviour
 
     public override void OnStartLocalPlayer()
     {
-        int hIndex = PlayerPrefs.GetInt("SelectedHullIndex", 0);
-        int wIndex = PlayerPrefs.GetInt("SelectedWeaponIndex", 0);
-        int eIndex = PlayerPrefs.GetInt("SelectedEngineIndex", 0);
+        int hIndex = 1;
+        int wIndex = 2;
+        int eIndex = 3;
 
         CmdSetupShip(hIndex, wIndex, eIndex);
     }
