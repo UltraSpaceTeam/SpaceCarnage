@@ -1,5 +1,5 @@
-// InvisibilityAbility.cs
 using UnityEngine;
+using Mirror;
 
 [CreateAssetMenu(fileName = "InvisibilityAbility", menuName = "Ship/Abilities/Invisibility")]
 public class InvisAbility : AbstractAbility
@@ -24,7 +24,7 @@ public class InvisAbility : AbstractAbility
 
         if (invisManager == null)
         {
-            Debug.LogWarning("InvisManager не найден на корабле! Инвиз не будет работать.");
+            Debug.LogWarning("InvisManager is not found! Invisibility will not be working.");
             return;
         }
 
@@ -44,7 +44,7 @@ public class InvisAbility : AbstractAbility
         isFullyInvisible = false;
         delayTimer = activationDelay;
 
-        Debug.Log($"Активация инвиза... Задержка: {activationDelay} сек.");
+        Debug.Log($"Invisibility activation... Delay: {activationDelay} sec.");
     }
 
     private void Deactivate()
@@ -55,14 +55,14 @@ public class InvisAbility : AbstractAbility
 
         invisManager?.SetVisible(true);
 
-        Debug.Log("Инвиз деактивирован.");
+        Debug.Log("Invisibility deactivated.");
     }
 
     public void BreakInvisibility()
     {
         if (isActive)
         {
-            Debug.Log("Инвиз сброшен (атака или урон)!");
+            Debug.Log("Invisibility deactivated (attack or damage)!");
             Deactivate();
         }
     }
@@ -80,7 +80,7 @@ public class InvisAbility : AbstractAbility
                 isFullyInvisible = true;
                 invisManager.SetVisible(false);
 
-                Debug.Log("Корабль полностью невидим!");
+                Debug.Log("Ship is completely invisible!");
             }
         }
     }

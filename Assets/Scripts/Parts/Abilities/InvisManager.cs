@@ -6,7 +6,7 @@ using System.Linq;
 public class InvisManager : NetworkBehaviour
 {
     [SyncVar(hook = nameof(OnVisibleChanged))]
-    private bool isVisible = true; // true = видим, false = полностью невидим
+    private bool isVisible = true;
 
     private List<Renderer> shipRenderers = new List<Renderer>();
     private ShipAssembler assembler;
@@ -18,6 +18,7 @@ public class InvisManager : NetworkBehaviour
 
     public override void OnStartClient()
     {
+        base.OnStartClient();
         UpdateRendererList();
         ApplyVisibility(isVisible);
     }
@@ -25,6 +26,12 @@ public class InvisManager : NetworkBehaviour
     [Server]
     public void SetVisible(bool visible)
     {
+        if (!isServer)
+        {
+            Debug.LogWarning("SetVisible called on client! Only server should change visibility.");
+            return;
+        }
+
         isVisible = visible;
     }
 
@@ -41,6 +48,7 @@ public class InvisManager : NetworkBehaviour
             if (renderer == null) continue;
             renderer.enabled = visible;
         }
+        Debug.Log("Applying visibility: " + visible);
     }
 
     private void UpdateRendererList()
@@ -54,7 +62,7 @@ public class InvisManager : NetworkBehaviour
         shipRenderers.RemoveAll(r => r is LineRenderer || r is TrailRenderer || r is ParticleSystemRenderer);
     }
 
-    // Вызывается при смене частей корабля
+
     public void RefreshRenderers()
     {
         UpdateRendererList();
