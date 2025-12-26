@@ -12,6 +12,13 @@ namespace Network
         // Потом надо указать адрес реального сервера
         private const string BASE_URL = "https://yarlkot.isgood.host:9087/gameapi";
 
+        public static string AuthToken { get; private set; }
+
+        public static void SetToken(string token)
+        {
+            AuthToken = token;
+        }
+
         private void Awake()
         {
             if (Instance == null)

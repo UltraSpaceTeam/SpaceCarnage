@@ -2,7 +2,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Mirror;
+using Network;
 using UnityEngine;
+using UnityEngine.Networking;
 using Random = UnityEngine.Random;
 
 
@@ -12,7 +14,9 @@ using Random = UnityEngine.Random;
 [RequireComponent(typeof(ShipAssembler))]
 public class Player : NetworkBehaviour
 {
-    
+    [SyncVar] public int Kills = 0;
+    [SyncVar] public int Deaths = 0;
+
     public static Dictionary<uint, Player> ActivePlayers = new Dictionary<uint, Player>();
 
     private Health health;
@@ -41,7 +45,6 @@ public class Player : NetworkBehaviour
         controller = GetComponent<PlayerController>();
         shooting = GetComponent<ShipShooting>();
         assembler = GetComponent<ShipAssembler>();
-
     }
 
     public override void OnStartClient()
@@ -67,6 +70,12 @@ public class Player : NetworkBehaviour
         base.OnStartServer();
         health.OnDeath += ServerHandleDeath;
 
+        if (!ActivePlayers.ContainsKey(netId))
+        {
+            ActivePlayers.Add(netId, this);
+            Debug.Log($"[ActivePlayers] [Server] Added player: {Nickname} (netId: {netId})");
+        }
+
         if (assembler != null)
         {
             assembler.OnHullEquipped += HandleHullChange;
@@ -80,7 +89,14 @@ public class Player : NetworkBehaviour
     public override void OnStopServer()
     {
         base.OnStopServer();
+        SaveStatsToAPI();
         health.OnDeath -= ServerHandleDeath;
+
+        if (ActivePlayers.ContainsKey(netId))
+        {
+            ActivePlayers.Remove(netId);
+            Debug.Log($"[ActivePlayers] [Server] Removed player: {Nickname}");
+        }
     }
 
     public override void OnStartLocalPlayer()
@@ -121,6 +137,20 @@ public class Player : NetworkBehaviour
         RpcSpawnDebris();
 
         SetPlayerState(false);
+
+        Deaths++;
+
+        if (source.Type == DamageType.Weapon && source.AttackerId != 0)
+        {
+            if (ActivePlayers.TryGetValue(source.AttackerId, out var killer))
+            {
+                killer.Kills++;
+            }
+            else
+            {
+                Debug.Log("Killer not found");
+            }
+        }
 
         TargetShowDeathScreen(connectionToClient, source);
 
@@ -376,6 +406,44 @@ public class Player : NetworkBehaviour
             {
                 currentShieldInstance.SetActive(false);
             }
+        }
+    }
+
+    [Server]
+    private async void SaveStatsToAPI()
+    {
+        if (GameData.Instance == null)
+        {
+            Debug.LogError("GameData not found!");
+            return;
+        }
+
+        string json = $"{{\"sessionId\": {GameData.Instance.SessionId}, \"leaderboard\": [{{\"playerId\": {GameData.Instance.PlayerId}, \"kills\": {Kills}, \"deaths\": {Deaths}}}]}}";
+
+        try
+        {
+            using (UnityWebRequest www = UnityWebRequest.Post("https://yarlkot.isgood.host:9087/gameapi/games/end", json, "application/json"))
+            {
+                www.SetRequestHeader("Authorization", "Bearer " + GameData.Instance.Token);
+
+                var operation = www.SendWebRequest();
+
+                while (!operation.isDone)
+                    await System.Threading.Tasks.Task.Yield();
+
+                if (www.result == UnityWebRequest.Result.Success)
+                {
+                    Debug.Log("Stats sended successfully!");
+                }
+                else
+                {
+                    Debug.LogError("Sending error: " + www.error + " | " + www.downloadHandler.text);
+                }
+            }
+        }
+        catch (System.Exception ex)
+        {
+            Debug.LogError("Error: " + ex.Message);
         }
     }
 }

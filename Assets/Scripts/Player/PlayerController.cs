@@ -122,6 +122,9 @@ public class PlayerController : NetworkBehaviour
 
         bool abilityPressed = Input.GetKeyDown(KeyCode.Space);
         CmdUpdateInputs(rawThrust, rawRoll, targetViewport, abilityPressed);
+
+        bool tabHeld = Input.GetKey(KeyCode.Tab);
+        UIManager.Instance.SetLeaderboardVisible(tabHeld);
     }
 
     [Command]
