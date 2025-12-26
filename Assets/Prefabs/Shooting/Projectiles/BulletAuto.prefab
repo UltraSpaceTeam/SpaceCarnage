@@ -56,7 +56,7 @@ TrailRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10306, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 9ba6bb5838980b44fa4f4b67c8099c74, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -218,7 +218,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 093a7d0fcbe125e4b9068557453eb25f, type: 2}
+  - {fileID: 2100000, guid: 796341883d717ca43adab9607180ca2d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -321,6 +321,9 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0
   damage: 0
+  _hitVFX: {fileID: 0}
+  ownerName: 
+  weaponName: 
 --- !u!114 &-7895852091476952151
 MonoBehaviour:
   m_ObjectHideFlags: 0
