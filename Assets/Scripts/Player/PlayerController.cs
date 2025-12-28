@@ -123,8 +123,11 @@ public class PlayerController : NetworkBehaviour
         bool abilityPressed = Input.GetKeyDown(KeyCode.Space);
         CmdUpdateInputs(rawThrust, rawRoll, targetViewport, abilityPressed);
 
-        bool tabHeld = Input.GetKey(KeyCode.Tab);
-        UIManager.Instance.SetLeaderboardVisible(tabHeld);
+        if (UIManager.Instance != null && !UIManager.Instance.isEndMatch)
+        {
+            bool tabHeld = Input.GetKey(KeyCode.Tab);
+            UIManager.Instance.SetLeaderboardVisible(tabHeld);
+        }
     }
 
     [Command]
@@ -172,7 +175,6 @@ public class PlayerController : NetworkBehaviour
 
         if (engine != null)
         {
-            // Проверяем смену абилки
             if (engine.ability != currentAbility)
             {
                 currentAbility?.OnUnequipped();
@@ -180,11 +182,9 @@ public class PlayerController : NetworkBehaviour
                 currentAbility?.OnEquipped();
             }
 
-            // Обновляем абилку каждый тик
             currentAbility?.ServerUpdate(rb);
         }
 
-        // Модификатор скорости от абилки щита
         float speedMult = currentAbility?.GetSpeedMultiplier() ?? 1f;
 
         float sumMass = weapon.mass + engine.mass + hull.mass;

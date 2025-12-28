@@ -14,6 +14,9 @@ using Random = UnityEngine.Random;
 [RequireComponent(typeof(ShipAssembler))]
 public class Player : NetworkBehaviour
 {
+    [SyncVar] public bool IsActive = true;
+    [SyncVar] public int ServerPlayerId = 0;
+    [SyncVar] public string Nickname = "Player";
     [SyncVar] public int Kills = 0;
     [SyncVar] public int Deaths = 0;
 
@@ -24,7 +27,7 @@ public class Player : NetworkBehaviour
     private ShipShooting shooting;
     private ShipAssembler assembler;
 
-    [SyncVar] public string Nickname = "Player";
+    private static UInt16 number = 0; // temp
 
     [Header("Respawn Settings")]
     [SerializeField] private float invulnerabilityDuration = 3.0f;
@@ -50,31 +53,35 @@ public class Player : NetworkBehaviour
     public override void OnStartClient()
     {
         base.OnStartClient();
+
         if (!ActivePlayers.ContainsKey(netId))
         {
             ActivePlayers.Add(netId, this);
+            Debug.Log($"[ActivePlayers] Client added: {Nickname} (netId: {netId})");
         }
     }
 
     public override void OnStopClient()
     {
-        base.OnStopClient();
         if (ActivePlayers.ContainsKey(netId))
         {
             ActivePlayers.Remove(netId);
+            Debug.Log($"[ActivePlayers] Client removed: {Nickname} (netId: {netId})");
         }
+
+        base.OnStopClient();
     }
 
     public override void OnStartServer()
     {
         base.OnStartServer();
-        health.OnDeath += ServerHandleDeath;
 
-        if (!ActivePlayers.ContainsKey(netId))
-        {
-            ActivePlayers.Add(netId, this);
-            Debug.Log($"[ActivePlayers] [Server] Added player: {Nickname} (netId: {netId})");
-        }
+        ushort currentNumber = number++; // temp
+
+        Nickname = PlayerPrefs.GetString("Username", "Player" + currentNumber);
+        ServerPlayerId = PlayerPrefs.GetInt("PlayerId", 1000 + currentNumber);
+
+        health.OnDeath += ServerHandleDeath;
 
         if (assembler != null)
         {
@@ -85,31 +92,55 @@ public class Player : NetworkBehaviour
                 HandleHullChange(assembler.CurrentHull);
             }
         }
+
+        if (!ActivePlayers.ContainsKey(netId))
+        {
+            ActivePlayers.Add(netId, this);
+            Debug.Log($"[ActivePlayers] [Server] Added player: {Nickname} (netId: {netId})");
+        }
+
+        if (SessionManager.Instance != null)
+        {
+            SessionManager.Instance.ConnectPlayer(this);
+        }
+        else
+        {
+            Debug.LogWarning("[Player] SessionManager.Instance is null in OnStartServer - stats are not saving for this player.");
+        }
     }
     public override void OnStopServer()
     {
-        base.OnStopServer();
-        SaveStatsToAPI();
+        if (ActivePlayers.TryGetValue(netId, out var player))
+        {
+            Debug.Log($"[ActivePlayers] Removed: {player.Nickname} (netId: {netId})");
+            ActivePlayers.Remove(netId);
+        }
+
+        if (SessionManager.Instance != null)
+        {
+            SessionManager.Instance.DisconnectPlayer(this);
+        }
+        else
+        {
+            Debug.LogWarning("[Player] SessionManager.Instance is null in OnStopServer - stats not saved for this player.");
+        }
+
         health.OnDeath -= ServerHandleDeath;
 
-        if (ActivePlayers.ContainsKey(netId))
-        {
-            ActivePlayers.Remove(netId);
-            Debug.Log($"[ActivePlayers] [Server] Removed player: {Nickname}");
-        }
+        base.OnStopServer();
     }
 
     public override void OnStartLocalPlayer()
     {
-        string myName = $"Player {netId}";
-        CmdSetNickname(myName);
         base.OnStartLocalPlayer();
+
         health.OnHealthUpdate += HandleHealthUpdate;
         UIManager.Instance.UpdateHealth(100, 100);
     }
     public override void OnStopLocalPlayer()
     {
         base.OnStopLocalPlayer();
+        IsActive = false;
         if (health != null) health.OnHealthUpdate -= HandleHealthUpdate;
     }
 
@@ -133,7 +164,7 @@ public class Player : NetworkBehaviour
     [Server]
     private void ServerHandleDeath(DamageContext source)
     {
-        Debug.Log("Player " + gameObject.name + " died due to " + source);
+        Debug.Log($"[Death] {Nickname} died. AttackerId: {source.AttackerId}, Type: {source.Type}");
         RpcSpawnDebris();
 
         SetPlayerState(false);
@@ -144,11 +175,13 @@ public class Player : NetworkBehaviour
         {
             if (ActivePlayers.TryGetValue(source.AttackerId, out var killer))
             {
+                Debug.Log($"[Death] Killer found: {killer.Nickname} (netId: {killer.netId}), incrementing kills");
                 killer.Kills++;
             }
             else
             {
-                Debug.Log("Killer not found");
+                Debug.LogWarning($"[Death] Killer with netId {source.AttackerId} NOT found in ActivePlayers!");
+                Debug.LogWarning("Current ActivePlayers netIds: " + string.Join(", ", ActivePlayers.Keys));
             }
         }
 
@@ -246,6 +279,16 @@ public class Player : NetworkBehaviour
         }
     }
 
+    [ClientRpc]
+    public void RpcSetLeaderboardVisible(bool visible)
+    {
+        Debug.Log($"[RPC] End-match leaderboard: {visible}");
+
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.SetLeaderboardVisible(visible);
+        }
+    }
 
     [Command]
     public void CmdRequestRespawn()
@@ -253,12 +296,6 @@ public class Player : NetworkBehaviour
         if (!health.IsDead) return;
 
         StartCoroutine(RespawnRoutine());
-    }
-
-    [Command]
-    private void CmdSetNickname(string newName)
-    {
-        Nickname = newName;
     }
 
     [Server]
@@ -366,7 +403,7 @@ public class Player : NetworkBehaviour
         var invisManager = GetComponent<InvisManager>();
         if (invisManager != null)
         {
-            invisManager.SetVisible(visible);  // Это вызовет SyncVar и применит на всех клиентах
+            invisManager.SetVisible(visible);
         }
     }
 
@@ -381,7 +418,6 @@ public class Player : NetworkBehaviour
 
         if (show)
         {
-            // Создаём, если ещё нет
             if (currentShieldInstance == null)
             {
                 currentShieldInstance = Instantiate(shieldBubblePrefab, transform);
@@ -392,11 +428,10 @@ public class Player : NetworkBehaviour
 
             currentShieldInstance.SetActive(true);
 
-            // Прозрачность по здоровью щита
             if (currentShieldRenderer != null)
             {
                 Color col = currentShieldRenderer.material.color;
-                col.a = Mathf.Lerp(0.1f, 0.4f, healthRatio);  // от слабой до полной видимости
+                col.a = Mathf.Lerp(0.1f, 0.4f, healthRatio);
                 currentShieldRenderer.material.color = col;
             }
         }
@@ -409,41 +444,25 @@ public class Player : NetworkBehaviour
         }
     }
 
-    [Server]
-    private async void SaveStatsToAPI()
+    [ClientRpc]
+    public void RpcShowEndMatchLeaderboard()
     {
-        if (GameData.Instance == null)
+        Debug.Log("[CLIENT] Show end match leaderboard");
+
+        if (UIManager.Instance != null)
         {
-            Debug.LogError("GameData not found!");
-            return;
+            UIManager.Instance.ForceShowEndMatchLeaderboard();
         }
+    }
 
-        string json = $"{{\"sessionId\": {GameData.Instance.SessionId}, \"leaderboard\": [{{\"playerId\": {GameData.Instance.PlayerId}, \"kills\": {Kills}, \"deaths\": {Deaths}}}]}}";
+    [ClientRpc]
+    public void RpcHideEndMatchLeaderboard()
+    {
+        Debug.Log("[CLIENT] Hide end match leaderboard");
 
-        try
+        if (UIManager.Instance != null)
         {
-            using (UnityWebRequest www = UnityWebRequest.Post("https://yarlkot.isgood.host:9087/gameapi/games/end", json, "application/json"))
-            {
-                www.SetRequestHeader("Authorization", "Bearer " + GameData.Instance.Token);
-
-                var operation = www.SendWebRequest();
-
-                while (!operation.isDone)
-                    await System.Threading.Tasks.Task.Yield();
-
-                if (www.result == UnityWebRequest.Result.Success)
-                {
-                    Debug.Log("Stats sended successfully!");
-                }
-                else
-                {
-                    Debug.LogError("Sending error: " + www.error + " | " + www.downloadHandler.text);
-                }
-            }
-        }
-        catch (System.Exception ex)
-        {
-            Debug.LogError("Error: " + ex.Message);
+            UIManager.Instance.HideEndMatchLeaderboard();
         }
     }
 }

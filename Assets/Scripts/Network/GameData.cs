@@ -1,12 +1,32 @@
+using Mirror;
+using Network;
+using System;
+using System.Threading.Tasks;
 using UnityEngine;
 
 public class GameData : MonoBehaviour
 {
+    [Serializable]
+    public class GameServerRegisterRequest
+    {
+        public int port;
+        public string ipAddress;
+        public int maxPlayers;
+    }
+
+    [Serializable]
+    public class GameServerRegisterResponse
+    {
+        public int sessionId;
+        public string key;
+    }
+
     public static GameData Instance { get; private set; }
 
-    public int PlayerId { get; private set; }
     public int SessionId { get; private set; }
+    public int PlayerId { get; private set; }
     public string Token { get; private set; }
+    public string PlayerNickname { get; private set; }
 
     private void Awake()
     {
@@ -21,18 +41,18 @@ public class GameData : MonoBehaviour
         }
     }
 
-    // Вызывай после успешного логина
     public void SetPlayerData(int playerId, string token, string nickname)
     {
         PlayerId = playerId;
         Token = token;
-        Debug.Log($"Сохранён PlayerId = {playerId}");
+        PlayerNickname = nickname;
+
+        Debug.Log($"Saved PlayerId = {playerId}, Nickname = {nickname}");
     }
 
-    // Вызывай после получения SessionId (из /games/register)
     public void SetSessionId(int sessionId)
     {
         SessionId = sessionId;
-        Debug.Log($"Сохранён SessionId = {sessionId}");
+        Debug.Log($"Saved SessionId = {sessionId}");
     }
 }

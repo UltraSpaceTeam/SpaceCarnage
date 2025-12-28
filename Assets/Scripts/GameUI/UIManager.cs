@@ -14,6 +14,7 @@ public class UIManager : MonoBehaviour
 
     private bool isLeaderboardShown = false;
     private float updateTimer = 0f; // temp
+    public bool isEndMatch = false;
 
     [Header("Controllers")]
     [SerializeField] private HUDController hudController;
@@ -53,6 +54,7 @@ public class UIManager : MonoBehaviour
 
     public void SetLeaderboardVisible(bool visible)
     {
+        if (isEndMatch) return;
         if (isLeaderboardShown == visible) return;
 
         isLeaderboardShown = visible;
@@ -61,7 +63,23 @@ public class UIManager : MonoBehaviour
         if (visible)
         {
             RefreshLeaderboard();
+            updateTimer = 0f;
         }
+    }
+
+    public void ForceShowEndMatchLeaderboard()
+    {
+        isEndMatch = true;
+        isLeaderboardShown = true;
+        leaderboardPanel.SetActive(true);
+        RefreshLeaderboard();
+    }
+
+    public void HideEndMatchLeaderboard()
+    {
+        isEndMatch = false;
+        isLeaderboardShown = false;
+        leaderboardPanel.SetActive(false);
     }
 
     private void RefreshLeaderboard()
@@ -102,14 +120,14 @@ public class UIManager : MonoBehaviour
             texts[1].text = player.Kills.ToString();
             texts[2].text = player.Deaths.ToString();
 
-            Debug.Log($"[Leaderboard] Добавлена строка: {player.Nickname} | Kills: {player.Kills} | Deaths: {player.Deaths}");
+            Debug.Log($"[Leaderboard] Added line: {player.Nickname} | Kills: {player.Kills} | Deaths: {player.Deaths}");
         }
     }
 
-    // перестраховка, пока непонятно, нужна ли
+
     private void Update()
     {
-        if (isLeaderboardShown)
+        if (isLeaderboardShown && Player.ActivePlayers.Count > 0)
         {
             updateTimer += Time.deltaTime;
             if (updateTimer >= 1f)
