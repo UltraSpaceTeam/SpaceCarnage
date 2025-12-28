@@ -107,7 +107,7 @@ public class SessionManager : MonoBehaviour
             existing.Deaths = player.Deaths;
         }
 
-        if (Player.ActivePlayers.Count > 0)
+        if (Player.ActivePlayers.Count == 1)
         {
             StartCoroutine(MatchTimerCoroutine());
             Debug.Log("[SessionManager] First player connected - match started! Duration: 10 minutes.");

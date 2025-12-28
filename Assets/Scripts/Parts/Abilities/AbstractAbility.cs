@@ -7,7 +7,7 @@ public abstract class AbstractAbility : ScriptableObject
 
     public abstract void RunAbility(Rigidbody shipRb);
 
-    // Для щита
+    // For shield
     public virtual void ServerUpdate(Rigidbody shipRb) { }
     public virtual float AbsorbDamage(float damage) => damage;
     public virtual float GetSpeedMultiplier() => 1f;

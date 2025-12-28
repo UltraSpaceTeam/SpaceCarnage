@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Dash Engine
   m_EditorClassIdentifier: 
   id: 1
-  partName: Engine
+  partName: Dash
   partType: 2
   prefab: {fileID: 5389579586531250488, guid: dcedf9c3611207144af138d851a92080, type: 3}
   mass: 5
