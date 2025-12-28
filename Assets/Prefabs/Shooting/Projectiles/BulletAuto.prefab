@@ -340,4 +340,3 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0
   maxHealth: 3
-  deathSound: 7
