@@ -9,31 +9,27 @@ public class ShieldAbility : AbstractAbility
     public float regenerationDelay = 5f;
     public float regenerationRate = 20f;
     public float speedReductionPercent = 0.3f;
-    //public GameObject shieldPrefab;
 
 
     private float currentShieldHealth;
     private float regenTimer;
     private bool isActive;
-    private Rigidbody shipRb;
     private GameObject owner;
-    private GameObject shield;
 
     private Player player;
 
     public override void RunAbility(Rigidbody rb)
     {
-        shipRb = rb;
         owner = rb.gameObject;
-        player = owner.GetComponent<Player>();
 
         // Toggle активации
         isActive = !isActive;
 
+        player = owner.GetComponent<Player>();
+
         if (isActive)
         {
-            if (currentShieldHealth <= 0) currentShieldHealth = maxShieldHealth; // полный заряд при первом включении
-            Debug.Log("Shield is on!");
+            Debug.Log($"Shield turned ON with {currentShieldHealth}/{maxShieldHealth} health");
             regenTimer = 0f;
             player?.RpcShowShield(true, currentShieldHealth / maxShieldHealth);
         }
@@ -47,10 +43,8 @@ public class ShieldAbility : AbstractAbility
 
     public override void ServerUpdate(Rigidbody rb)
     {
-        if (shield == null)
-        {
-            owner = rb.gameObject;
-        }
+        if (owner == null) owner = rb.gameObject;
+        Player player = owner.GetComponent<Player>();
 
         if (isActive)
         {
@@ -87,6 +81,8 @@ public class ShieldAbility : AbstractAbility
     {
         if (!isActive) return incomingDamage;
 
+        Player player = owner?.GetComponent<Player>();
+
         if (incomingDamage >= currentShieldHealth)
         {
             float leftover = incomingDamage - currentShieldHealth;
@@ -115,14 +111,22 @@ public class ShieldAbility : AbstractAbility
         currentShieldHealth = maxShieldHealth;
         isActive = false;
         regenTimer = 0f;
+        Debug.Log("Shield equipped - full health, inactive");
     }
 
     public override void OnUnequipped()
     {
         isActive = false;
+        isActive = false;
+        if (owner != null)
+        {
+            Player player = owner.GetComponent<Player>();
+            player?.RpcShowShield(false, 0f);
+        }
     }
 
-    // Для UI (опционально, если добавишь индикатор)
     public float GetShieldPercentage() => currentShieldHealth / maxShieldHealth;
     public bool IsShieldActive => isActive;
+    public float CurrentShieldHealth => currentShieldHealth;
+    public float MaxShieldHealth => maxShieldHealth;
 }

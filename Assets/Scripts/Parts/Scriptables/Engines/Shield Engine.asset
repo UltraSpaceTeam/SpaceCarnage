@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Shield Engine
   m_EditorClassIdentifier: 
   id: 2
-  partName: Engine
+  partName: Shield
   partType: 2
   prefab: {fileID: 5389579586531250488, guid: dcedf9c3611207144af138d851a92080, type: 3}
   mass: 10

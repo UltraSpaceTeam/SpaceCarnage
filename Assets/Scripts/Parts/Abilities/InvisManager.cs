@@ -32,6 +32,12 @@ public class InvisManager : NetworkBehaviour
             return;
         }
 
+        if (this == null || gameObject == null)
+        {
+            Debug.LogWarning("InvisManager: trying to set visibility on destroyed object!");
+            return;
+        }
+
         isVisible = visible;
     }
 
