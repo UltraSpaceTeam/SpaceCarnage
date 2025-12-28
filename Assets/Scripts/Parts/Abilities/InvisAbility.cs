@@ -15,12 +15,11 @@ public class InvisAbility : AbstractAbility
     private float delayTimer = 0f;
 
     private GameObject owner;
-    private InvisManager invisManager;
 
     public override void RunAbility(Rigidbody shipRb)
     {
         owner = shipRb.gameObject;
-        invisManager = owner.GetComponent<InvisManager>();
+        InvisManager invisManager = owner.GetComponent<InvisManager>();
 
         if (invisManager == null)
         {
@@ -53,7 +52,11 @@ public class InvisAbility : AbstractAbility
         isFullyInvisible = false;
         delayTimer = 0f;
 
-        invisManager?.SetVisible(true);
+        if (owner != null)
+        {
+            InvisManager invisManager = owner.GetComponent<InvisManager>();
+            invisManager?.SetVisible(true);
+        }
 
         Debug.Log("Invisibility deactivated.");
     }
@@ -69,7 +72,12 @@ public class InvisAbility : AbstractAbility
 
     public override void ServerUpdate(Rigidbody shipRb)
     {
-        if (!isActive || invisManager == null) return;
+        if (!isActive) return;
+
+        if (owner == null) owner = shipRb.gameObject;
+        InvisManager invisManager = owner.GetComponent<InvisManager>();
+
+        if (invisManager == null) return;
 
         if (delayTimer > 0f)
         {
@@ -94,7 +102,10 @@ public class InvisAbility : AbstractAbility
 
     public override void OnUnequipped()
     {
-        Deactivate();
+        if (isActive || isFullyInvisible)
+        {
+            Deactivate();
+        }
     }
 
     // Для UI или других систем
