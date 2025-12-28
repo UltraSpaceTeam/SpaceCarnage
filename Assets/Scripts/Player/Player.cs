@@ -12,6 +12,7 @@ using Random = UnityEngine.Random;
 [RequireComponent(typeof(PlayerController))]
 [RequireComponent(typeof(ShipShooting))]
 [RequireComponent(typeof(ShipAssembler))]
+[RequireComponent(typeof(NetworkAudio))]
 public class Player : NetworkBehaviour
 {
     [SyncVar] public bool IsActive = true;
@@ -42,12 +43,15 @@ public class Player : NetworkBehaviour
     private GameObject currentShieldInstance;
     private Renderer currentShieldRenderer;
 
+    [HideInInspector] public NetworkAudio networkAudio;
     private void Awake()
     {
         health = GetComponent<Health>();
         controller = GetComponent<PlayerController>();
         shooting = GetComponent<ShipShooting>();
         assembler = GetComponent<ShipAssembler>();
+
+        networkAudio = GetComponent<NetworkAudio>();
     }
 
     public override void OnStartClient()

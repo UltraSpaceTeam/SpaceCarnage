@@ -19,4 +19,6 @@ public class WeaponData : ShipPartData
     public GameObject projectilePrefab;
     public GameObject hitVFX;
     public GameObject muzzleFlashVFX;
+    [Header("Sounds")]
+    public SoundType soundType;
 }
