@@ -14,10 +14,11 @@ public class ShipAssembler : MonoBehaviour
     public WeaponData CurrentWeapon { get; private set; }
     public GameObject CurrentWeaponObject { get; private set; }
     public EngineData CurrentEngine { get; private set; }
-    public GameObject CurrentEngineObject;
+    public GameObject CurrentEngineObject { get; private set; }
 
     private List<PartSocket> _activeSockets = new List<PartSocket>();
     public event Action<HullData> OnHullEquipped;
+    public event Action<GameObject> OnEngineEquipped;
 
     public void EquipHull(HullData newHullData)
     {
@@ -59,13 +60,20 @@ public class ShipAssembler : MonoBehaviour
         CurrentEngine = engineData;
         if (_activeSockets == null || _activeSockets.Count == 0) return;
 
-        AttachPartToSocket(engineData, PartType.Engine);
+        GameObject newEngineObj = AttachPartToSocket(engineData, PartType.Engine);
+
+        if (newEngineObj != null)
+        {
+            CurrentEngineObject = newEngineObj;
+            OnEngineEquipped?.Invoke(newEngineObj);
+        }
     }
 
-    private void AttachPartToSocket(ShipPartData partData, PartType type)
+    private GameObject AttachPartToSocket(ShipPartData partData, PartType type)
     {
         PartSocket targetSocket = _activeSockets.FirstOrDefault(s => s.socketType == type);
 
+        GameObject newPart = null;
         if (targetSocket != null)
         {
             for (int i = targetSocket.transform.childCount - 1; i >= 0; i--)
@@ -75,13 +83,15 @@ public class ShipAssembler : MonoBehaviour
 
             if (partData != null && partData.prefab != null)
             {
-                GameObject newPart = Instantiate(partData.prefab, targetSocket.transform);
+                newPart = Instantiate(partData.prefab, targetSocket.transform);
                 newPart.transform.localPosition = Vector3.zero;
                 newPart.transform.localRotation = Quaternion.identity;
 
                 CurrentEngineObject = newPart;
             }
         }
+
+        return newPart;
     }
 
     private void AttachWeaponToSocket(WeaponData partData)
