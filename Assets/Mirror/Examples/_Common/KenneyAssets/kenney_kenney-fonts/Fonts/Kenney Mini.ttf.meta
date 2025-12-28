@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: d5190545d289c45069540614d598068b
+guid: 095aeb19f163e6e4697328de7c1cb63f
 TrueTypeFontImporter:
   externalObjects: {}
   serializedVersion: 4
@@ -19,11 +19,3 @@ TrueTypeFontImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
-AssetOrigin:
-  serializedVersion: 1
-  productId: 129321
-  packageName: Mirror
-  packageVersion: 96.0.1
-  assetPath: Assets/Mirror/Examples/_Common/KenneyAssets/kenney_kenney-fonts/Fonts/Kenney
-    Mini.ttf
-  uploadId: 736421
