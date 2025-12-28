@@ -19,6 +19,7 @@ public class UIManager : MonoBehaviour
     [Header("Controllers")]
     [SerializeField] private HUDController hudController;
     [SerializeField] private DeathScreenController deathScreenController;
+	[SerializeField] private BorderWarningController borderWarningController;
 
     private void Awake()
     {
@@ -40,6 +41,16 @@ public class UIManager : MonoBehaviour
     public void HideDeathScreen()
     {
         deathScreenController.Hide();
+    }
+
+    public void ShowBorderWarning()
+    {
+        borderWarningController.Show();
+    }
+
+    public void HideBorderWarning()
+    {
+        borderWarningController.Hide();
     }
 
     public void UpdateHealth(float current, float max)
