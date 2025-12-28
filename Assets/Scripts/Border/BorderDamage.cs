@@ -12,6 +12,7 @@ public class BorderDamage : NetworkBehaviour
     private Health _health;
     private Coroutine _damageCoroutine = null;
 	
+    [SyncVar(hook = nameof(OnOutsideStateChanged))]
     private bool _isOutside = false;
     private bool _isDamaging = false;
 	
@@ -21,25 +22,21 @@ public class BorderDamage : NetworkBehaviour
         _health = GetComponent<Health>();
     }
 
-    // Update is called once per frame
 	[Server]
     void FixedUpdate()
     {
          bool currentOutside = IsOutsideBorder();
         
-        // Если состояние изменилось
         if (currentOutside != _isOutside)
         {
             _isOutside = currentOutside;
             
             if (_isOutside)
             {
-                // Только что вышли за границу
                 OnEnterBorderZone();
             }
             else
             {
-                // Только что вернулись в безопасную зону
                 OnExitBorderZone();
             }
         }
@@ -54,6 +51,7 @@ public class BorderDamage : NetworkBehaviour
 	void CmdDealDamage() {
 		StopCoroutine(_damageCoroutine);
 	}
+	
 	
 	[Server]
     private IEnumerator DamageOverTimeRoutine()
@@ -92,7 +90,23 @@ public class BorderDamage : NetworkBehaviour
         }
         
         _damageCoroutine = StartCoroutine(DamageOverTimeRoutine());
-
+    }
+	
+	private void OnOutsideStateChanged(bool oldValue, bool newValue)
+    {
+        if (isLocalPlayer)
+        {
+			if (UIManager.Instance != null && !UIManager.Instance.isEndMatch) {
+				if (newValue)
+				{
+					UIManager.Instance.ShowBorderWarning();
+				}
+				else
+				{
+					UIManager.Instance.HideBorderWarning();
+				}
+			}
+        }
     }
 	
 }
