@@ -16,7 +16,8 @@ public class PlayerController : NetworkBehaviour
     private Vector2 aimTargetInput;
 
     private bool activateAbility;
-    private float abilityCooldownTimer = 0f;
+
+    [SyncVar] private float abilityCooldownTimer = 0f;
 
     [Header("Input Settings")]
     [SerializeField] private bool invertY = false;
@@ -50,6 +51,11 @@ public class PlayerController : NetworkBehaviour
     [Header("Physics Settings")]
     [SerializeField] private float overSpeedDragFactor = 1f;
 
+<<<<<<< HEAD
+=======
+    public float AbilityCooldownRemaining => abilityCooldownTimer;
+    public bool AbilityOnCooldown => abilityCooldownTimer > 0f;
+>>>>>>> 68a61b7 (Else minor bugfixes)
 
     void Awake()
     {
@@ -217,10 +223,10 @@ public class PlayerController : NetworkBehaviour
 
         if (activateAbility)
         {
-            if (abilityCooldownTimer <= 0 && engine?.ability != null)
+            if (abilityCooldownTimer <= 0 && currentAbility != null)
             {
-                engine.ability.RunAbility(rb);
-                abilityCooldownTimer = engine.ability.cooldown;
+                currentAbility.RunAbility(rb);
+                abilityCooldownTimer = currentAbility.cooldown;
             }
         }
 

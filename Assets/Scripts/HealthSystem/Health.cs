@@ -48,7 +48,7 @@ public class Health : NetworkBehaviour, IDieable
         var ability = assembler?.CurrentEngine?.ability;
 
         // If ability is shield — absorb
-        var shieldAbility = ability as InvisAbility;
+        var shieldAbility = ability as ShieldAbility;
         if (shieldAbility != null)
         {
             damage = shieldAbility.AbsorbDamage(damage);

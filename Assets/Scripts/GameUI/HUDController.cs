@@ -63,43 +63,40 @@ public class HUDController : MonoBehaviour
     private void UpdateAmmoIndicator()
     {
         var localPlayer = FindLocalPlayer();
-        if (localPlayer == null) return;
+        if (localPlayer == null || ammoText == null) return;
 
         var shooting = localPlayer.GetComponent<ShipShooting>();
-        if (shooting == null || ammoText == null) return;
+        var weapon = shooting?.CurrentWeaponData;
 
-        var weapon = shooting.CurrentWeaponData;
         if (weapon == null)
         {
             ammoText.text = "No Weapon";
             return;
         }
 
-        bool isReloading = (bool)GetField(shooting, "_isReloading"); // temp
-        int currentAmmo = (int)GetField(shooting, "_currentAmmo"); // temp
-
-        if (isReloading)
+        if (shooting.IsReloading)
             ammoText.text = "Reloading...";
         else
-            ammoText.text = $"{currentAmmo} / {weapon.ammo}";
+            ammoText.text = $"{shooting.CurrentAmmo} / {weapon.ammo}";
     }
 
     private void UpdateAbilityIndicator()
     {
         var localPlayer = FindLocalPlayer();
+
         if (localPlayer == null) return;
 
         var assembler = localPlayer.GetComponent<ShipAssembler>();
         var controller = localPlayer.GetComponent<PlayerController>();
 
-        if (assembler == null || assembler.CurrentEngine == null || assembler.CurrentEngine.ability == null)
+        if (assembler?.CurrentEngine?.ability == null)
         {
             if (abilityPanel != null) abilityPanel.SetActive(false);
             return;
         }
 
         var ability = assembler.CurrentEngine.ability;
-        float cooldownTimer = (float)GetField(controller, "abilityCooldownTimer"); // temp
+        float cooldownTimer = controller.AbilityCooldownRemaining;
 
         if (abilityPanel != null) abilityPanel.SetActive(true);
 
@@ -196,14 +193,6 @@ public class HUDController : MonoBehaviour
         foreach (var player in Player.ActivePlayers.Values)
             if (player.isLocalPlayer) return player;
         return null;
-    }
-
-    // temp
-    private object GetField(object obj, string fieldName)
-    {
-        var field = obj.GetType().GetField(fieldName,
-            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-        return field?.GetValue(obj);
     }
 
     public void UpdateHealth(float current, float max)

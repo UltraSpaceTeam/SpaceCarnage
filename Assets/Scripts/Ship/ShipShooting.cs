@@ -19,8 +19,9 @@ public class ShipShooting : NetworkBehaviour
 
     private const float DEFAULT_AIM_DISTANCE = 1000f;
 
+    public int CurrentAmmo => _currentAmmo;
+    public bool IsReloading => _isReloading;
     public WeaponData CurrentWeaponData => _assembler.CurrentWeapon;
-
     public string ShooterName => _player != null ? _player.Nickname : "Unknown";
 
     void Awake()
