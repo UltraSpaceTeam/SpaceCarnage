@@ -83,6 +83,7 @@ public class Rocket : NetworkBehaviour
             {
                 GameObject vfx = Instantiate(_projectile.HitVFX, transform.position, transform.rotation);
                 NetworkServer.Spawn(vfx);
+                
             }
         }
     }

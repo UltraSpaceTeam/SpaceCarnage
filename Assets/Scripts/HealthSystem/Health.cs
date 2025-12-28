@@ -9,7 +9,9 @@ public class Health : NetworkBehaviour, IDieable
     [SerializeField] private float maxHealth = 100f;
     [SyncVar(hook = nameof(OnHealthChanged))] 
     private float currentHealth;
-    
+    [Header("Audio Settings")]
+    [SerializeField] private SoundType deathSound = SoundType.None;
+
     [SyncVar]
     private bool isDead = false;
     [SyncVar]
@@ -83,7 +85,16 @@ public class Health : NetworkBehaviour, IDieable
         {
             OnDeath.Invoke(source);
         }
-        
+
+        if (NetworkAudioManager.Instance != null)
+        {
+            NetworkAudioManager.Instance.PlaySoundOnAllClients(deathSound, transform.position);
+        }
+        else
+        {
+            Debug.LogWarning("NetworkAudioManager instance is null, cannot play death sound.");
+        }
+
         if (TryGetComponent<Player>(out Player playerScript))
         {
             return;
