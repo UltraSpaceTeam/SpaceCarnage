@@ -5,11 +5,7 @@ using UnityEngine.UI;
 
 public class BorderWarningController : MonoBehaviour
 {
-	[Header("UI Elements")]
-    [SerializeField] private GameObject panel;
-    [SerializeField] private TextMeshProUGUI warningText;
-	
-    [Header("Killfeed Settings")]
+    [Header("Border Warning Settings")]
     [SerializeField] private Transform warningContainer;
     [SerializeField] private GameObject warningItemPrefab;
 	
