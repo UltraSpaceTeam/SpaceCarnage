@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 using System;
+using Unity.VisualScripting;
 
 public class ShipAssembler : MonoBehaviour
 {
@@ -9,12 +10,16 @@ public class ShipAssembler : MonoBehaviour
     [SerializeField] private Transform shipRoot;
 
     public HullData CurrentHull { get; private set; }
+    public GameObject CurrentHullObject;
     public WeaponData CurrentWeapon { get; private set; }
     public GameObject CurrentWeaponObject { get; private set; }
     public EngineData CurrentEngine { get; private set; }
+<<<<<<< HEAD
     public GameObject CurrentEngineObject { get; private set; }
+=======
+    public GameObject CurrentEngineObject;
+>>>>>>> d31b55d (Fixed cases when particles are not stop emitting when player died or used invisibility, added asteroid and ship explosion to the network manager)
 
-    public GameObject CurrentHullObject;
     private List<PartSocket> _activeSockets = new List<PartSocket>();
     public event Action<HullData> OnHullEquipped;
     public event Action<GameObject> OnEngineEquipped;
@@ -85,6 +90,8 @@ public class ShipAssembler : MonoBehaviour
                 newPart = Instantiate(partData.prefab, targetSocket.transform);
                 newPart.transform.localPosition = Vector3.zero;
                 newPart.transform.localRotation = Quaternion.identity;
+
+                CurrentEngineObject = newPart;
             }
         }
 
@@ -122,5 +129,35 @@ public class ShipAssembler : MonoBehaviour
 
         if (Application.isPlaying) Destroy(obj);
         else DestroyImmediate(obj);
+    }
+
+    public void StopEngineParticles()
+    {
+        if (CurrentEngineObject == null) return;
+
+        var particles = this.CurrentEngineObject.GetComponentsInChildren<ParticleSystem>(true).ToList();
+        foreach (var ps in particles)
+        {
+            if (ps == null) continue;
+
+            var emission = ps.emission;
+            emission.enabled = false;
+            ps.Stop();
+        }
+    }
+
+    public void StartEngineParticles()
+    {
+        if (CurrentEngineObject == null) return;
+
+        var particles = this.CurrentEngineObject.GetComponentsInChildren<ParticleSystem>(true).ToList();
+        foreach (var ps in particles)
+        {
+            if (ps == null) continue;
+
+            var emission = ps.emission;
+            emission.enabled = true;
+            ps.Play();
+        }
     }
 }

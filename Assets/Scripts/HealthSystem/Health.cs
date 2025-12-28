@@ -45,21 +45,38 @@ public class Health : NetworkBehaviour, IDieable
         if (isDead || isInvincible) return;
 
         var assembler = GetComponent<ShipAssembler>();
-        var ability = assembler?.CurrentEngine?.ability; // безопасный доступ
+        var ability = assembler?.CurrentEngine?.ability;
 
-        // Если ability есть и это щит — поглощаем
-        if (ability != null)
+        // If ability is shield — absorb
+        var shieldAbility = ability as InvisAbility;
+        if (shieldAbility != null)
         {
-            damage = ability.AbsorbDamage(damage);
+            damage = shieldAbility.AbsorbDamage(damage);
         }
 
         if (damage <= 0.01f) return;
 
-        // Проверяем инвиз (если есть)
+        // Checking invisibility of the attacker and the victim
         var invisAbility = ability as InvisAbility;
         if (invisAbility != null && invisAbility.breakOnDamage)
         {
             invisAbility.BreakInvisibility();
+        }
+
+        if (source.Type == DamageType.Weapon && source.AttackerId != 0)
+        {
+            if (Player.ActivePlayers.TryGetValue(source.AttackerId, out Player attackerPlayer))
+            {
+                var attackerAssembler = attackerPlayer.GetComponent<ShipAssembler>();
+                var attackerAbility = attackerAssembler?.CurrentEngine?.ability;
+                var attackerInvis = attackerAbility as InvisAbility;
+
+                if (attackerInvis != null && attackerInvis.breakOnAttack)
+                {
+                    attackerInvis.BreakInvisibility();
+                    Debug.Log($"{attackerPlayer.Nickname} broke invisibility by attacking {gameObject.name}");
+                }
+            }
         }
 
         currentHealth -= damage;

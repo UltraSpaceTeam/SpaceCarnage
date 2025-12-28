@@ -18,5 +18,4 @@ public class Asteroid : NetworkBehaviour
         GameObject vfx = Instantiate(HitVFX, transform.position, transform.rotation);
         NetworkServer.Spawn(vfx);
     }
-
 }

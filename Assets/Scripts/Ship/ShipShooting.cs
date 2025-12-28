@@ -163,15 +163,6 @@ public class ShipShooting : NetworkBehaviour
             CurrentWeaponData.strategy.Fire(this, pos, rot);
             RpcMuzzleFlash(pos, rot);
         }
-
-        // —брос инвиза при атаке (если ability есть)
-        var assembler = GetComponent<ShipAssembler>();
-        var ability = assembler?.CurrentEngine?.ability;
-        var invisAbility = ability as InvisAbility;
-        if (invisAbility != null && invisAbility.breakOnAttack)
-        {
-            invisAbility.BreakInvisibility();
-        }
     }
 
     [ClientRpc]
