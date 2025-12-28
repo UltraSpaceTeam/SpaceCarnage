@@ -201,6 +201,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   shipRoot: {fileID: 2670521280389508925}
   CurrentHullObject: {fileID: 0}
+  CurrentEngineObject: {fileID: 0}
 --- !u!114 &2366990887147708466
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -274,6 +275,7 @@ MonoBehaviour:
   explosionRadius: 5
   debrisLifetime: 10
   shieldBubblePrefab: {fileID: 1246887265069243449, guid: a1d3497c6c678804590560035945510f, type: 3}
+  HitVFX: {fileID: 3737296553817654341, guid: e1a281a8d2b2ee343bf8e920b5cb1aa7, type: 3}
   networkAudio: {fileID: 0}
 --- !u!114 &2470000224385826209
 MonoBehaviour:

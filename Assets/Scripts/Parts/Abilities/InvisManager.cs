@@ -9,6 +9,7 @@ public class InvisManager : NetworkBehaviour
     private bool isVisible = true;
 
     private List<Renderer> shipRenderers = new List<Renderer>();
+    private List<ParticleSystem> particleRenderers = new List<ParticleSystem>();
     private ShipAssembler assembler;
 
     private void Awake()
@@ -54,6 +55,19 @@ public class InvisManager : NetworkBehaviour
             if (renderer == null) continue;
             renderer.enabled = visible;
         }
+
+        foreach (var renderer in particleRenderers)
+        {
+            if (renderer == null) continue;
+            if (visible)
+            {
+                renderer.Play();
+            }
+            else
+            {
+                renderer.Stop();
+            }   
+        }
         Debug.Log("Applying visibility: " + visible);
     }
 
@@ -63,6 +77,7 @@ public class InvisManager : NetworkBehaviour
         if (assembler != null && assembler.CurrentHullObject != null)
         {
             shipRenderers = assembler.CurrentHullObject.GetComponentsInChildren<Renderer>(true).ToList();
+            particleRenderers = assembler.CurrentEngineObject.GetComponentsInChildren<ParticleSystem>(true).ToList();
         }
 
         shipRenderers.RemoveAll(r => r is LineRenderer || r is TrailRenderer || r is ParticleSystemRenderer);

@@ -19,8 +19,9 @@ public class ShipShooting : NetworkBehaviour
 
     private const float DEFAULT_AIM_DISTANCE = 1000f;
 
+    public int CurrentAmmo => _currentAmmo;
+    public bool IsReloading => _isReloading;
     public WeaponData CurrentWeaponData => _assembler.CurrentWeapon;
-
     public string ShooterName => _player != null ? _player.Nickname : "Unknown";
 
     void Awake()
@@ -162,15 +163,6 @@ public class ShipShooting : NetworkBehaviour
         {
             CurrentWeaponData.strategy.Fire(this, pos, rot);
             RpcMuzzleFlash(pos, rot);
-        }
-
-        // —брос инвиза при атаке (если ability есть)
-        var assembler = GetComponent<ShipAssembler>();
-        var ability = assembler?.CurrentEngine?.ability;
-        var invisAbility = ability as InvisAbility;
-        if (invisAbility != null && invisAbility.breakOnAttack)
-        {
-            invisAbility.BreakInvisibility();
         }
     }
 

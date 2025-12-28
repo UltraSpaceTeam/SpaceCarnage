@@ -22,7 +22,7 @@ public class ShieldAbility : AbstractAbility
     {
         owner = rb.gameObject;
 
-        // Toggle активации
+        // Toggle activation
         isActive = !isActive;
 
         player = owner.GetComponent<Player>();
@@ -67,7 +67,7 @@ public class ShieldAbility : AbstractAbility
             player?.RpcShowShield(false, 0f);
         }
 
-        // Авто-выключение если щит пробит
+        // Automatically off when shield is broken
         if (isActive && currentShieldHealth <= 0)
         {
             player?.RpcShowShield(false, 0f);
@@ -91,7 +91,7 @@ public class ShieldAbility : AbstractAbility
             player?.RpcShowShield(false, 0f);
             regenTimer = regenerationDelay;
             Debug.Log("Shield broken! Remaining damage: " + leftover);
-            return leftover; // остаток идёт в корпус
+            return leftover;
         }
         else
         {
@@ -125,7 +125,7 @@ public class ShieldAbility : AbstractAbility
         }
     }
 
-    public float GetShieldPercentage() => currentShieldHealth / maxShieldHealth;
+    public float ShieldPercentage => currentShieldHealth / maxShieldHealth;
     public bool IsShieldActive => isActive;
     public float CurrentShieldHealth => currentShieldHealth;
     public float MaxShieldHealth => maxShieldHealth;

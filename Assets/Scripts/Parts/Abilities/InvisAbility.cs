@@ -9,7 +9,6 @@ public class InvisAbility : AbstractAbility
     public bool breakOnAttack = true;
     public bool breakOnDamage = true;
 
-    // Внутреннее состояние
     private bool isActive = false;
     private bool isFullyInvisible = false;
     private float delayTimer = 0f;
@@ -108,7 +107,6 @@ public class InvisAbility : AbstractAbility
         }
     }
 
-    // Для UI или других систем
     public bool IsActive => isActive;
     public bool IsFullyInvisible => isFullyInvisible;
     public float ActivationProgress => isActive ? 1f - (delayTimer / activationDelay) : 0f;
