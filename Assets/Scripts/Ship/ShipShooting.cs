@@ -70,7 +70,7 @@ public class ShipShooting : NetworkBehaviour
                 _currentAmmo--;
 
                 Quaternion aimRotation = GetAimRotation();
-                _player.networkAudio.PlaySound(CurrentWeaponData.soundType, _muzzlePoint.position);
+
                 CmdFire(_muzzlePoint.position, aimRotation);
             }
         }

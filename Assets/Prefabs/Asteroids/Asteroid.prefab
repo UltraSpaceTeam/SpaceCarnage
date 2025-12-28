@@ -248,7 +248,6 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0
   maxHealth: 100
-  deathSound: 6
 --- !u!114 &2395868659906923252
 MonoBehaviour:
   m_ObjectHideFlags: 0

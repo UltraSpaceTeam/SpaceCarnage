@@ -27,4 +27,3 @@ MonoBehaviour:
   projectilePrefab: {fileID: 5003006577081230700, guid: 95f3c66db003ccd40b3feb7edfa74e99, type: 3}
   hitVFX: {fileID: 3737296553817654341, guid: e39ed80df7d91b640b0e6141e65536ce, type: 3}
   muzzleFlashVFX: {fileID: 3737296553817654341, guid: ec0529c350587f7459efae1f9c38dac9, type: 3}
-  soundType: 3
