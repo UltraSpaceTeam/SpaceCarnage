@@ -42,12 +42,19 @@ public class Player : NetworkBehaviour
     private GameObject currentShieldInstance;
     private Renderer currentShieldRenderer;
 
+    [SerializeField] private GameObject HitVFX;
+
     private void Awake()
     {
         health = GetComponent<Health>();
         controller = GetComponent<PlayerController>();
         shooting = GetComponent<ShipShooting>();
         assembler = GetComponent<ShipAssembler>();
+
+        if (isServer)
+        {
+            health.OnDeath += OnDie;
+        }
     }
 
     public override void OnStartClient()
@@ -82,6 +89,7 @@ public class Player : NetworkBehaviour
         ServerPlayerId = PlayerPrefs.GetInt("PlayerId", 1000 + currentNumber);
 
         health.OnDeath += ServerHandleDeath;
+        health.OnDeath += OnDie;
 
         if (assembler != null)
         {
@@ -125,6 +133,7 @@ public class Player : NetworkBehaviour
             Debug.LogWarning("[Player] SessionManager.Instance is null in OnStopServer - stats not saved for this player.");
         }
 
+        health.OnDeath -= OnDie;
         health.OnDeath -= ServerHandleDeath;
 
         base.OnStopServer();
@@ -339,6 +348,15 @@ public class Player : NetworkBehaviour
         var colliders = GetComponentsInChildren<Collider>();
         var renderers = GetComponentsInChildren<Renderer>();
 
+        if (isActive)
+        {
+            RpcStartEngineParticles();
+        }
+        else
+        {
+            RpcStopEngineParticles();
+        }
+
         foreach (var c in colliders) c.enabled = isActive;
         foreach (var r in renderers)
         {
@@ -347,10 +365,21 @@ public class Player : NetworkBehaviour
                 continue;
             }
             r.enabled = isActive;
-
         }
 
         RpcSetState(isActive);
+    }
+
+    [ClientRpc]
+    private void RpcStopEngineParticles()
+    {
+        assembler?.StopEngineParticles();
+    }
+
+    [ClientRpc]
+    private void RpcStartEngineParticles()
+    {
+        assembler?.StartEngineParticles();
     }
 
     [ClientRpc]
@@ -463,6 +492,18 @@ public class Player : NetworkBehaviour
         if (UIManager.Instance != null)
         {
             UIManager.Instance.HideEndMatchLeaderboard();
+        }
+    }
+
+    [Server]
+    private void OnDie(DamageContext ctx)
+    {
+        if (!isServer) return;
+
+        if (HitVFX != null)
+        {
+            GameObject vfx = Instantiate(HitVFX, transform.position, transform.rotation);
+            NetworkServer.Spawn(vfx);
         }
     }
 }
