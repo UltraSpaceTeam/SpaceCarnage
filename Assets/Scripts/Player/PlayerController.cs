@@ -1,7 +1,5 @@
 using UnityEngine;
 using Mirror;
-using UnityEngine.InputSystem;
-using Unity.VisualScripting.Antlr3.Runtime.Misc;
 
 [RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(ShipAssembler))]
@@ -10,6 +8,8 @@ public class PlayerController : NetworkBehaviour
 {
     private Rigidbody rb;
     private ShipAssembler shipAssembler;
+
+    [SyncVar] public float CurrentThrustOutput;
 
     private float thrustInput;
     private float rollInput;
@@ -50,16 +50,15 @@ public class PlayerController : NetworkBehaviour
     [Header("Physics Settings")]
     [SerializeField] private float overSpeedDragFactor = 1f;
 
+
     void Awake()
     {
         rb = GetComponent<Rigidbody>();
         shipAssembler = GetComponent<ShipAssembler>();
 
-
         health = GetComponent<Health>(); // temp
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
-
     }
     public override void OnStartLocalPlayer()
     {
@@ -128,6 +127,7 @@ public class PlayerController : NetworkBehaviour
     void CmdUpdateInputs(float thrust, float roll, Vector2 rotation, bool abilityPressed)
     {
         thrustInput = thrust;
+        CurrentThrustOutput = thrust;
         rollInput = roll;
         aimTargetInput = rotation;
         activateAbility |= abilityPressed;
