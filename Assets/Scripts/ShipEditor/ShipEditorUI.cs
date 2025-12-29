@@ -364,7 +364,7 @@ public class ShipEditorUI : MonoBehaviour
         SaveConfiguration();
         
         // Transition to game
-        SceneManager.LoadScene("Game");
+        SceneManager.LoadScene("TestMultiplayerScene");
     }
 
     void OpenSettingsWindow()
@@ -418,7 +418,7 @@ public class ShipEditorUI : MonoBehaviour
         PlayerPrefs.DeleteKey("AuthToken");
         PlayerPrefs.DeleteKey("Username");
         PlayerPrefs.Save();
-        SceneManager.LoadScene("MainMenu");
+        SceneManager.LoadScene("LoginScene");
     }
 
     void LoadSavedConfiguration()
