@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using TMPro;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine.Audio;
 using UnityEngine.SceneManagement;
 using Network;
 
@@ -66,6 +67,12 @@ public class ShipEditorUI : MonoBehaviour
     [SerializeField] private Color selectedComponentColor = new Color(0.1f, 0.7f, 0.2f, 1f);
     [SerializeField] private Color normalComponentColor = new Color(0.2f, 0.2f, 0.2f, 1f);
 
+	[Header("SFX controllers")]
+	[SerializeField] public AudioMixerGroup sfxGroup;
+    [SerializeField] public AudioMixerGroup musicGroup;
+	[SerializeField] private float minVolumeDb = -40.0f;
+	[SerializeField] private float maxVolumeDb = 0.0f;
+	
     [Header("Leaderboard")]
     [SerializeField] private GlobalLeaderboardUI leaderboardUI;
 
@@ -400,6 +407,14 @@ public class ShipEditorUI : MonoBehaviour
         settingsWindow.SetActive(false);
     }
 
+	float VolumeMapping(float sliderValue)
+	{
+		// 0-1 → -40-0 с логарифмической кривой
+		// Более естественно для восприятия
+		if (sliderValue <= 0.0001f) return -200f; // Полная тишина
+		return Mathf.Log10(sliderValue) * 20f; // Преобразует 0.001 → -60, 0.01 → -40, 1 → 0
+	}
+
     void ApplySettings()
     {
         // Save graphics settings
@@ -411,6 +426,9 @@ public class ShipEditorUI : MonoBehaviour
         
         PlayerPrefs.Save();
         
+		sfxGroup.audioMixer.SetFloat("SFXVolume", VolumeMapping(sfxSlider.value));
+		musicGroup.audioMixer.SetFloat("MusicVolume", VolumeMapping(musicSlider.value));
+		
         // Apply settings
         ApplyGraphicsQuality(graphicsDropdown.value);
         
@@ -421,13 +439,17 @@ public class ShipEditorUI : MonoBehaviour
     void LoadSettings()
     {
         // Load graphics settings
-        int graphicsQuality = PlayerPrefs.GetInt("GraphicsQuality", 2);
+        int graphicsQuality = PlayerPrefs.GetInt("GraphicsQuality", 1);
         graphicsDropdown.value = graphicsQuality;
         ApplyGraphicsQuality(graphicsQuality);
         
         // Load audio settings
         musicSlider.value = PlayerPrefs.GetFloat("MusicVolume", 0.7f);
         sfxSlider.value = PlayerPrefs.GetFloat("SFXVolume", 0.8f);
+		
+		
+		sfxGroup.audioMixer.SetFloat("SFXVolume", VolumeMapping(sfxSlider.value));
+		musicGroup.audioMixer.SetFloat("MusicVolume", VolumeMapping(musicSlider.value));
     }
 
     void ApplyGraphicsQuality(int qualityLevel)
@@ -440,7 +462,7 @@ public class ShipEditorUI : MonoBehaviour
         PlayerPrefs.DeleteKey("AuthToken");
         PlayerPrefs.DeleteKey("Username");
         PlayerPrefs.Save();
-        SceneManager.LoadScene("MainMenu");
+        SceneManager.LoadScene("LoginScene");
     }
 
     void LoadSavedConfiguration()

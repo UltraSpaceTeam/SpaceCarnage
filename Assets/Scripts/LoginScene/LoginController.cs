@@ -29,7 +29,7 @@ public class LoginController : MonoBehaviour
     [SerializeField] private Button exitGameButton;
     [Header("Settings")]
     [SerializeField] private string allowedSpecialCharacters;
-    [SerializeField] private string nextSceneName = "TestMultiplayerScene";
+    [SerializeField] private string nextSceneName = "ShipEditor";
 
 
     private State currentState = State.LOGIN;

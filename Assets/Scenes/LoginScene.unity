@@ -3428,7 +3428,7 @@ MonoBehaviour:
   errorColor: {r: 1, g: 0.5, b: 0.5, a: 1}
   exitGameButton: {fileID: 1114698992}
   allowedSpecialCharacters: "!@#$%^&*()-_=+~`[]{}<>,./?|\\;:\u2019\u201D"
-  nextSceneName: TestMultiplayerScene
+  nextSceneName: ShipEditor
 --- !u!1 &1273950508
 GameObject:
   m_ObjectHideFlags: 0
