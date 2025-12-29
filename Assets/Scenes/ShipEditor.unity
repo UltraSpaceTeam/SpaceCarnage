@@ -942,6 +942,8 @@ MonoBehaviour:
   normalComponentColor: {r: 0.2, g: 0.2, b: 0.2, a: 0.5019608}
   sfxGroup: {fileID: 6925585731291765937, guid: 2d197765168912843b5b444ddac94c7a, type: 2}
   musicGroup: {fileID: -3738442387062590501, guid: 2d197765168912843b5b444ddac94c7a, type: 2}
+  minVolumeDb: -100
+  maxVolumeDb: 0
 --- !u!4 &140832832
 Transform:
   m_ObjectHideFlags: 0
