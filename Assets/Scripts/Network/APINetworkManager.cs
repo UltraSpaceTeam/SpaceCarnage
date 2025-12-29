@@ -71,5 +71,49 @@ namespace Network
                 }
             }
         }
+
+        public async Task<TResult> GetRequestAsync<TResult>(string endpoint, string queryParams = null)
+        {
+            string url = BASE_URL + endpoint;
+
+            if (!string.IsNullOrEmpty(queryParams))
+            {
+                url += "?" + queryParams;
+            }
+
+            using (UnityWebRequest request = UnityWebRequest.Get(url))
+            {
+                if (!string.IsNullOrEmpty(AuthToken))
+                {
+                    request.SetRequestHeader("Authorization", "Bearer " + AuthToken);
+                }
+
+                var operation = request.SendWebRequest();
+
+                while (!operation.isDone)
+                    await Task.Yield();
+
+                if (request.result == UnityWebRequest.Result.Success)
+                {
+                    return JsonUtility.FromJson<TResult>(request.downloadHandler.text);
+                }
+                else
+                {
+                    string errorMsg = "Unknown Error";
+                    try
+                    {
+                        var errorResponse = JsonUtility.FromJson<ErrorResponse>(request.downloadHandler.text);
+                        if (errorResponse != null && !string.IsNullOrEmpty(errorResponse.error))
+                            errorMsg = errorResponse.error;
+                    }
+                    catch
+                    {
+                        errorMsg = request.error;
+                    }
+
+                    throw new Exception(errorMsg);
+                }
+            }
+        }
     }
 }
