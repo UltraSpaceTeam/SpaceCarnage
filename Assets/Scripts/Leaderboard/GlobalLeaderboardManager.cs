@@ -67,17 +67,59 @@ public class GlobalLeaderboardUI : MonoBehaviour
 
         try
         {
-            int playerId = GameData.Instance.PlayerId;
-            if (playerId <= 0)
+            if (GameData.Instance == null)
             {
-                Debug.LogError("PlayerId is not set!");
-                yourPositionText.text = "Error: no player ID";
+                Debug.LogError("GameData.Instance is NULL! Object GameData is not existing or already destroyed.");
+                yourPositionText.text = "Ошибка: no player data";
+                totalPlayersText.text = "GameData not found";
                 isLoading = false;
                 return;
             }
 
+            int playerId = GameData.Instance.PlayerId;
+            Debug.Log($"[Leaderboard] PlayerId from GameData: {playerId}");
+
+            if (playerId <= 0)
+            {
+                Debug.LogError("PlayerId <= 0 - player is not logged in or data has not been uploaded.");
+                yourPositionText.text = "Error: you are not logged in";
+                totalPlayersText.text = "Требуется вход в аккаунт";
+                isLoading = false;
+                return;
+            }
+
+            if (APINetworkManager.Instance == null)
+            {
+                Debug.LogError("APINetworkManager.Instance is NULL! Object is not created.");
+                yourPositionText.text = "Network error";
+                totalPlayersText.text = "APINetworkManager not found";
+                isLoading = false;
+                return;
+            }
+
+            if (string.IsNullOrEmpty(APINetworkManager.AuthToken))
+            {
+                Debug.LogError("AuthToken is empty or null - no auth on GameServer.");
+                yourPositionText.text = "Error: no token";
+                totalPlayersText.text = "Re-entry required";
+                isLoading = false;
+                return;
+            }
+
+            Debug.Log($"[Leaderboard] Sending request from player_id={playerId}, token (length: {APINetworkManager.AuthToken.Length})");
+
             string query = $"players_limit={topLimit}&player_id={playerId}";
             var leaderboardResponse = await APINetworkManager.Instance.GetRequestAsync<LeaderboardResponse>("/leaderboard", query);
+
+            if (leaderboardResponse == null)
+            {
+                Debug.LogError("Response from /leaderboard - null");
+                yourPositionText.text = "No data";
+                isLoading = false;
+                return;
+            }
+
+            Debug.Log($"[Leaderboard] Received {leaderboardResponse.leaderboard?.Count ?? 0} recordings in the top");
 
             var playerStats = await APINetworkManager.Instance.GetRequestAsync<PlayerStatsResponse>($"/leaderboard/{playerId}");
 
@@ -85,8 +127,10 @@ public class GlobalLeaderboardUI : MonoBehaviour
         }
         catch (Exception ex)
         {
-            Debug.LogError("Ошибка загрузки лидерборда: " + ex.Message);
-            yourPositionText.text = "Ошибка загрузки";
+            Debug.LogError("Exception while loading leaderboard: " + ex.Message);
+            Debug.LogError("StackTrace: " + ex.StackTrace);
+            yourPositionText.text = "Network error";
+            totalPlayersText.text = "Check internet";
         }
         finally
         {
