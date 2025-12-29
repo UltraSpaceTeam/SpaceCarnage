@@ -1,6 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using Network;
 using TMPro;
 using Unity.Mathematics;
 using UnityEngine;
@@ -148,7 +147,7 @@ public class LoginController : MonoBehaviour
 
             if (response != null)
             {
-                Debug.Log($"Success! Welcome {response.username}, ID: {response.player_id}");
+                Debug.Log($"Success! Welcome {response.username}, ID: {response.playerId}");
 
                 APINetworkManager.SetToken(response.token);
 
@@ -156,7 +155,7 @@ public class LoginController : MonoBehaviour
 
                 currentConfig.username = response.username;
                 currentConfig.jwt_token = response.token;
-                currentConfig.player_id = response.player_id;
+                currentConfig.player_id = response.playerId;
 
                 ConfigManager.SaveConfig(currentConfig);
 

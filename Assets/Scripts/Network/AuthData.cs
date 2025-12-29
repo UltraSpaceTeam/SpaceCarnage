@@ -11,7 +11,7 @@ public class AuthRequest
 public class AuthResponse
 {
     public string token;
-    public int player_id;
+    public int playerId;
     public string username;
 }
 
