@@ -53,7 +53,7 @@ public class APINetworkManager : MonoBehaviour
                 if (timer % 1.0f < Time.unscaledDeltaTime)
                     Debug.Log($"[API] Waiting... {timer:F1}s");
 
-                if (timer > 10f)
+                if (timer > 30f)
                 {
                     Debug.LogError($"[API] HARD TIMEOUT on {url}. Aborting.");
                     request.Abort();
@@ -98,7 +98,7 @@ public class APINetworkManager : MonoBehaviour
                 await Task.Yield();
                 timer += Time.unscaledDeltaTime;
 
-                if (timer > 20f)
+                if (timer > 30f)
                 {
                     Debug.LogError($"[API] HARD TIMEOUT on {url}. Aborting.");
                     request.Abort();

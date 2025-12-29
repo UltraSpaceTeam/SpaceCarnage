@@ -523,9 +523,7 @@ public class ShipEditorUI : MonoBehaviour
 
     void Logout()
     {
-        PlayerPrefs.DeleteKey("AuthToken");
-        PlayerPrefs.DeleteKey("Username");
-        PlayerPrefs.Save();
+        ConfigManager.ClearCredentials();
         SceneManager.LoadScene("LoginScene");
     }
 

@@ -75,7 +75,7 @@ public class GlobalLeaderboardUI : MonoBehaviour
                 return;
             }
 
-            int playerId = GameData.Instance.PlayerId;
+            int playerId = ConfigManager.LoadConfig().player_id;
             Debug.Log($"[Leaderboard] PlayerId from GameData: {playerId}");
 
             if (playerId <= 0)
