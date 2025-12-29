@@ -51,11 +51,8 @@ public class PlayerController : NetworkBehaviour
     [Header("Physics Settings")]
     [SerializeField] private float overSpeedDragFactor = 1f;
 
-<<<<<<< HEAD
-=======
     public float AbilityCooldownRemaining => abilityCooldownTimer;
     public bool AbilityOnCooldown => abilityCooldownTimer > 0f;
->>>>>>> 68a61b7 (Else minor bugfixes)
 
     void Awake()
     {

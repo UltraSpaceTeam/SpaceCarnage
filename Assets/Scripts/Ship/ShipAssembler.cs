@@ -14,11 +14,7 @@ public class ShipAssembler : MonoBehaviour
     public WeaponData CurrentWeapon { get; private set; }
     public GameObject CurrentWeaponObject { get; private set; }
     public EngineData CurrentEngine { get; private set; }
-<<<<<<< HEAD
     public GameObject CurrentEngineObject { get; private set; }
-=======
-    public GameObject CurrentEngineObject;
->>>>>>> d31b55d (Fixed cases when particles are not stop emitting when player died or used invisibility, added asteroid and ship explosion to the network manager)
 
     private List<PartSocket> _activeSockets = new List<PartSocket>();
     public event Action<HullData> OnHullEquipped;

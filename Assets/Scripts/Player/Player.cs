@@ -43,12 +43,9 @@ public class Player : NetworkBehaviour
     private GameObject currentShieldInstance;
     private Renderer currentShieldRenderer;
 
-<<<<<<< HEAD
     [HideInInspector] public NetworkAudio networkAudio;
-=======
     [SerializeField] private GameObject HitVFX;
 
->>>>>>> d31b55d (Fixed cases when particles are not stop emitting when player died or used invisibility, added asteroid and ship explosion to the network manager)
     private void Awake()
     {
         health = GetComponent<Health>();
@@ -56,14 +53,12 @@ public class Player : NetworkBehaviour
         shooting = GetComponent<ShipShooting>();
         assembler = GetComponent<ShipAssembler>();
 
-<<<<<<< HEAD
-        networkAudio = GetComponent<NetworkAudio>();
-=======
         if (isServer)
         {
             health.OnDeath += OnDie;
         }
->>>>>>> d31b55d (Fixed cases when particles are not stop emitting when player died or used invisibility, added asteroid and ship explosion to the network manager)
+
+        networkAudio = GetComponent<NetworkAudio>();
     }
 
     public override void OnStartClient()

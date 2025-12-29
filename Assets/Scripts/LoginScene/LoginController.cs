@@ -16,22 +16,88 @@ public class LoginController : MonoBehaviour
     [SerializeField] private Button loginOrRegisterButton;
     [SerializeField] private TMP_InputField usernameInput;
     [SerializeField] private TMP_InputField passwordInput;
+    [Header("Feedback Elements")]
     [SerializeField] private TextMeshProUGUI feedbackText;
     [SerializeField] private GameObject feedBackWindow;
+    [SerializeField] private GameObject loadingIndicator;
+    [Header("UI Visuals")]
+    [SerializeField] private Image usernameInputBackground;
+    [SerializeField] private Image passwordInputBackground;
+    [SerializeField] private Color normalColor = Color.white;
+    [SerializeField] private Color errorColor = new Color(1f, 0.5f, 0.5f);
+    [Header("UI Elements - Menu")]
+    [SerializeField] private Button exitGameButton;
     [Header("Settings")]
     [SerializeField] private string allowedSpecialCharacters;
     [SerializeField] private string nextSceneName = "TestMultiplayerScene";
 
 
     private State currentState = State.LOGIN;
+    private LoginConfigData currentConfig;
 
     private void Start()
     {
-        ChangeState(State.LOGIN);
+        currentConfig = ConfigManager.LoadConfig();
         loginButton.onClick.AddListener(() => ChangeState(State.LOGIN));
         registerButton.onClick.AddListener(() => ChangeState(State.REGISTER));
-
         loginOrRegisterButton.onClick.AddListener(LoginOrRegister);
+        exitGameButton.onClick.AddListener(ExitGame);
+        loadingIndicator.SetActive(false);
+        ChangeState(State.LOGIN);
+        _ = CheckAutoLoginAsync();
+    }
+    private async Task CheckAutoLoginAsync()
+    {
+        if (currentConfig == null || string.IsNullOrEmpty(currentConfig.jwt_token))
+        {
+            return;
+        }
+
+        Debug.Log("Auto-login: Token found in config. Setting it and verifying...");
+        SetLoadingState(true);
+
+        APINetworkManager.SetToken(currentConfig.jwt_token);
+
+        try
+        {
+            VerifyResponse response = await APINetworkManager.Instance.GetRequestAsync<VerifyResponse>("/auth/verify");
+
+            if (response != null && response.valid)
+            {
+                Debug.Log($"Token verified! Welcome back, {response.username}");
+
+                if (currentConfig.username != response.username)
+                {
+                    currentConfig.username = response.username;
+                    currentConfig.player_id = response.player_id;
+                    ConfigManager.SaveConfig(currentConfig);
+                }
+
+                LoadNextScene();
+            }
+            else
+            {
+                throw new Exception("Server returned invalid token status.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.LogWarning($"Auto-login failed: {ex.Message}");
+
+            APINetworkManager.SetToken(null);
+            ConfigManager.ClearCredentials();
+
+            if (currentConfig != null)
+            {
+                currentConfig.jwt_token = "";
+                currentConfig.username = "";
+                currentConfig.player_id = -1;
+            }
+        }
+        finally
+        {
+            SetLoadingState(false);
+        }
     }
 
     public void ChangeState(State newState)
@@ -50,14 +116,14 @@ public class LoginController : MonoBehaviour
 
     public async Task LoginOrRegisterAsync()
     {
+        ResetInputColors();
         ValidationResult result = ValidateCredentials(usernameInput.text, passwordInput.text);
         if (result != ValidationResult.SUCCESS)
         {
             ShowValidationFeedback(result);
             return;
         }
-        SwitchButtons(false);
-        bool success = false;
+        SetLoadingState(true);
 
         try
         {
@@ -84,12 +150,16 @@ public class LoginController : MonoBehaviour
             {
                 Debug.Log($"Success! Welcome {response.username}, ID: {response.player_id}");
 
-                PlayerPrefs.SetString("jwt_token", response.token);
-                PlayerPrefs.SetInt("player_id", response.player_id);
-                PlayerPrefs.SetString("username", response.username);
-                PlayerPrefs.Save();
+                APINetworkManager.SetToken(response.token);
 
-                success = true;
+                if (currentConfig == null) currentConfig = new LoginConfigData();
+
+                currentConfig.username = response.username;
+                currentConfig.jwt_token = response.token;
+                currentConfig.player_id = response.player_id;
+
+                ConfigManager.SaveConfig(currentConfig);
+
                 LoadNextScene();
             }
         }
@@ -110,21 +180,42 @@ public class LoginController : MonoBehaviour
         }
         finally
         {
-            SwitchButtons(true);
+            SetLoadingState(false);
         }
 
+    }
+
+    private void SetLoadingState(bool isLoading)
+    {
+        loadingIndicator.SetActive(isLoading);
+        loginOrRegisterButton.interactable = !isLoading;
+        loginButton.interactable = !isLoading && currentState != State.LOGIN;
+        registerButton.interactable = !isLoading && currentState != State.REGISTER;
+        usernameInput.interactable = !isLoading;
+        passwordInput.interactable = !isLoading;
+    }
+    private void ExitGame()
+    {
+        Debug.Log("Exit Game");
+        Application.Quit();
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#endif
+    }
+    private void ResetInputColors()
+    {
+        SetInputColor(usernameInputBackground, normalColor);
+        SetInputColor(passwordInputBackground, normalColor);
+    }
+
+    private void SetInputColor(Image targetImage, Color color)
+    {
+        if (targetImage != null) targetImage.color = color;
     }
 
     private void LoadNextScene()
     {
         SceneManager.LoadScene(nextSceneName);
-    }
-
-    private void SwitchButtons(bool state)
-    {
-        loginButton.interactable = state;
-        registerButton.interactable = state;
-        loginOrRegisterButton.interactable = state;
     }
 
     private void Update()
@@ -137,12 +228,14 @@ public class LoginController : MonoBehaviour
 
     public ValidationResult ValidateCredentials(string username, string password)
     {
-        if (string.IsNullOrWhiteSpace(username) || username.Length < 1)
+        if (string.IsNullOrWhiteSpace(username) || username.Length < 1 || username.Length > 40)
         {
+            SetInputColor(usernameInputBackground, errorColor);
             return ValidationResult.USERNAME_INVALID;
         }
         if (string.IsNullOrWhiteSpace(password) || password.Length < 5 || password.Length > 40 || !ValidatePasswordSpecialCharacters(password))
         {
+            SetInputColor(passwordInputBackground, errorColor);
             return ValidationResult.PASSWORD_INVALID;
         }
         return ValidationResult.SUCCESS;
@@ -174,10 +267,13 @@ public class LoginController : MonoBehaviour
                 ShowFeedbackMessage("User already exists. Please choose a different username.");
                 break;
             case ValidationResult.USER_NOT_FOUND:
-                ShowFeedbackMessage("User not found. Please check your username.");
+                ShowFeedbackMessage("incorrect login/password. Please try again.");
                 break;
             case ValidationResult.WRONG_PASSWORD:
-                ShowFeedbackMessage("Wrong password. Please try again.");
+                ShowFeedbackMessage("incorrect login/password. Please try again.");
+                break;
+            case ValidationResult.UNKNOWN_ERROR:
+                ShowFeedbackMessage("An unknown error occurred. Please try again later.");
                 break;
             default:
                 break;
@@ -238,4 +334,12 @@ public class LoginController : MonoBehaviour
         WRONG_PASSWORD,
         UNKNOWN_ERROR
     }
+}
+
+[Serializable]
+public class VerifyResponse
+{
+    public bool valid;
+    public int player_id;
+    public string username;
 }
