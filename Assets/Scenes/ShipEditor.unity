@@ -736,7 +736,7 @@ MonoBehaviour:
     m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
     m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
     m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
-    m_ColorMultiplier: 1
+    m_ColorMultiplier: 5
     m_FadeDuration: 0.1
   m_SpriteState:
     m_HighlightedSprite: {fileID: 0}
@@ -770,12 +770,12 @@ MonoBehaviour:
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
-  m_Maskable: 1
+  m_Maskable: 0
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
-  m_Type: 1
+  m_Sprite: {fileID: 21300000, guid: 886e1fd5f7b25a542bd2ddf7bf323da5, type: 3}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -901,7 +901,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   shipAssembler: {fileID: 65105918}
   hullComponents:
-  - componentId: 0
+  - componentId: 3
     componentName: Rocket
     componentType: 0
     modelPrefab: {fileID: 560063309565180913, guid: 4f2c02041eac44c49992fde37a7d4d0c, type: 3}
@@ -911,7 +911,7 @@ MonoBehaviour:
     speed: 0
     description: 
     isDefault: 1
-  - componentId: 1
+  - componentId: 0
     componentName: Start
     componentType: 0
     modelPrefab: {fileID: 560063309565180913, guid: 1a7a861c064d21c498828c759095654f, type: 3}
@@ -931,7 +931,7 @@ MonoBehaviour:
     speed: 0
     description: 
     isDefault: 0
-  - componentId: 3
+  - componentId: 1
     componentName: Whale
     componentType: 0
     modelPrefab: {fileID: 560063309565180913, guid: 1f33aad6f0d4ea34e81ccbfae6f1e3e9, type: 3}
@@ -942,7 +942,7 @@ MonoBehaviour:
     description: 
     isDefault: 0
   weaponComponents:
-  - componentId: 0
+  - componentId: 2
     componentName: Auto
     componentType: 1
     modelPrefab: {fileID: 595135914896999659, guid: ca0c47d93fa5e3d4ba72e11bba7d1ba4, type: 3}
@@ -952,7 +952,7 @@ MonoBehaviour:
     speed: 0
     description: 
     isDefault: 1
-  - componentId: 1
+  - componentId: 3
     componentName: Gun
     componentType: 1
     modelPrefab: {fileID: 595135914896999659, guid: d1dcd2b65a37ee048b50022e886c94f5, type: 3}
@@ -962,7 +962,7 @@ MonoBehaviour:
     speed: 0
     description: 
     isDefault: 0
-  - componentId: 2
+  - componentId: 1
     componentName: Laser
     componentType: 1
     modelPrefab: {fileID: 595135914896999659, guid: b7c2450b1146769478be099f4a23c655, type: 3}
@@ -972,7 +972,7 @@ MonoBehaviour:
     speed: 0
     description: 
     isDefault: 0
-  - componentId: 3
+  - componentId: 0
     componentName: Rocket
     componentType: 1
     modelPrefab: {fileID: 595135914896999659, guid: 29b644c180454454993b26d22a265ed1, type: 3}
@@ -984,7 +984,7 @@ MonoBehaviour:
     isDefault: 0
   engineComponents:
   - componentId: 0
-    componentName: Engine 1
+    componentName: Enchanced Engine
     componentType: 2
     modelPrefab: {fileID: 5389579586531250488, guid: dcedf9c3611207144af138d851a92080, type: 3}
     componentIcon: {fileID: 0}
@@ -994,7 +994,7 @@ MonoBehaviour:
     description: 
     isDefault: 1
   - componentId: 1
-    componentName: Engine 2
+    componentName: Supersonic Engine
     componentType: 2
     modelPrefab: {fileID: 7373945615699281503, guid: 6f6b3d1fecf56e343a8f2491584836b7, type: 3}
     componentIcon: {fileID: 0}
@@ -1004,7 +1004,7 @@ MonoBehaviour:
     description: 
     isDefault: 0
   - componentId: 2
-    componentName: Engine 3
+    componentName: Shield Generator Engine
     componentType: 2
     modelPrefab: {fileID: 5389579586531250488, guid: dcedf9c3611207144af138d851a92080, type: 3}
     componentIcon: {fileID: 0}
@@ -1014,7 +1014,7 @@ MonoBehaviour:
     description: 
     isDefault: 0
   - componentId: 3
-    componentName: Engine 4
+    componentName: Cloaking Engine
     componentType: 2
     modelPrefab: {fileID: 7373945615699281503, guid: 6f6b3d1fecf56e343a8f2491584836b7, type: 3}
     componentIcon: {fileID: 0}
@@ -1346,7 +1346,7 @@ MonoBehaviour:
     m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
     m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
     m_DisabledColor: {r: 0.2735849, g: 0.26197046, b: 0.26197046, a: 0.5019608}
-    m_ColorMultiplier: 1
+    m_ColorMultiplier: 5
     m_FadeDuration: 0.1
   m_SpriteState:
     m_HighlightedSprite: {fileID: 0}
@@ -1380,12 +1380,12 @@ MonoBehaviour:
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
-  m_Maskable: 1
+  m_Maskable: 0
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
-  m_Type: 1
+  m_Sprite: {fileID: 21300000, guid: a9e90945b40808f41a32efaaf164768c, type: 3}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -3857,7 +3857,7 @@ MonoBehaviour:
     m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
     m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
     m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
-    m_ColorMultiplier: 1
+    m_ColorMultiplier: 5
     m_FadeDuration: 0.1
   m_SpriteState:
     m_HighlightedSprite: {fileID: 0}
@@ -3891,12 +3891,12 @@ MonoBehaviour:
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
-  m_Maskable: 1
+  m_Maskable: 0
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
-  m_Type: 1
+  m_Sprite: {fileID: 21300000, guid: 2013fc979f1fe4d428ecfbbafbac26e0, type: 3}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -4309,7 +4309,7 @@ MonoBehaviour:
     m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
     m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
     m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
-    m_ColorMultiplier: 1
+    m_ColorMultiplier: 5
     m_FadeDuration: 0.1
   m_SpriteState:
     m_HighlightedSprite: {fileID: 0}
@@ -4343,12 +4343,12 @@ MonoBehaviour:
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
-  m_Maskable: 1
+  m_Maskable: 0
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
-  m_Type: 1
+  m_Sprite: {fileID: 21300000, guid: 52fc8887152dcb44b97319d59aab9dc4, type: 3}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -4769,7 +4769,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 220, y: -90}
+  m_AnchoredPosition: {x: 220, y: -123}
   m_SizeDelta: {x: 410, y: 110}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &865048698
@@ -6029,7 +6029,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 220, y: -420}
+  m_AnchoredPosition: {x: 220, y: -451}
   m_SizeDelta: {x: 410, y: 110}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1118635731
@@ -7553,7 +7553,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 220, y: -260}
+  m_AnchoredPosition: {x: 220, y: -292}
   m_SizeDelta: {x: 410, y: 110}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1390887421

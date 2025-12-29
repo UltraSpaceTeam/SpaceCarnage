@@ -12,7 +12,7 @@ public enum ShipComponentType { Hull, Weapon, Engine }
 [System.Serializable]
 public class ShipComponent
 {
-    public string componentId;
+    public int componentId;
     public string componentName;
     public ShipComponentType componentType;
     public GameObject modelPrefab;
@@ -471,33 +471,30 @@ public class ShipEditorUI : MonoBehaviour
         
         foreach (ShipComponentType type in System.Enum.GetValues(typeof(ShipComponentType)))
         {
-            string savedComponentId = PlayerPrefs.GetString($"ShipComponent_{type}", "");
+            int savedComponentId = PlayerPrefs.GetInt($"ShipComponent_{type}", 0);
             
-            if (!string.IsNullOrEmpty(savedComponentId))
+            hasSavedConfig = true;
+            ShipComponent savedComponent = FindComponentById(type, savedComponentId);
+            
+            if (savedComponent != null)
             {
-                hasSavedConfig = true;
-                ShipComponent savedComponent = FindComponentById(type, savedComponentId);
+                selectedComponents[type] = savedComponent;
                 
-                if (savedComponent != null)
+                // Подсвечиваем выбранный слот
+                int slotIndex = FindSlotIndexByComponent(type, savedComponent);
+                if (slotIndex >= 0)
                 {
-                    selectedComponents[type] = savedComponent;
-                    
-                    // Подсвечиваем выбранный слот
-                    int slotIndex = FindSlotIndexByComponent(type, savedComponent);
-                    if (slotIndex >= 0)
+                    switch (type)
                     {
-                        switch (type)
-                        {
-                            case ShipComponentType.Hull:
-                                HighlightSelectedSlot(hullSlots, slotIndex);
-                                break;
-                            case ShipComponentType.Weapon:
-                                HighlightSelectedSlot(weaponSlots, slotIndex);
-                                break;
-                            case ShipComponentType.Engine:
-                                HighlightSelectedSlot(engineSlots, slotIndex);
-                                break;
-                        }
+                        case ShipComponentType.Hull:
+                            HighlightSelectedSlot(hullSlots, slotIndex);
+                            break;
+                        case ShipComponentType.Weapon:
+                            HighlightSelectedSlot(weaponSlots, slotIndex);
+                            break;
+                        case ShipComponentType.Engine:
+                            HighlightSelectedSlot(engineSlots, slotIndex);
+                            break;
                     }
                 }
             }
@@ -567,7 +564,7 @@ public class ShipEditorUI : MonoBehaviour
         }
     }
 
-    ShipComponent FindComponentById(ShipComponentType type, string componentId)
+    ShipComponent FindComponentById(ShipComponentType type, int componentId)
     {
         foreach (var component in GetComponentsByCategory(type))
         {
@@ -592,7 +589,7 @@ public class ShipEditorUI : MonoBehaviour
     {
         foreach (var component in selectedComponents)
         {
-            PlayerPrefs.SetString($"ShipComponent_{component.Key}", component.Value.componentId);
+            PlayerPrefs.SetInt($"ShipComponent_{component.Key}", component.Value.componentId);
         }
         PlayerPrefs.Save();
     }

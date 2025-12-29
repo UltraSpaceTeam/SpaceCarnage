@@ -22,10 +22,27 @@ public class ShipNetworkSync : NetworkBehaviour
 
     public override void OnStartLocalPlayer()
     {
-        int hIndex = 0;
+		int hIndex = 0;
         int wIndex = 1;
         int eIndex = 2;
+		
+		foreach (ShipComponentType type in System.Enum.GetValues(typeof(ShipComponentType))) {
+            int savedComponentId = PlayerPrefs.GetInt($"ShipComponent_{type}", 0);
 
+			switch (type)
+                {
+                    case ShipComponentType.Hull:
+                        hIndex = savedComponentId;
+                        break;
+                    case ShipComponentType.Weapon:
+                        wIndex = savedComponentId;
+                        break;
+                    case ShipComponentType.Engine:
+                        eIndex = savedComponentId;
+                        break;
+                }
+		}
+		
         CmdSetupShip(hIndex, wIndex, eIndex);
     }
 
