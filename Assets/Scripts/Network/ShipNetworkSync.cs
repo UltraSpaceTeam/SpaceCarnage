@@ -24,7 +24,7 @@ public class ShipNetworkSync : NetworkBehaviour
     {
         int hIndex = 0;
         int wIndex = 1;
-        int eIndex = 3;
+        int eIndex = 2;
 
         CmdSetupShip(hIndex, wIndex, eIndex);
     }

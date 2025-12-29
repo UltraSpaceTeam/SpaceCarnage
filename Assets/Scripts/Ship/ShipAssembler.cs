@@ -9,12 +9,12 @@ public class ShipAssembler : MonoBehaviour
     [SerializeField] private Transform shipRoot;
 
     public HullData CurrentHull { get; private set; }
+    public GameObject CurrentHullObject;
     public WeaponData CurrentWeapon { get; private set; }
     public GameObject CurrentWeaponObject { get; private set; }
     public EngineData CurrentEngine { get; private set; }
     public GameObject CurrentEngineObject { get; private set; }
 
-    public GameObject CurrentHullObject;
     private List<PartSocket> _activeSockets = new List<PartSocket>();
     public event Action<HullData> OnHullEquipped;
     public event Action<GameObject> OnEngineEquipped;
@@ -85,6 +85,8 @@ public class ShipAssembler : MonoBehaviour
                 newPart = Instantiate(partData.prefab, targetSocket.transform);
                 newPart.transform.localPosition = Vector3.zero;
                 newPart.transform.localRotation = Quaternion.identity;
+
+                CurrentEngineObject = newPart;
             }
         }
 
@@ -122,5 +124,46 @@ public class ShipAssembler : MonoBehaviour
 
         if (Application.isPlaying) Destroy(obj);
         else DestroyImmediate(obj);
+    }
+
+    public void StopEngineParticles()
+    {
+        if (CurrentEngineObject == null) return;
+
+        var particles = this.CurrentEngineObject.GetComponentsInChildren<ParticleSystem>(true).ToList();
+        foreach (var ps in particles)
+        {
+            if (ps == null) continue;
+
+            var emission = ps.emission;
+            emission.enabled = false;
+            ps.Stop();
+        }
+    }
+
+    public void StartEngineParticles()
+    {
+        if (CurrentEngineObject == null) return;
+
+        var particles = this.CurrentEngineObject.GetComponentsInChildren<ParticleSystem>(true).ToList();
+        foreach (var ps in particles)
+        {
+            if (ps == null) continue;
+
+            var emission = ps.emission;
+            emission.enabled = true;
+            ps.Play();
+        }
+    }
+
+    private void OnEngineIndexChanged(int oldIndex, int newIndex)
+    {
+        if (GameResources.Instance == null) return;
+        var list = GameResources.Instance.partDatabase.engines;
+
+        if (newIndex >= 0 && newIndex < list.Count)
+        {
+            EquipEngine(list[newIndex]);
+        }
     }
 }
