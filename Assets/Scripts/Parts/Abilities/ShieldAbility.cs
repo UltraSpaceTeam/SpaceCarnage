@@ -125,6 +125,12 @@ public class ShieldAbility : AbstractAbility
         }
     }
 
+    public override float GetVisualStatus()
+    {
+        if (maxShieldHealth <= 0) return 0f;
+        return currentShieldHealth / maxShieldHealth;
+    }
+
     public float ShieldPercentage => currentShieldHealth / maxShieldHealth;
     public bool IsShieldActive => isActive;
     public float CurrentShieldHealth => currentShieldHealth;

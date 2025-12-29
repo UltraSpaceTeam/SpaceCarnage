@@ -107,6 +107,14 @@ public class InvisAbility : AbstractAbility
         }
     }
 
+    public override float GetVisualStatus()
+    {
+        if (!isActive) return 0f;
+        if (activationDelay <= 0f) return 1f;
+
+        return 1f - (delayTimer / activationDelay);
+    }
+
     public bool IsActive => isActive;
     public bool IsFullyInvisible => isFullyInvisible;
     public float ActivationProgress => isActive ? 1f - (delayTimer / activationDelay) : 0f;

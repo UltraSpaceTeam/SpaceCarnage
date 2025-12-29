@@ -2,7 +2,6 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 using System;
-using Unity.VisualScripting;
 
 public class ShipAssembler : MonoBehaviour
 {
@@ -154,6 +153,17 @@ public class ShipAssembler : MonoBehaviour
             var emission = ps.emission;
             emission.enabled = true;
             ps.Play();
+        }
+    }
+
+    private void OnEngineIndexChanged(int oldIndex, int newIndex)
+    {
+        if (GameResources.Instance == null) return;
+        var list = GameResources.Instance.partDatabase.engines;
+
+        if (newIndex >= 0 && newIndex < list.Count)
+        {
+            EquipEngine(list[newIndex]);
         }
     }
 }
