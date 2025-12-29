@@ -3011,7 +3011,7 @@ MonoBehaviour:
   feedbackText: {fileID: 682255904}
   feedBackWindow: {fileID: 1207465264}
   allowedSpecialCharacters: "!@#$%^&*()-_=+~`[]{}<>,./?|\\;:\u2019\u201D"
-  nextSceneName: TestMultiplayerScene
+  nextSceneName: ShipEditor
 --- !u!1 &1273950508
 GameObject:
   m_ObjectHideFlags: 0
