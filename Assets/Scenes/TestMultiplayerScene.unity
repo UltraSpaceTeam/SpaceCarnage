@@ -3645,7 +3645,7 @@ MonoBehaviour:
   isEndMatch: 0
   hudController: {fileID: 1918063395}
   deathScreenController: {fileID: 203592344}
-  borderWarningController: {fileID: 0}
+  borderWarningController: {fileID: 501721346}
 --- !u!1001 &1842365275
 PrefabInstance:
   m_ObjectHideFlags: 0
