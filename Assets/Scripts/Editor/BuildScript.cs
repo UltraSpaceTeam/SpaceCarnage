@@ -5,7 +5,16 @@ using UnityEngine;
 
 public class BuildScript
 {
-    private static readonly string[] Scenes = { "Assets/Scenes/TestMultiplayerScene.unity" };
+    private static readonly string[] ClientScenes = {
+        "Assets/Scenes/LoginScene.unity",
+        "Assets/Scenes/ShipEditor.unity",
+        "Assets/Scenes/TestMultiplayerScene.unity"
+    };
+
+    private static readonly string[] ServerScenes = {
+        "Assets/Scenes/TestMultiplayerScene.unity"
+    };
+
 
     [MenuItem("Build/Build All")]
     public static void BuildAll()
@@ -28,6 +37,7 @@ public class BuildScript
     [MenuItem("Build/Build Server/macOS")]
     public static void BuildMacServer() => BuildServer(BuildTarget.StandaloneOSX, "Builds/Mac/Server/Server.app");
 
+
     [MenuItem("Build/Build & Run Server/Windows")]
     public static void BuildAndRunWindowsServer() => BuildServer(BuildTarget.StandaloneWindows64, "Builds/Windows/Server/Server.exe", true);
 
@@ -39,13 +49,16 @@ public class BuildScript
 
 
     [MenuItem("Build/Build Client/Windows")]
-    public static void BuildWindowsClient() => BuildClient(BuildTarget.StandaloneWindows64, "Builds/Windows/Client/Client.exe");
+    public static void BuildWindowsClient() => BuildClient(BuildTarget.StandaloneWindows64, "Builds/Windows/Client/Client.exe", false);
+
+    [MenuItem("Build/Build & Run Client/Windows")]
+    public static void BuildAndRunWindowsClient() => BuildClient(BuildTarget.StandaloneWindows64, "Builds/Windows/Client/Client.exe", true);
 
     [MenuItem("Build/Build Client/Linux")]
-    public static void BuildLinuxClient() => BuildClient(BuildTarget.StandaloneLinux64, "Builds/Linux/Client/Client.x86_64");
+    public static void BuildLinuxClient() => BuildClient(BuildTarget.StandaloneLinux64, "Builds/Linux/Client/Client.x86_64", false);
 
     [MenuItem("Build/Build Client/macOS")]
-    public static void BuildMacClient() => BuildClient(BuildTarget.StandaloneOSX, "Builds/Mac/Client/Client.app");
+    public static void BuildMacClient() => BuildClient(BuildTarget.StandaloneOSX, "Builds/Mac/Client/Client.app", false);
 
 
     private static void BuildServer(BuildTarget target, string path, bool runAfter = false)
@@ -57,7 +70,7 @@ public class BuildScript
 
         BuildPlayerOptions options = new BuildPlayerOptions
         {
-            scenes = Scenes,
+            scenes = ServerScenes,
             locationPathName = path,
             target = target,
             options = BuildOptions.CompressWithLz4HC
@@ -70,10 +83,13 @@ public class BuildScript
         Debug.Log($"Built Server for {target} at {path}");
 
         if (runAfter)
-            RunBuiltPlayer(path);
+        {
+            string serverArgs = "-batchmode -nographics -port 7777 -ip auto -logFile -";
+            RunBuiltPlayer(path, serverArgs);
+        }
     }
 
-    private static void BuildClient(BuildTarget target, string path)
+    private static void BuildClient(BuildTarget target, string path, bool runAfter)
     {
         Debug.Log($"Building Client for {target}...");
 
@@ -82,7 +98,7 @@ public class BuildScript
 
         BuildPlayerOptions options = new BuildPlayerOptions
         {
-            scenes = Scenes,
+            scenes = ClientScenes,
             locationPathName = path,
             target = target,
             options = BuildOptions.CompressWithLz4HC
@@ -93,44 +109,51 @@ public class BuildScript
         EditorUserBuildSettings.standaloneBuildSubtarget = prevSubtarget;
 
         Debug.Log($"Built Client for {target} at {path}");
+
+        if (runAfter)
+        {
+            RunBuiltPlayer(path, "");
+        }
     }
 
-    private static void RunBuiltPlayer(string path)
+    private static void RunBuiltPlayer(string path, string args)
     {
         try
         {
             string fullPath = Path.GetFullPath(path);
 
-            if (Directory.Exists(fullPath))
+            if (Directory.Exists(fullPath) && fullPath.EndsWith(".app"))
             {
-                fullPath = Path.Combine(fullPath, "Contents", "MacOS", Path.GetFileNameWithoutExtension(fullPath));
+                string appName = Path.GetFileNameWithoutExtension(fullPath);
+                fullPath = Path.Combine(fullPath, "Contents", "MacOS", appName);
             }
 
-            if (!File.Exists(fullPath))
+            if (!File.Exists(fullPath) && !Directory.Exists(fullPath))
             {
                 Debug.LogError($"File not found: {fullPath}");
                 return;
             }
 
-            Debug.Log($"Running: {fullPath}");
+            Debug.Log($"Running: {fullPath} with args: {args}");
+
 #if UNITY_EDITOR_WIN
             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
             {
                 FileName = "cmd.exe",
-                Arguments = $"/k \"{fullPath}\"",
+                Arguments = $"/k \"\"{fullPath}\" {args}\"",
                 WorkingDirectory = Path.GetDirectoryName(fullPath),
                 UseShellExecute = true
             });
 #elif UNITY_EDITOR_LINUX
-        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-        {
-            FileName = "bash",
-            Arguments = $"-c \"'{fullPath}'\"",
-            WorkingDirectory = Path.GetDirectoryName(fullPath),
-            UseShellExecute = false
-        });
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = "gnome-terminal",
+                Arguments = $"-- bash -c \"'{fullPath}' {args}; read -p 'Press Enter to close...'\"",
+                WorkingDirectory = Path.GetDirectoryName(fullPath),
+                UseShellExecute = false
+            });
 #elif UNITY_EDITOR_OSX
-        System.Diagnostics.Process.Start("open", $"-a Terminal \"{fullPath}\"");
+            System.Diagnostics.Process.Start("open", $"-a Terminal \"{fullPath}\" --args {args}");
 #endif
         }
         catch (Exception ex)
@@ -138,6 +161,4 @@ public class BuildScript
             Debug.LogError($"Failed to run built player: {ex.Message}");
         }
     }
-
-
 }

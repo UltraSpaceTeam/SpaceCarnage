@@ -3,117 +3,135 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Networking;
-namespace Network
+public class BypassCertificate : CertificateHandler
 {
-    public class APINetworkManager : MonoBehaviour
+    protected override bool ValidateCertificate(byte[] certificateData)
     {
-        public static APINetworkManager Instance { get; private set; }
+        return true;
+    }
+}
 
-        // Потом надо указать адрес реального сервера
-        private const string BASE_URL = "https://yarlkot.isgood.host:9087/gameapi";
+public class APINetworkManager : MonoBehaviour
+{
+    public static APINetworkManager Instance { get; private set; }
 
-        public static string AuthToken { get; private set; }
+    private const string BASE_URL = "https://yarlkot.isgood.host:9087/gameapi";
+    public static string AuthToken { get; private set; }
+    public static void SetToken(string token) => AuthToken = token;
 
-        public static void SetToken(string token)
+    private void Awake()
+    {
+        if (Instance == null) { Instance = this; DontDestroyOnLoad(gameObject); }
+        else { Destroy(gameObject); }
+    }
+
+    public async Task<TResult> PostRequestAsync<TResult>(string endpoint, object payload)
+    {
+        string url = BASE_URL + endpoint;
+        string json = JsonUtility.ToJson(payload);
+
+        Debug.Log($"[API] POST Request to IP: {url}");
+
+        using (UnityWebRequest request = new UnityWebRequest(url, "POST"))
         {
-            AuthToken = token;
-        }
+            byte[] bodyRaw = Encoding.UTF8.GetBytes(json);
+            request.uploadHandler = new UploadHandlerRaw(bodyRaw);
+            request.downloadHandler = new DownloadHandlerBuffer();
+            request.SetRequestHeader("Content-Type", "application/json");
 
-        private void Awake()
-        {
-            if (Instance == null)
+            request.certificateHandler = new BypassCertificate();
+            request.disposeCertificateHandlerOnDispose = true;
+
+            var operation = request.SendWebRequest();
+
+            float timer = 0f;
+            while (!operation.isDone)
             {
-                Instance = this;
-                DontDestroyOnLoad(gameObject);
+                await Task.Yield();
+                timer += Time.unscaledDeltaTime;
+
+                if (timer % 1.0f < Time.unscaledDeltaTime)
+                    Debug.Log($"[API] Waiting... {timer:F1}s");
+
+                if (timer > 10f)
+                {
+                    Debug.LogError($"[API] HARD TIMEOUT on {url}. Aborting.");
+                    request.Abort();
+                    throw new Exception("Hard Timeout: Server did not respond.");
+                }
+            }
+
+            Debug.Log($"[API RAW RESPONSE]: {request.downloadHandler.text}");
+
+            if (request.result == UnityWebRequest.Result.Success)
+            {
+                return JsonUtility.FromJson<TResult>(request.downloadHandler.text);
             }
             else
             {
-                Destroy(gameObject);
+                HandleError(request);
+                return default;
             }
         }
+    }
 
-        public async Task<TResult> PostRequestAsync<TResult>(string endpoint, object payload)
+    public async Task<TResult> GetRequestAsync<TResult>(string endpoint, string queryParams = null)
+    {
+        string url = BASE_URL + endpoint;
+        if (!string.IsNullOrEmpty(queryParams)) url += "?" + queryParams;
+
+        Debug.Log($"[API] GET Request to IP: {url}");
+
+        using (UnityWebRequest request = UnityWebRequest.Get(url))
         {
-            string url = BASE_URL + endpoint;
-            string json = JsonUtility.ToJson(payload);
+            if (!string.IsNullOrEmpty(AuthToken))
+                request.SetRequestHeader("Authorization", "Bearer " + AuthToken);
 
-            using (UnityWebRequest request = new UnityWebRequest(url, "POST"))
+            request.certificateHandler = new BypassCertificate();
+            request.disposeCertificateHandlerOnDispose = true;
+
+            var operation = request.SendWebRequest();
+
+            float timer = 0f;
+            while (!operation.isDone)
             {
-                byte[] bodyRaw = Encoding.UTF8.GetBytes(json);
-                request.uploadHandler = new UploadHandlerRaw(bodyRaw);
-                request.downloadHandler = new DownloadHandlerBuffer();
-                request.SetRequestHeader("Content-Type", "application/json");
+                await Task.Yield();
+                timer += Time.unscaledDeltaTime;
 
-                var operation = request.SendWebRequest();
-
-                while (!operation.isDone)
-                    await Task.Yield();
-
-                if (request.result == UnityWebRequest.Result.Success)
+                if (timer > 20f)
                 {
-                    return JsonUtility.FromJson<TResult>(request.downloadHandler.text);
-                }
-                else
-                {
-                    string errorMsg = "Unknown Error";
-                    try
-                    {
-                        var errorResponse = JsonUtility.FromJson<ErrorResponse>(request.downloadHandler.text);
-                        if (errorResponse != null && !string.IsNullOrEmpty(errorResponse.error))
-                            errorMsg = errorResponse.error;
-                    }
-                    catch
-                    {
-                        errorMsg = request.error;
-                    }
-
-                    throw new Exception(errorMsg);
+                    Debug.LogError($"[API] HARD TIMEOUT on {url}. Aborting.");
+                    request.Abort();
+                    throw new Exception("Hard Timeout");
                 }
             }
-        }
 
-        public async Task<TResult> GetRequestAsync<TResult>(string endpoint, string queryParams = null)
+            Debug.Log($"[API RAW RESPONSE]: {request.downloadHandler.text}");
+
+            if (request.result == UnityWebRequest.Result.Success)
+            {
+                return JsonUtility.FromJson<TResult>(request.downloadHandler.text);
+            }
+            else
+            {
+                HandleError(request);
+                return default;
+            }
+        }
+    }
+
+    private void HandleError(UnityWebRequest request)
+    {
+        string errorMsg = request.error;
+        try
         {
-            string url = BASE_URL + endpoint;
-
-            if (!string.IsNullOrEmpty(queryParams))
-            {
-                url += "?" + queryParams;
-            }
-
-            using (UnityWebRequest request = UnityWebRequest.Get(url))
-            {
-                if (!string.IsNullOrEmpty(AuthToken))
-                {
-                    request.SetRequestHeader("Authorization", "Bearer " + AuthToken);
-                }
-
-                var operation = request.SendWebRequest();
-
-                while (!operation.isDone)
-                    await Task.Yield();
-
-                if (request.result == UnityWebRequest.Result.Success)
-                {
-                    return JsonUtility.FromJson<TResult>(request.downloadHandler.text);
-                }
-                else
-                {
-                    string errorMsg = "Unknown Error";
-                    try
-                    {
-                        var errorResponse = JsonUtility.FromJson<ErrorResponse>(request.downloadHandler.text);
-                        if (errorResponse != null && !string.IsNullOrEmpty(errorResponse.error))
-                            errorMsg = errorResponse.error;
-                    }
-                    catch
-                    {
-                        errorMsg = request.error;
-                    }
-
-                    throw new Exception(errorMsg);
-                }
-            }
+            var errorResponse = JsonUtility.FromJson<ErrorResponse>(request.downloadHandler.text);
+            if (errorResponse != null && !string.IsNullOrEmpty(errorResponse.error))
+                errorMsg = errorResponse.error;
         }
+        catch { }
+
+        Debug.LogError($"[API ERROR]: {errorMsg} | Body: {request.downloadHandler.text}");
+        throw new Exception(errorMsg);
     }
 }

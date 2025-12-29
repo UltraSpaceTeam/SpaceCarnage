@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Mirror;
-using Network;
 using UnityEngine;
 using UnityEngine.Networking;
 using Random = UnityEngine.Random;
@@ -89,8 +88,10 @@ public class Player : NetworkBehaviour
 
         ushort currentNumber = number++; // temp
 
-        Nickname = PlayerPrefs.GetString("Username", "Player" + currentNumber);
-        ServerPlayerId = PlayerPrefs.GetInt("PlayerId", 1000 + currentNumber);
+        if (string.IsNullOrEmpty(Nickname))
+        {
+            Nickname = $"Player_{netId}";
+        }
 
         health.OnDeath += ServerHandleDeath;
         health.OnDeath += OnDie;
@@ -149,6 +150,27 @@ public class Player : NetworkBehaviour
 
         health.OnHealthUpdate += HandleHealthUpdate;
         UIManager.Instance.UpdateHealth(100, 100);
+
+        var config = ConfigManager.LoadConfig();
+        if (config != null && !string.IsNullOrEmpty(config.username))
+        {
+            CmdSetNickname(config.username, config.player_id);
+        }
+        else
+        {
+            CmdSetNickname("Guest_" + Random.Range(100, 999), -1);
+        }
+    }
+
+    [Command]
+    private void CmdSetNickname(string newName, int playerId)
+    {
+        if (newName.Length > 20) newName = newName.Substring(0, 20);
+
+        Nickname = newName;
+        ServerPlayerId = playerId;
+
+        Debug.Log($"[Server] Player {netId} set nickname to: {Nickname} (ID: {ServerPlayerId})");
     }
     public override void OnStopLocalPlayer()
     {

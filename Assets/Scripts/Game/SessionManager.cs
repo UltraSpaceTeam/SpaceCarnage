@@ -2,12 +2,12 @@ using System.Collections.Generic;
 using System.Linq;
 using Mirror;
 using UnityEngine;
-using UnityEngine.Networking;
-using System.Collections;
-using Network;
 using System.Threading.Tasks;
-using System;
+using System.Collections;
 using UnityEngine.SceneManagement;
+using kcp2k;
+using System;
+using UnityEngine.Networking;
 
 public class SessionManager : MonoBehaviour
 {
@@ -17,13 +17,7 @@ public class SessionManager : MonoBehaviour
 
     [SerializeField] private string nextSceneName = "TestMultiplayerScene";
 
-    private enum MatchState
-    {
-        Waiting,
-        Playing,
-        Ending
-    }
-
+    private enum MatchState { Waiting, Playing, Finished }
     private MatchState currentState = MatchState.Waiting;
 
     private const float MatchDuration = 600f;
@@ -39,81 +33,127 @@ public class SessionManager : MonoBehaviour
 
     private void Awake()
     {
-        if (Instance == null)
+        if (Instance == null) { Instance = this; DontDestroyOnLoad(gameObject); }
+        else { Destroy(gameObject); }
+    }
+
+    private void Start()
+    {
+        bool isHeadless = Application.isBatchMode;
+        bool forceAuto = GetArg("-autoStart", "false") == "true";
+
+        if (isHeadless || forceAuto)
         {
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
-        }
-        else
-        {
-            Destroy(gameObject);
+            _ = StartDedicatedServer();
         }
     }
 
-    [Server]
+    private async Task StartDedicatedServer()
+    {
+        Debug.Log(">>> STARTING DEDICATED SERVER <<<");
+        int port = GetArgInt("-port", 7777);
+        string ip = GetArg("-ip", "auto");
+        int maxPlayers = GetArgInt("-maxPlayers", 20);
+
+        if (Transport.active is KcpTransport kcp)
+        {
+            kcp.Port = (ushort)port;
+            Debug.Log($"[SessionManager] Port set to {port}");
+        }
+
+        NetworkManager.singleton.StartServer();
+        Debug.Log("[SessionManager] NetworkManager Server Started.");
+
+        NetworkManager.singleton.ServerChangeScene(nextSceneName);
+
+        await Task.Delay(1000);
+        await RegisterGameServerAsync(port, ip, maxPlayers);
+    }
+
     public async Task<int> RegisterGameServerAsync(int port = 7777, string ipAddress = "auto", int maxPlayers = 20)
     {
         string ip = ipAddress;
-        if (string.IsNullOrEmpty(ip) || ip == "auto")
-        {
-            ip = "127.0.0.1";
-            Debug.LogWarning("[APINetworkManager] ipAddress = 'auto' - using 127.0.0.1.");
-        }
+        if (string.IsNullOrEmpty(ip) || ip == "auto") ip = "127.0.0.1";
 
         var payload = new GameData.GameServerRegisterRequest
         {
-            port = port,
-            ipAddress = ip,
-            maxPlayers = maxPlayers
+            Port = port,
+            IpAddress = ip,
+            MaxPlayers = maxPlayers
         };
 
-        Debug.Log($"[APINetworkManager] Register server: port={port}, ip={ip}, maxPlayers={maxPlayers}");
+        Debug.Log($"[API] Registering: Port={port}, IP={ip}");
 
         var response = await APINetworkManager.Instance.PostRequestAsync<GameData.GameServerRegisterResponse>("/games/register", payload);
 
-        Debug.Log($"[APINetworkManager] Server registered successfully! SessionId = {response.sessionId}, Key = {response.key}");
-
-        if (GameData.Instance != null)
+        if (response != null)
         {
-            GameData.Instance.SetSessionId(response.sessionId);
-        }
-        else
-        {
-            Debug.LogError("[APINetworkManager] GameData.Instance == null! SessionId not saved, but returning from response.");
+            Debug.Log($"[API] Registered! SessionId = {response.sessionId}");
+
+            if (GameData.Instance != null)
+            {
+                GameData.Instance.SetSessionData(response.sessionId, response.key);
+            }
+
+            StartCoroutine(WaitingForPlayersCoroutine());
+
+            return response.sessionId;
         }
 
-        return response.sessionId;
+        Debug.LogError("Registration failed.");
+        return -1;
+    }
+
+    private IEnumerator WaitingForPlayersCoroutine()
+    {
+        Debug.Log("[SessionManager] Waiting for players... Sending Heartbeats.");
+        currentState = MatchState.Waiting;
+
+        while (currentState == MatchState.Waiting)
+        {
+            Debug.Log("[SessionManager] Waiting for players... Sending Heartbeats. 2");
+
+            SendHealthcheck();
+            yield return new WaitForSeconds(10f);
+        }
     }
 
     [Server]
     public void ConnectPlayer(Player player)
     {
         if (player == null) return;
+        int pId = player.ServerPlayerId;
 
-        // If reconnect
         var existing = matchStats.Find(s => s.PlayerId == player.ServerPlayerId);
-        if (existing == null)
-        {
-            matchStats.Add(new PlayerMatchStats
-            {
-                PlayerId = player.ServerPlayerId,
-                Kills = player.Kills,
-                Deaths = player.Deaths
-            });
-        }
-        else
-        {
-            existing.Kills = player.Kills;
-            existing.Deaths = player.Deaths;
-        }
+        if (existing == null) matchStats.Add(new PlayerMatchStats { PlayerId = pId, Kills = player.Kills, Deaths = player.Deaths });
+        else { existing.Kills = player.Kills; existing.Deaths = player.Deaths; }
 
-        if (Player.ActivePlayers.Count == 1)
+        _ = NotifyPlayerJoined(pId);
+
+        if (Player.ActivePlayers.Count == 1 && currentState == MatchState.Waiting)
         {
             StartCoroutine(MatchTimerCoroutine());
-            Debug.Log("[SessionManager] First player connected - match started! Duration: 10 minutes.");
+            Debug.Log("[SessionManager] Match Started!");
         }
 
-        Debug.Log($"[SessionManager] Player connected: {player.Nickname} (ID: {player.ServerPlayerId})");
+        Debug.Log($"[SessionManager] Player connected: {player.Nickname} (ID: {pId})");
+    }
+
+    private async Task NotifyPlayerJoined(int playerId)
+    {
+        if (GameData.Instance == null || GameData.Instance.SessionId == 0) return;
+
+        var payload = new GameData.PlayerJoinedRequest
+        {
+            SessionId = GameData.Instance.SessionId,
+            PlayerId = playerId
+        };
+
+        try
+        {
+            await APINetworkManager.Instance.PostRequestAsync<object>("/games/player_joined", payload);
+        }
+        catch (System.Exception ex) { Debug.LogError($"[API] PlayerJoined Error: {ex.Message}"); }
     }
 
     [Server]
@@ -126,51 +166,32 @@ public class SessionManager : MonoBehaviour
         {
             yield return new WaitForSeconds(1f);
             stateTimer -= 1f;
-
-            if ((int)(MatchDuration - stateTimer) % 10 == 0)
-            {
-                SendHealthcheck();
-            }
+            if ((int)(MatchDuration - stateTimer) % 10 == 0) SendHealthcheck();
         }
 
-        currentState = MatchState.Ending;
+        currentState = MatchState.Finished;
         stateTimer = EndingDuration;
 
-        Debug.Log("[SessionManager] Match is ending. Showing tab for 30 seconds...");
-
-        // Forced showing the leaderboard to ALL players
-        foreach (var player in Player.ActivePlayers.Values)
-        {
-            player.RpcShowEndMatchLeaderboard();
-        }
+        Debug.Log("[SessionManager] Match Ending...");
+        foreach (var player in Player.ActivePlayers.Values) player.RpcShowEndMatchLeaderboard();
 
         while (stateTimer > 0)
         {
             yield return new WaitForSeconds(1f);
             stateTimer -= 1f;
-
-            if ((int)(EndingDuration - stateTimer) % 10 == 0)
-            {
-                SendHealthcheck();
-            }
+            if ((int)(EndingDuration - stateTimer) % 10 == 0) SendHealthcheck();
         }
 
-        Debug.Log("[SessionManager] Time is up. Sending final results and restarting...");
+        Debug.Log("[SessionManager] Match Over. Restarting.");
 
-        // Updating stats before sending
         foreach (var kvp in Player.ActivePlayers)
         {
-            var player = kvp.Value;
-            var stats = matchStats.Find(s => s.PlayerId == player.ServerPlayerId);
-            if (stats != null)
-            {
-                stats.Kills = player.Kills;
-                stats.Deaths = player.Deaths;
-            }
+            var p = kvp.Value;
+            var s = matchStats.Find(x => x.PlayerId == p.ServerPlayerId);
+            if (s != null) { s.Kills = p.Kills; s.Deaths = p.Deaths; }
         }
 
         SendResultsToServer();
-
         RestartServer();
     }
 
@@ -178,115 +199,98 @@ public class SessionManager : MonoBehaviour
     public void DisconnectPlayer(Player player)
     {
         if (player == null) return;
-
         var stats = matchStats.Find(s => s.PlayerId == player.ServerPlayerId);
         if (stats != null)
         {
             stats.Kills = player.Kills;
             stats.Deaths = player.Deaths;
-            Debug.Log($"[SessionManager] Updated {player.Nickname} stats: Kills {stats.Kills}, Deaths {stats.Deaths}");
         }
     }
 
     [Server]
     private async void SendResultsToServer()
     {
-        if (matchStats.Count == 0)
-        {
-            Debug.LogWarning("[SessionManager] No data to send.");
-            return;
-        }
+        if (matchStats.Count == 0 || GameData.Instance == null) return;
 
-        if (GameData.Instance == null)
+        var payload = new GameData.GameResultRequest
         {
-            Debug.LogError("[SessionManager] GameData not found!");
-            return;
-        }
-
-        string requestData = JsonUtility.ToJson(new
-        {
-            sessionId = GameData.Instance.SessionId,
-            leaderboard = matchStats.Select(s => new
+            SessionId = GameData.Instance.SessionId,
+            Leaderboard = matchStats.Select(s => new GameData.PlayerResult
             {
-                playerId = s.PlayerId,
-                kills = s.Kills,
-                deaths = s.Deaths
+                PlayerId = s.PlayerId,
+                Kills = s.Kills,
+                Deaths = s.Deaths
             }).ToArray()
-        });
+        };
 
-        Debug.Log("Sending Results Request...");
+        Debug.Log("Sending Results...");
+        try
+        {
+            await APINetworkManager.Instance.PostRequestAsync<object>("/games/result", payload);
+        }
+        catch (Exception ex) { Debug.LogError($"[API] Result Error: {ex.Message}"); }
 
-        AuthResponse response = null;
-        response = await APINetworkManager.Instance.PostRequestAsync<AuthResponse>("/games/result", requestData);
         matchStats.Clear();
     }
 
     [Server]
     private async void SendHealthcheck()
     {
-        if (GameData.Instance == null || GameData.Instance.SessionId == 0)
-        {
-            Debug.LogWarning("[SessionManager] SessionID is not set - healthcheck has not been sent.");
-            return;
-        }
+        if (GameData.Instance == null || GameData.Instance.SessionId == 0) return;
 
         string gameTime = FormatTime(MatchDuration - stateTimer);
+        if (currentState == MatchState.Finished) gameTime = FormatTime(EndingDuration - stateTimer + MatchDuration);
 
-        if (currentState == MatchState.Ending)
+        int[] playerIds = (Player.ActivePlayers != null)
+            ? Player.ActivePlayers.Values.Select(p => p.ServerPlayerId).ToArray()
+            : new int[0];
+
+        string stateString = currentState.ToString().ToLower();
+
+        var payload = new GameData.HealthcheckRequest
         {
-            gameTime = FormatTime(EndingDuration - stateTimer + MatchDuration);
-        }
-
-        var playerIds = Player.ActivePlayers.Values
-            .Select(p => p.ServerPlayerId)
-            .ToList();
-
-        string requestData = JsonUtility.ToJson(new
-        {
-            sessionId = GameData.Instance.SessionId,
-            state = currentState.ToString(),
-            time = gameTime,
-            players = playerIds.ToArray()
-        });
-
-        Debug.Log($"[Healthcheck] Sending: {requestData}");
+            SessionId = GameData.Instance.SessionId,
+            State = stateString,
+            Time = gameTime,
+            Players = playerIds
+        };
 
         try
         {
-            var response = await APINetworkManager.Instance.PostRequestAsync<AuthResponse>("/games/healthcheck", requestData);
-            Debug.Log("[Healthcheck] Sended successfully.");
+            await APINetworkManager.Instance.PostRequestAsync<object>("/games/healthcheck", payload);
+            Debug.Log("[Heartbeat] SUCCESS!");
         }
-        catch (System.Exception ex)
-        {
-            Debug.LogError($"[Healthcheck] Sending error: {ex.Message}");
-        }
+        catch (System.Exception ex) { Debug.LogError($"[Heartbeat] FAILED: {ex.Message}"); }
     }
 
     private string FormatTime(float totalSeconds)
     {
         int minutes = Mathf.FloorToInt(totalSeconds / 60);
         int seconds = Mathf.FloorToInt(totalSeconds % 60);
-        return $"{minutes:D2}:{seconds:D2}:00";
+        return $"{minutes:D2}:{seconds:D2}";
     }
 
     [Server]
     private void RestartServer()
     {
-        Debug.Log("[SessionManager] Match ended. Returning all players to lobby...");
-
-        foreach (var player in Player.ActivePlayers.Values)
-        {
-            player.RpcHideEndMatchLeaderboard();
-        }
-
+        foreach (var player in Player.ActivePlayers.Values) player.RpcHideEndMatchLeaderboard();
         matchStats.Clear();
         currentState = MatchState.Waiting;
-
-        LoadNextScene();
+        SceneManager.LoadScene(nextSceneName);
     }
 
-    private void LoadNextScene()
+    private string GetArg(string name, string defaultValue)
     {
-        SceneManager.LoadScene(nextSceneName);
+        var args = System.Environment.GetCommandLineArgs();
+        for (int i = 0; i < args.Length; i++)
+            if (args[i] == name && args.Length > i + 1) return args[i + 1];
+        return defaultValue;
+    }
+
+    private int GetArgInt(string name, int defaultValue)
+    {
+        string str = GetArg(name, defaultValue.ToString());
+        if (int.TryParse(str, out int val)) return val;
+        return defaultValue;
     }
 }

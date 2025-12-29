@@ -5,7 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.Audio;
 using UnityEngine.SceneManagement;
-using Network;
+using kcp2k;
+using Mirror;
 
 public enum ShipComponentType { Hull, Weapon, Engine }
 
@@ -22,6 +23,14 @@ public class ShipComponent
     public int speed;
     public string description;
     public bool isDefault;
+}
+
+[System.Serializable]
+public class JoinGameResponse
+{
+    public string ip;
+    public int port;
+    public string key;
 }
 
 // Компонент для хранения данных в слоте
@@ -387,13 +396,68 @@ public class ShipEditorUI : MonoBehaviour
             $"<b>Speed:</b> {totalSpeed}";
     }
 
-    void StartBattle()
+    async void StartBattle()
     {
-        // Save selected configuration for the game
         SaveConfiguration();
-        
-        // Transition to game
-        SceneManager.LoadScene("TestMultiplayerScene");
+
+        battleButton.interactable = false;
+
+        var config = ConfigManager.LoadConfig();
+        if (config == null || config.player_id <= 0)
+        {
+            Debug.LogError("Player ID not found. Please relogin.");
+            battleButton.interactable = true;
+            return;
+        }
+        if (!string.IsNullOrEmpty(config.jwt_token))
+        {
+            APINetworkManager.SetToken(config.jwt_token);
+        }
+
+        Debug.Log($"Looking for a match for Player {config.player_id}...");
+
+        try
+        {
+            string query = $"player_id={config.player_id}";
+            JoinGameResponse matchData = await APINetworkManager.Instance.GetRequestAsync<JoinGameResponse>("/games/join", query);
+
+            if (matchData != null)
+            {
+                Debug.Log($"Match found! Connecting to {matchData.ip}:{matchData.port} with key {matchData.key}");
+                ConnectToMatch(matchData);
+            }
+            else
+            {
+                Debug.LogError("Failed to join game: Empty response.");
+                battleButton.interactable = true;
+            }
+        }
+        catch (System.Exception ex)
+        {
+            Debug.LogError($"Matchmaking Error: {ex.Message}");
+            battleButton.interactable = true;
+        }
+    }
+
+    private void ConnectToMatch(JoinGameResponse matchData)
+    {
+        if (GameData.Instance != null)
+        {
+            GameData.Instance.SetSessionData(0, matchData.key);
+        }
+        else
+        {
+            Debug.LogError("GameData Instance not found! Auth key won't be set.");
+        }
+
+        NetworkManager.singleton.networkAddress = matchData.ip;
+
+        if (Transport.active is KcpTransport kcp)
+        {
+            kcp.Port = (ushort)matchData.port;
+        }
+
+        NetworkManager.singleton.StartClient();
     }
 
     void OpenSettingsWindow()
