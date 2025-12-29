@@ -942,7 +942,7 @@ MonoBehaviour:
     description: 
     isDefault: 0
   weaponComponents:
-  - componentId: 2
+  - componentId: 1
     componentName: Auto
     componentType: 1
     modelPrefab: {fileID: 595135914896999659, guid: ca0c47d93fa5e3d4ba72e11bba7d1ba4, type: 3}
@@ -952,7 +952,7 @@ MonoBehaviour:
     speed: 0
     description: 
     isDefault: 1
-  - componentId: 3
+  - componentId: 0
     componentName: Gun
     componentType: 1
     modelPrefab: {fileID: 595135914896999659, guid: d1dcd2b65a37ee048b50022e886c94f5, type: 3}
@@ -962,7 +962,7 @@ MonoBehaviour:
     speed: 0
     description: 
     isDefault: 0
-  - componentId: 1
+  - componentId: 2
     componentName: Laser
     componentType: 1
     modelPrefab: {fileID: 595135914896999659, guid: b7c2450b1146769478be099f4a23c655, type: 3}
@@ -972,7 +972,7 @@ MonoBehaviour:
     speed: 0
     description: 
     isDefault: 0
-  - componentId: 0
+  - componentId: 3
     componentName: Rocket
     componentType: 1
     modelPrefab: {fileID: 595135914896999659, guid: 29b644c180454454993b26d22a265ed1, type: 3}
