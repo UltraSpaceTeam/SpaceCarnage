@@ -1,5 +1,6 @@
 using UnityEngine;
 using Mirror;
+using System;
 
 [RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(ShipAssembler))]
@@ -17,7 +18,8 @@ public class PlayerController : NetworkBehaviour
 
     private bool activateAbility;
 
-    [SyncVar] private float abilityCooldownTimer = 0f;
+    [SyncVar] private double abilityReadyTime;
+    [SyncVar] public float AbilityStatusValue;
 
     [Header("Input Settings")]
     [SerializeField] private bool invertY = false;
@@ -51,8 +53,17 @@ public class PlayerController : NetworkBehaviour
     [Header("Physics Settings")]
     [SerializeField] private float overSpeedDragFactor = 1f;
 
-    public float AbilityCooldownRemaining => abilityCooldownTimer;
-    public bool AbilityOnCooldown => abilityCooldownTimer > 0f;
+    public float AbilityCooldownRemaining
+    {
+        get
+        {
+            double remaining = abilityReadyTime - CurrentTime;
+            return (float)Math.Max(0, remaining);
+        }
+    }
+    public bool AbilityOnCooldown => AbilityCooldownRemaining > 0f;
+
+    private double CurrentTime => (NetworkClient.active || NetworkServer.active) ? NetworkTime.time : Time.timeAsDouble;
 
     void Awake()
     {
@@ -186,6 +197,15 @@ public class PlayerController : NetworkBehaviour
             }
 
             currentAbility?.ServerUpdate(rb);
+
+            if (currentAbility != null)
+            {
+                AbilityStatusValue = currentAbility.GetVisualStatus();
+            }
+            else
+            {
+                AbilityStatusValue = 0f;
+            }
         }
 
         float speedMult = currentAbility?.GetSpeedMultiplier() ?? 1f;
@@ -216,17 +236,15 @@ public class PlayerController : NetworkBehaviour
         Vector3 torque = (error * pFactor) - (currentAngularVel * dFactor);
 
         rb.AddRelativeTorque(torque, ForceMode.Acceleration);
-        abilityCooldownTimer -= Time.fixedDeltaTime;
 
         if (activateAbility)
         {
-            if (abilityCooldownTimer <= 0 && currentAbility != null)
+            if (CurrentTime >= abilityReadyTime && currentAbility != null)
             {
                 currentAbility.RunAbility(rb);
-                abilityCooldownTimer = currentAbility.cooldown;
+                abilityReadyTime = CurrentTime + currentAbility.cooldown;
             }
         }
-
         activateAbility = false;
     }
 
