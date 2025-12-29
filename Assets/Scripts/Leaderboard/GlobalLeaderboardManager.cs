@@ -66,16 +66,8 @@ public class GlobalLeaderboardUI : MonoBehaviour
 
         try
         {
-            if (GameData.Instance == null)
-            {
-                Debug.LogError("GameData.Instance is NULL! Object GameData is not existing or already destroyed.");
-                yourPositionText.text = "Ошибка: no player data";
-                totalPlayersText.text = "GameData not found";
-                isLoading = false;
-                return;
-            }
 
-            int playerId = GameData.Instance.PlayerId;
+            int playerId = ConfigManager.LoadConfig().player_id;
             Debug.Log($"[Leaderboard] PlayerId from GameData: {playerId}");
 
             if (playerId <= 0)
