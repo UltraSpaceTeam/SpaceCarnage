@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using TMPro;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine.Audio;
 using UnityEngine.SceneManagement;
 
 public enum ShipComponentType { Hull, Weapon, Engine }
@@ -64,7 +65,12 @@ public class ShipEditorUI : MonoBehaviour
     [Header("Colors")]
     [SerializeField] private Color selectedComponentColor = new Color(0.1f, 0.7f, 0.2f, 1f);
     [SerializeField] private Color normalComponentColor = new Color(0.2f, 0.2f, 0.2f, 1f);
-
+	
+	[Header("SFX controllers")]
+	[SerializeField] public AudioMixerGroup sfxGroup;
+    [SerializeField] public AudioMixerGroup musicGroup;
+	
+	
     private Dictionary<ShipComponentType, ShipComponent> selectedComponents = new Dictionary<ShipComponentType, ShipComponent>();
     private bool isInitialized = false;
     
@@ -389,6 +395,9 @@ public class ShipEditorUI : MonoBehaviour
         
         PlayerPrefs.Save();
         
+		sfxGroup.audioMixer.SetFloat("SFXVolume", sfxSlider.value);
+		musicGroup.audioMixer.SetFloat("MusicVolume", musicSlider.value);
+		
         // Apply settings
         ApplyGraphicsQuality(graphicsDropdown.value);
         
