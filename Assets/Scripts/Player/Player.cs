@@ -43,9 +43,9 @@ public class Player : NetworkBehaviour
     private GameObject currentShieldInstance;
     private Renderer currentShieldRenderer;
 
+    [HideInInspector] public NetworkAudio networkAudio;
     [SerializeField] private GameObject HitVFX;
 
-    [HideInInspector] public NetworkAudio networkAudio;
     private void Awake()
     {
         health = GetComponent<Health>();
@@ -57,6 +57,7 @@ public class Player : NetworkBehaviour
         {
             health.OnDeath += OnDie;
         }
+
         networkAudio = GetComponent<NetworkAudio>();
     }
 

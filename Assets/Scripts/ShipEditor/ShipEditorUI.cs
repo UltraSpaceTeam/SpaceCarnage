@@ -4,6 +4,7 @@ using TMPro;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.SceneManagement;
+using Network;
 
 public enum ShipComponentType { Hull, Weapon, Engine }
 
@@ -64,6 +65,9 @@ public class ShipEditorUI : MonoBehaviour
     [Header("Colors")]
     [SerializeField] private Color selectedComponentColor = new Color(0.1f, 0.7f, 0.2f, 1f);
     [SerializeField] private Color normalComponentColor = new Color(0.2f, 0.2f, 0.2f, 1f);
+
+    [Header("Leaderboard")]
+    [SerializeField] private GlobalLeaderboardUI leaderboardUI;
 
     private Dictionary<ShipComponentType, ShipComponent> selectedComponents = new Dictionary<ShipComponentType, ShipComponent>();
     private bool isInitialized = false;
@@ -129,13 +133,31 @@ public class ShipEditorUI : MonoBehaviour
 
         // Header menu
         settingsMenuButton.onClick.AddListener(() => dropdownPanel.SetActive(!dropdownPanel.activeSelf));
-        leaderboardButton.onClick.AddListener(() => SceneManager.LoadScene("Leaderboard"));
+
+        if (leaderboardButton != null)
+        {
+            leaderboardButton.onClick.RemoveAllListeners();
+            leaderboardButton.onClick.AddListener(OpenLeaderboard);
+        }
+
         settingsButton.onClick.AddListener(OpenSettingsWindow);
         logoutButton.onClick.AddListener(Logout);
 
         // Settings window
         applySettingsButton.onClick.AddListener(ApplySettings);
         closeSettingsButton.onClick.AddListener(CloseSettingsWindow);
+    }
+
+    private void OpenLeaderboard()
+    {
+        if (leaderboardUI != null)
+        {
+            leaderboardUI.Show();
+        }
+        else
+        {
+            Debug.LogError("GlobalLeaderboardUI не назначен в ShipEditorUI! Назначьте панель лидерборда в инспекторе.");
+        }
     }
 
     void PopulateSlots()
@@ -364,7 +386,7 @@ public class ShipEditorUI : MonoBehaviour
         SaveConfiguration();
         
         // Transition to game
-        SceneManager.LoadScene("Game");
+        SceneManager.LoadScene("TestMultiplayerScene");
     }
 
     void OpenSettingsWindow()
