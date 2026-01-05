@@ -23,6 +23,7 @@ public class ShipComponent
     public int speed;
     public string description;
     public bool isDefault;
+	public ScriptableObject componentData;
 }
 
 [System.Serializable]
@@ -43,9 +44,9 @@ public class ShipEditorUI : MonoBehaviour
 {
     [Header("Ship Components")]
     [SerializeField] private ShipAssembler shipAssembler;
-    [SerializeField] private ShipComponent[] hullComponents;
-    [SerializeField] private ShipComponent[] weaponComponents;
-    [SerializeField] private ShipComponent[] engineComponents;
+    [SerializeField] public ShipComponent[] hullComponents;
+    [SerializeField] public ShipComponent[] weaponComponents;
+    [SerializeField] public ShipComponent[] engineComponents;
 
     [Header("New UI - Three Sections")]
     [SerializeField] private Button[] hullSlots = new Button[4];    // 4 кнопки для корпусов
@@ -84,6 +85,13 @@ public class ShipEditorUI : MonoBehaviour
 	
     [Header("Leaderboard")]
     [SerializeField] private GlobalLeaderboardUI leaderboardUI;
+	
+	[Header("Context Menu")]
+	[SerializeField] private Camera camera;
+	[SerializeField] private GameObject canvas;
+	[SerializeField] private GameObject contextMenuPanel;
+	[SerializeField] private RectTransform rectMenuPanel; 
+	
 
     private Dictionary<ShipComponentType, ShipComponent> selectedComponents = new Dictionary<ShipComponentType, ShipComponent>();
     private bool isInitialized = false;
@@ -110,6 +118,13 @@ public class ShipEditorUI : MonoBehaviour
         {
             currentRotatingShip.transform.Rotate(0, rotationSpeed * Time.deltaTime, 0);
         }
+		RectTransformUtility.ScreenPointToLocalPointInRectangle(
+			canvas.transform as RectTransform,
+			Input.mousePosition,
+			camera,
+			out Vector2 localPoint
+		);
+		rectMenuPanel.anchoredPosition = localPoint;
     }
 
     void SetupUIEvents()
@@ -382,10 +397,15 @@ public class ShipEditorUI : MonoBehaviour
         var weapon = selectedComponents[ShipComponentType.Weapon];
         var engine = selectedComponents[ShipComponentType.Engine];
         
-        int totalDamage = hull.damage + weapon.damage;
-        int totalHealth = hull.health;
-        int totalSpeed = hull.speed + engine.speed;
-        
+		HullData hullData = (HullData) hull.componentData;
+		WeaponData weaponData = (WeaponData) weapon.componentData;
+		EngineData engineData = (EngineData) engine.componentData;
+		
+        float totalDamage = weaponData.damage;
+        float totalHealth = hullData.maxHealth;
+        float totalMass = hullData.mass + engineData.mass + weaponData.mass;
+        float power = engineData.power;
+		
         shipStatsText.text = 
             $"<size=24><b>SHIP STATISTICS</b></size>\n\n" +
             $"<b>Hull:</b> {hull.componentName}\n" +
@@ -393,7 +413,8 @@ public class ShipEditorUI : MonoBehaviour
             $"<b>Engine:</b> {engine.componentName}\n\n" +
             $"<b>Damage:</b> {totalDamage}\n" +
             $"<b>Health:</b> {totalHealth}\n" +
-            $"<b>Speed:</b> {totalSpeed}";
+            $"<b>Mass:</b> {totalMass}\n" +
+			$"<b>Power:</b> {power}";
     }
 
     async void StartBattle()
@@ -657,4 +678,10 @@ public class ShipEditorUI : MonoBehaviour
         }
         PlayerPrefs.Save();
     }
+	
+		
+	void OnPointerEnter() {
+		Debug.Log("PointerEnter");
+	}
+	
 }
