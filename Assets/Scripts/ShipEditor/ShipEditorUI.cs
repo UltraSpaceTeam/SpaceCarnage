@@ -23,6 +23,7 @@ public class ShipComponent
     public int speed;
     public string description;
     public bool isDefault;
+	public ScriptableObject componentData;
 }
 
 [System.Serializable]
@@ -396,10 +397,15 @@ public class ShipEditorUI : MonoBehaviour
         var weapon = selectedComponents[ShipComponentType.Weapon];
         var engine = selectedComponents[ShipComponentType.Engine];
         
-        int totalDamage = hull.damage + weapon.damage;
-        int totalHealth = hull.health;
-        int totalSpeed = hull.speed + engine.speed;
-        
+		HullData hullData = (HullData) hull.componentData;
+		WeaponData weaponData = (WeaponData) weapon.componentData;
+		EngineData engineData = (EngineData) engine.componentData;
+		
+        float totalDamage = weaponData.damage;
+        float totalHealth = hullData.maxHealth;
+        float totalMass = hullData.mass + engineData.mass + weaponData.mass;
+        float power = engineData.power;
+		
         shipStatsText.text = 
             $"<size=24><b>SHIP STATISTICS</b></size>\n\n" +
             $"<b>Hull:</b> {hull.componentName}\n" +
@@ -407,7 +413,8 @@ public class ShipEditorUI : MonoBehaviour
             $"<b>Engine:</b> {engine.componentName}\n\n" +
             $"<b>Damage:</b> {totalDamage}\n" +
             $"<b>Health:</b> {totalHealth}\n" +
-            $"<b>Speed:</b> {totalSpeed}";
+            $"<b>Mass:</b> {totalMass}\n" +
+			$"<b>Power:</b> {power}";
     }
 
     async void StartBattle()

@@ -927,6 +927,7 @@ MonoBehaviour:
     speed: 0
     description: 
     isDefault: 1
+    componentData: {fileID: 11400000, guid: 92cb02c6245ffc44ca803d392ea875c3, type: 2}
   - componentId: 0
     componentName: Start
     componentType: 0
@@ -937,6 +938,7 @@ MonoBehaviour:
     speed: 0
     description: 
     isDefault: 0
+    componentData: {fileID: 11400000, guid: 7247bb25cd7ebb44ba43c96922e7b915, type: 2}
   - componentId: 2
     componentName: UFO
     componentType: 0
@@ -947,6 +949,7 @@ MonoBehaviour:
     speed: 0
     description: 
     isDefault: 0
+    componentData: {fileID: 11400000, guid: dbf8f38314106fe499babbfbff23549d, type: 2}
   - componentId: 1
     componentName: Whale
     componentType: 0
@@ -957,6 +960,7 @@ MonoBehaviour:
     speed: 0
     description: 
     isDefault: 0
+    componentData: {fileID: 11400000, guid: 50116eb04a3a81544b5a788acd7be2ff, type: 2}
   weaponComponents:
   - componentId: 1
     componentName: Auto
@@ -968,6 +972,7 @@ MonoBehaviour:
     speed: 0
     description: 
     isDefault: 1
+    componentData: {fileID: 11400000, guid: b55fd533ee424644a863a2829c23cc8d, type: 2}
   - componentId: 0
     componentName: Gun
     componentType: 1
@@ -978,6 +983,7 @@ MonoBehaviour:
     speed: 0
     description: 
     isDefault: 0
+    componentData: {fileID: 11400000, guid: e014a6391eb58ec47a5e9f850747f95a, type: 2}
   - componentId: 2
     componentName: Laser
     componentType: 1
@@ -988,6 +994,7 @@ MonoBehaviour:
     speed: 0
     description: 
     isDefault: 0
+    componentData: {fileID: 11400000, guid: 2896408d8a714414eb68a8d822332458, type: 2}
   - componentId: 3
     componentName: Rocket
     componentType: 1
@@ -998,6 +1005,7 @@ MonoBehaviour:
     speed: 0
     description: 
     isDefault: 0
+    componentData: {fileID: 11400000, guid: 0cfcbc81f2a36924caac9818fe1fd400, type: 2}
   engineComponents:
   - componentId: 0
     componentName: Enchanced Engine
@@ -1009,6 +1017,7 @@ MonoBehaviour:
     speed: 0
     description: 
     isDefault: 1
+    componentData: {fileID: 11400000, guid: 08b3836a358b86c4ca5795c7dc459cc8, type: 2}
   - componentId: 1
     componentName: Supersonic Engine
     componentType: 2
@@ -1019,6 +1028,7 @@ MonoBehaviour:
     speed: 0
     description: 
     isDefault: 0
+    componentData: {fileID: 11400000, guid: 7640a997d0e37004098f45df1baf1284, type: 2}
   - componentId: 2
     componentName: Shield Generator Engine
     componentType: 2
@@ -1029,6 +1039,7 @@ MonoBehaviour:
     speed: 0
     description: 
     isDefault: 0
+    componentData: {fileID: 11400000, guid: 9838ad1178bd740499d54065f33c0922, type: 2}
   - componentId: 3
     componentName: Cloaking Engine
     componentType: 2
@@ -1039,6 +1050,7 @@ MonoBehaviour:
     speed: 0
     description: 
     isDefault: 0
+    componentData: {fileID: 11400000, guid: 738b89981c1a8964597255d8bb2db460, type: 2}
   hullSlots:
   - {fileID: 908377266}
   - {fileID: 576092468}
@@ -5362,19 +5374,7 @@ MonoBehaviour:
   - eventID: 0
     callback:
       m_PersistentCalls:
-        m_Calls:
-        - m_Target: {fileID: 140832830}
-          m_TargetAssemblyTypeName: 
-          m_MethodName: 
-          m_Mode: 1
-          m_Arguments:
-            m_ObjectArgument: {fileID: 0}
-            m_ObjectArgumentAssemblyTypeName: 
-            m_IntArgument: 0
-            m_FloatArgument: 0
-            m_StringArgument: 
-            m_BoolArgument: 0
-          m_CallState: 1
+        m_Calls: []
   - eventID: 1
     callback:
       m_PersistentCalls:
@@ -6798,7 +6798,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 41a4bb8ea21d5b64c9920940be01e1b4, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -5
+      value: -2
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 41a4bb8ea21d5b64c9920940be01e1b4, type: 3}
       propertyPath: m_LocalPosition.z
@@ -9151,7 +9151,7 @@ RectTransform:
   m_GameObject: {fileID: 1597777629}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1, y: 0.87453, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1694491573}
@@ -9209,11 +9209,11 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 16
+  m_fontSize: 17.4
   m_fontSizeBase: 16
   m_fontWeight: 400
-  m_enableAutoSizing: 0
-  m_fontSizeMin: 18
+  m_enableAutoSizing: 1
+  m_fontSizeMin: 11
   m_fontSizeMax: 72
   m_fontStyle: 0
   m_HorizontalAlignment: 2
@@ -9287,7 +9287,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 18ed2e1a1c7bf934ea213e2310dda5c4, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: 11
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 18ed2e1a1c7bf934ea213e2310dda5c4, type: 3}
       propertyPath: m_LocalPosition.z
@@ -9328,6 +9328,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 18ed2e1a1c7bf934ea213e2310dda5c4, type: 3}
       propertyPath: m_Name
       value: Ship4
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 18ed2e1a1c7bf934ea213e2310dda5c4, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -9548,7 +9552,7 @@ RectTransform:
   m_GameObject: {fileID: 1694491572}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1, y: 1.1090341, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1597777630}
@@ -10236,7 +10240,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 44fd0a7532d3699498193821af4a3095, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 44fd0a7532d3699498193821af4a3095, type: 3}
       propertyPath: m_LocalPosition.z
@@ -11496,7 +11500,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -415, y: 228}
+  m_AnchoredPosition: {x: -415, y: 227.99998}
   m_SizeDelta: {x: -884, y: -506}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2069628544
@@ -11846,7 +11850,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 38737b795304d2b4ab7b78997924aa9a, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 38737b795304d2b4ab7b78997924aa9a, type: 3}
       propertyPath: m_LocalPosition.z
