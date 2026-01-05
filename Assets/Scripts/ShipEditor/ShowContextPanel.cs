@@ -18,13 +18,16 @@ public class ShowContextPanel : MonoBehaviour, IPointerEnterHandler, IPointerExi
 		contextMenuPanel.SetActive(true);
 		if (component is HullData) {
 			HullData comp = (HullData)component;
-			information = $"Health: {comp.maxHealth}\n";
+			information = $"Health: {comp.maxHealth}\nMass: {comp.mass}";
 		} else if (component is EngineData) {			
 			EngineData comp = (EngineData)component;
-			information = $"Ability cooldown: {comp.ability.cooldown}\n";
+			if (comp.ability != null) {
+				information = $"Ability cooldown: {comp.ability.cooldown}\n";
+			}
+			information += $"Mass: {comp.mass}\nPower: {comp.power}";
 		} else if (component is WeaponData) {			
 			WeaponData comp = (WeaponData)component;
-			information = $"Damage: {comp.damage}\nRate of fire: {comp.fireRate}\nRange: {comp.range}\n";
+			information = $"Damage: {comp.damage}\nRate of fire: {comp.fireRate}\nRange: {comp.range}\nMass: {comp.mass}";
 		}
 		shipStatsText.text = information;
 	}
