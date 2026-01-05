@@ -43,9 +43,9 @@ public class ShipEditorUI : MonoBehaviour
 {
     [Header("Ship Components")]
     [SerializeField] private ShipAssembler shipAssembler;
-    [SerializeField] private ShipComponent[] hullComponents;
-    [SerializeField] private ShipComponent[] weaponComponents;
-    [SerializeField] private ShipComponent[] engineComponents;
+    [SerializeField] public ShipComponent[] hullComponents;
+    [SerializeField] public ShipComponent[] weaponComponents;
+    [SerializeField] public ShipComponent[] engineComponents;
 
     [Header("New UI - Three Sections")]
     [SerializeField] private Button[] hullSlots = new Button[4];    // 4 кнопки для корпусов
@@ -84,6 +84,13 @@ public class ShipEditorUI : MonoBehaviour
 	
     [Header("Leaderboard")]
     [SerializeField] private GlobalLeaderboardUI leaderboardUI;
+	
+	[Header("Context Menu")]
+	[SerializeField] private Camera camera;
+	[SerializeField] private GameObject canvas;
+	[SerializeField] private GameObject contextMenuPanel;
+	[SerializeField] private RectTransform rectMenuPanel; 
+	
 
     private Dictionary<ShipComponentType, ShipComponent> selectedComponents = new Dictionary<ShipComponentType, ShipComponent>();
     private bool isInitialized = false;
@@ -110,6 +117,13 @@ public class ShipEditorUI : MonoBehaviour
         {
             currentRotatingShip.transform.Rotate(0, rotationSpeed * Time.deltaTime, 0);
         }
+		RectTransformUtility.ScreenPointToLocalPointInRectangle(
+			canvas.transform as RectTransform,
+			Input.mousePosition,
+			camera,
+			out Vector2 localPoint
+		);
+		rectMenuPanel.anchoredPosition = localPoint;
     }
 
     void SetupUIEvents()
@@ -657,4 +671,10 @@ public class ShipEditorUI : MonoBehaviour
         }
         PlayerPrefs.Save();
     }
+	
+		
+	void OnPointerEnter() {
+		Debug.Log("PointerEnter");
+	}
+	
 }
