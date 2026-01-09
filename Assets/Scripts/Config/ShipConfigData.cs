@@ -13,6 +13,7 @@ public class ShipConfigData
 public static class ShipConfigManager
 {
     private static string filePath = Path.Combine(Application.persistentDataPath, "user_ship_config.cfg");
+	public static bool hasSaved = false;
 
     public static void SaveConfig(ShipConfigData data)
     {
@@ -21,6 +22,7 @@ public static class ShipConfigManager
             string json = JsonUtility.ToJson(data, true);
             File.WriteAllText(filePath, json);
             Debug.Log($"Config saved to: {filePath}");
+			hasSaved = true;
         }
         catch (Exception e)
         {
