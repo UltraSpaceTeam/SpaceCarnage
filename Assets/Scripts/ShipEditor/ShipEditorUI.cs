@@ -552,38 +552,36 @@ public class ShipEditorUI : MonoBehaviour
 
     void LoadSavedConfiguration()
     {
-        bool hasSavedConfig = false;
-        
-        foreach (ShipComponentType type in System.Enum.GetValues(typeof(ShipComponentType)))
-        {
-            int savedComponentId = PlayerPrefs.GetInt($"ShipComponent_{type}", 0);
-            
-            hasSavedConfig = true;
-            ShipComponent savedComponent = FindComponentById(type, savedComponentId);
-            
-            if (savedComponent != null)
+		bool hasSavedConfig = ShipConfigManager.HasSaved();
+		ShipConfigData data = ShipConfigManager.LoadConfig();
+		
+		int[] savedComponentIds = { data.hull_id, data.weapon_id, data.engine_id };
+		ShipComponentType[] types = { ShipComponentType.Hull, ShipComponentType.Weapon, ShipComponentType.Engine };
+	    int n = 0;
+		
+		foreach (int savedComponentId in savedComponentIds) {
+			ShipComponentType type = types[n];
+			ShipComponent savedComponent = FindComponentById(type, savedComponentId);
+			selectedComponents[savedComponent.componentType] = savedComponent;
+			
+			int slotIndex = FindSlotIndexByComponent(savedComponent.componentType, savedComponent);
+			
+			switch (savedComponent.componentType)
             {
-                selectedComponents[type] = savedComponent;
-                
-                // Подсвечиваем выбранный слот
-                int slotIndex = FindSlotIndexByComponent(type, savedComponent);
-                if (slotIndex >= 0)
-                {
-                    switch (type)
-                    {
-                        case ShipComponentType.Hull:
-                            HighlightSelectedSlot(hullSlots, slotIndex);
-                            break;
-                        case ShipComponentType.Weapon:
-                            HighlightSelectedSlot(weaponSlots, slotIndex);
-                            break;
-                        case ShipComponentType.Engine:
-                            HighlightSelectedSlot(engineSlots, slotIndex);
-                            break;
-                    }
-                }
+                case ShipComponentType.Hull:
+                    HighlightSelectedSlot(hullSlots, slotIndex);
+                    break;
+                case ShipComponentType.Weapon:
+                    HighlightSelectedSlot(weaponSlots, slotIndex);
+                    break;
+                case ShipComponentType.Engine:
+                    HighlightSelectedSlot(engineSlots, slotIndex);
+                    break;
             }
-        }
+			n++;
+		}
+		
+		Debug.Log($"[ShipEditorUI] Saved config: {hasSavedConfig}");
         
         // If no saved config, select default components
         if (!hasSavedConfig)
@@ -672,11 +670,12 @@ public class ShipEditorUI : MonoBehaviour
 
     void SaveConfiguration()
     {
-        foreach (var component in selectedComponents)
-        {
-            PlayerPrefs.SetInt($"ShipComponent_{component.Key}", component.Value.componentId);
-        }
-        PlayerPrefs.Save();
+		ShipConfigData data = new ShipConfigData();
+		data.hull_id = selectedComponents[ShipComponentType.Hull].componentId;
+		data.weapon_id = selectedComponents[ShipComponentType.Weapon].componentId;
+		data.engine_id = selectedComponents[ShipComponentType.Engine].componentId;
+		
+        ShipConfigManager.SaveConfig(data);
     }
 	
 		

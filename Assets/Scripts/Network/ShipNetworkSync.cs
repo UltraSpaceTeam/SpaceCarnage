@@ -26,22 +26,10 @@ public class ShipNetworkSync : NetworkBehaviour
         int wIndex = 1;
         int eIndex = 2;
 		
-		foreach (ShipComponentType type in System.Enum.GetValues(typeof(ShipComponentType))) {
-            int savedComponentId = PlayerPrefs.GetInt($"ShipComponent_{type}", 0);
-
-			switch (type)
-                {
-                    case ShipComponentType.Hull:
-                        hIndex = savedComponentId;
-                        break;
-                    case ShipComponentType.Weapon:
-                        wIndex = savedComponentId;
-                        break;
-                    case ShipComponentType.Engine:
-                        eIndex = savedComponentId;
-                        break;
-                }
-		}
+		ShipConfigData data = ShipConfigManager.LoadConfig();
+		hIndex = data.hull_id;
+		wIndex = data.weapon_id;
+		eIndex = data.engine_id;
 		
         CmdSetupShip(hIndex, wIndex, eIndex);
     }
