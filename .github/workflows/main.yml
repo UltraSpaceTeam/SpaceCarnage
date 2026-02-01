@@ -130,15 +130,10 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            # === ИСПРАВЛЕНО ЗДЕСЬ ===
-            # Если пуш тега (v1.0.0) -> создать тег образа 1.0.0
             type=semver,pattern={{version}}
-            # Если пуш тега -> обновить тег latest
             type=raw,value=latest,enable={{is_tag}}
-            # Если пуш в ветку или PR -> создать тег с именем ветки
             type=ref,event=branch
             type=ref,event=pr
-            # Всегда добавлять короткий SHA коммита
             type=sha,format=short
 
       - name: Build and push Docker image
@@ -149,7 +144,7 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          
+
   create-release:
     name: Create GitHub Release
     needs: build
