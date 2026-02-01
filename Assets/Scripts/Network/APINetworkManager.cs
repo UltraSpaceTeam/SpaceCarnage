@@ -15,7 +15,7 @@ public class APINetworkManager : MonoBehaviour
 {
     public static APINetworkManager Instance { get; private set; }
 
-    private const string BASE_URL = "https://yarlkot.isgood.host:9087/gameapi";
+    private const string BASE_URL = "https://yarlkot.ru:9087/gameapi";
     public static string AuthToken { get; private set; }
     public static void SetToken(string token) => AuthToken = token;
 

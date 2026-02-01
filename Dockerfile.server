@@ -1,0 +1,11 @@
+FROM ubuntu:22.04
+
+RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY . .
+
+RUN chmod +x Build-StandaloneLinux64.x86_64
+
+ENTRYPOINT ["./Build-StandaloneLinux64.x86_64", "-batchmode", "-nographics"]
