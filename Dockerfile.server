@@ -6,6 +6,6 @@ WORKDIR /app
 
 COPY . .
 
-RUN chmod +x Build-StandaloneLinux64.x86_64
+RUN chmod +x Server.x86_64
 
-ENTRYPOINT ["./Build-StandaloneLinux64.x86_64", "-batchmode", "-nographics"]
+ENTRYPOINT ["./Server.x86_64", "-batchmode", "-nographics"]
