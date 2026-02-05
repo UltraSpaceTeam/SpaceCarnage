@@ -15,7 +15,17 @@ public class APINetworkManager : MonoBehaviour
 {
     public static APINetworkManager Instance { get; private set; }
 
-    private const string BASE_URL = "https://yarlkot.ru:9087/gameapi";
+    private static string BaseUrl
+    {
+        get
+        {
+            var args = Environment.GetCommandLineArgs();
+            for (int i = 0; i < args.Length - 1; i++)
+                if (args[i] == "-api") return args[i + 1];
+
+            return "http://78.37.191.90:9087";
+        }
+    }
     public static string AuthToken { get; private set; }
     public static void SetToken(string token) => AuthToken = token;
 
@@ -27,7 +37,7 @@ public class APINetworkManager : MonoBehaviour
 
     public async Task<TResult> PostRequestAsync<TResult>(string endpoint, object payload)
     {
-        string url = BASE_URL + endpoint;
+        string url = BaseUrl + endpoint;
         string json = JsonUtility.ToJson(payload);
 
         Debug.Log($"[API] POST Request to IP: {url}");
@@ -77,7 +87,7 @@ public class APINetworkManager : MonoBehaviour
 
     public async Task<TResult> GetRequestAsync<TResult>(string endpoint, string queryParams = null)
     {
-        string url = BASE_URL + endpoint;
+        string url = BaseUrl + endpoint;
         if (!string.IsNullOrEmpty(queryParams)) url += "?" + queryParams;
 
         Debug.Log($"[API] GET Request to IP: {url}");
