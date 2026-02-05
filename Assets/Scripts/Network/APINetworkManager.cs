@@ -23,7 +23,7 @@ public class APINetworkManager : MonoBehaviour
             for (int i = 0; i < args.Length - 1; i++)
                 if (args[i] == "-api") return args[i + 1];
 
-            return "http://127.0.0.1:9087";
+            return "http://78.37.191.90:9087";
         }
     }
     public static string AuthToken { get; private set; }
