@@ -60,6 +60,7 @@ public class GameData : MonoBehaviour
 
     private void Awake()
     {
+        Debug.Log($"[GameData] Awake InstanceId={GetInstanceID()} scene={gameObject.scene.name}");
         if (Instance == null)
         {
             Instance = this;
@@ -84,6 +85,6 @@ public class GameData : MonoBehaviour
     {
         SessionId = sessionId;
         SessionKey = key;
-        Debug.Log($"Saved SessionId = {sessionId}");
+        Debug.Log($"[GameData] Saved SessionId = {sessionId}, Key={key}, InstanceId={GetInstanceID()}");
     }
 }
