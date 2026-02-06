@@ -236,7 +236,15 @@ public class SessionManager : MonoBehaviour
     [Server]
     private async void SendHealthcheck()
     {
-        if (GameData.Instance == null || GameData.Instance.SessionId == 0) return;
+        Debug.Log($"[Heartbeat] tick. GameData={(GameData.Instance == null ? "NULL" : "OK")} SessionId={(GameData.Instance?.SessionId ?? -1)}");
+
+        if (GameData.Instance == null || GameData.Instance.SessionId == 0)
+        {
+            Debug.LogWarning("[Heartbeat] early return (no GameData or SessionId==0)");
+            return;
+        }
+
+        Debug.Log("[Heartbeat] sending /games/healthcheck ...");
 
         string gameTime = FormatTime(MatchDuration - stateTimer);
         if (currentState == MatchState.Finished) gameTime = FormatTime(EndingDuration - stateTimer + MatchDuration);
