@@ -27,11 +27,6 @@ public class GlobalLeaderboardUI : MonoBehaviour
         refreshButton.onClick.AddListener(Refresh);
     }
 
-    private void Start()
-    {
-        Hide();
-    }
-
     public async void Show()
     {
         panel.SetActive(true);
