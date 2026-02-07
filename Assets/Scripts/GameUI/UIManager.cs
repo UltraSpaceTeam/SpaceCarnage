@@ -35,6 +35,8 @@ public class UIManager : MonoBehaviour
 
     public void ShowDeathScreen(DamageContext source)
     {
+        SetLeaderboardVisible(false);
+
         deathScreenController.Show(source);
     }
 
