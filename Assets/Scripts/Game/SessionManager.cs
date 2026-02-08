@@ -20,7 +20,7 @@ public class SessionManager : MonoBehaviour
     private enum MatchState { Waiting, Playing, Finished }
     private MatchState currentState = MatchState.Waiting;
 
-    private const float MatchDuration = 600f;
+    private const float MatchDuration = 300f;
     private const float EndingDuration = 30f;
     private float stateTimer = 0f;
 
@@ -259,6 +259,8 @@ public class SessionManager : MonoBehaviour
         currentState = MatchState.Finished;
         SendHealthcheck();
 
+        KickAllClients("Match finished");
+        yield return new WaitForSeconds(0.2f);
         RestartServer();
         yield return new WaitForSeconds(1f);
         _ = RegisterGameServerAsync(_port, _ip, _maxPlayers);
@@ -428,5 +430,18 @@ public class SessionManager : MonoBehaviour
         player.TargetSetMatchTimer(player.connectionToClient, syncedState, matchStartTime, endingStartTime);
     }
 
+    [Server]
+    private void KickAllClients(string reason = "Match finished")
+    {
+        foreach (var conn in NetworkServer.connections.Values.ToList())
+        {
+            if (conn == null) continue;
+
+            if (conn.identity != null)
+                NetworkServer.RemovePlayerForConnection(conn, RemovePlayerOptions.Destroy);
+
+            conn.Disconnect();
+        }
+    }
 
 }

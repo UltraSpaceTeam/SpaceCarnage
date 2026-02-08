@@ -108,6 +108,8 @@ public class ShipEditorUI : MonoBehaviour
         UpdateShipPreview();
         UpdateStats();
         LoadSettings();
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
         isInitialized = true;
     }
 
