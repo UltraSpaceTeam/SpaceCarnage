@@ -15,6 +15,11 @@ public class SessionAuthenticator : NetworkAuthenticator
         base.OnServerAuthenticated.AddListener(OnAuthSuccess);
     }
 
+    private void OnDestroy()
+    {
+        base.OnServerAuthenticated.RemoveListener(OnAuthSuccess);
+    }
+
     private void OnAuthSuccess(NetworkConnectionToClient conn)
     {
         StartCoroutine(DelayedSpawn(conn));
@@ -24,11 +29,16 @@ public class SessionAuthenticator : NetworkAuthenticator
     {
         yield return new WaitForSeconds(1.2f);
 
-        if (conn != null)
+        if (conn == null) yield break;
+
+        if (conn.identity != null)
         {
-            Debug.Log($"[Auth] Spawning player for connection {conn.connectionId}");
-            NetworkManager.singleton.OnServerAddPlayer(conn);
+            Debug.Log($"[Auth] Player already exists for conn {conn.connectionId}, skipping spawn.");
+            yield break;
         }
+
+        Debug.Log($"[Auth] Spawning player for connection {conn.connectionId}");
+        NetworkManager.singleton.OnServerAddPlayer(conn);
     }
 
     public override void OnStartServer()
