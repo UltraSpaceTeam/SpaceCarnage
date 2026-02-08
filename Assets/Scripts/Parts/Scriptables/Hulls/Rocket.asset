@@ -21,5 +21,5 @@ MonoBehaviour:
   baseDefense: 20
   linearDamping: 2
   rotationDamping: 10
-  rotationXYSpeed: 300
+  rotationXYSpeed: 100
   rotationZSpeed: 200

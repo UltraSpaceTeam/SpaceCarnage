@@ -23,27 +23,15 @@ public class PlayerController : NetworkBehaviour
 
     [Header("Input Settings")]
     [SerializeField] private bool invertY = false;
-    [SerializeField] private float centeringSpeed = 0.5f;
-    [SerializeField] private float centeringDelay = 0.5f;
-    [SerializeField] private float centeringSmoothTime = 0.2f;
-    [SerializeField] private float sensitivityCurve = 2.0f;
     [SerializeField] private float reverseModifier = 0.2f;
 
 
     [Header("Aim Settings")]
     [SerializeField] private float deadzoneRadius = 0.15f;
-    [SerializeField] private float mouseSensitivity = 1.0f;
-    [SerializeField] private float cursorInputSmoothTime = 0.05f;
 
     [Header("PID Controller (Physics)")]
     [SerializeField] private float pFactor = 5.0f;
     [SerializeField] private float dFactor = 1.0f;
-
-    private Vector2 _clientCursorPos = new Vector2(0.5f, 0.5f);
-
-    private float _inputIdleTime = 0f;
-    private Vector2 _renderVelocity;
-    private Vector2 _targetRawPos = new Vector2(0.5f, 0.5f);
 
 
     private Health health; // temp
@@ -52,6 +40,28 @@ public class PlayerController : NetworkBehaviour
 
     [Header("Physics Settings")]
     [SerializeField] private float overSpeedDragFactor = 1f;
+
+    [Header("Networking Input")]
+    [SerializeField] private float sendRateHz = 20f;
+    [SerializeField] private float inputEpsilon = 0.001f;
+
+    [Header("Mouse Aim")]
+    [SerializeField] private float aimSensitivity = 2.0f;
+    [SerializeField] private float aimMax = 1.0f;
+
+    [Header("Recenter")]
+    [SerializeField] private KeyCode recenterKey = KeyCode.Mouse1;
+    [SerializeField] private bool recenterHold = false;
+    [SerializeField] private float recenterSpeed = 12f;
+    [SerializeField] private bool snapRecenter = false;
+
+    private Vector2 _aim;
+
+    private float _nextSendTime;
+    private float _lastSentThrust;
+    private float _lastSentRoll;
+    private Vector2 _lastSentAim;
+    private bool _lastSentAbility;
 
     public float AbilityCooldownRemaining
     {
@@ -99,43 +109,57 @@ public class PlayerController : NetworkBehaviour
 
         float rawThrust = Input.GetAxis("Vertical");
         float rawRoll = Input.GetAxis("Horizontal");
-        float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
-        float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime * (invertY ? -1 : 1);
+        float mouseX = Input.GetAxis("Mouse X") * aimSensitivity;
+        float mouseY = Input.GetAxis("Mouse Y") * aimSensitivity * (invertY ? -1 : 1);
 
-        if (Mathf.Abs(mouseX) > 0.0001f || Mathf.Abs(mouseY) > 0.0001f)
+        Vector2 delta = new Vector2(mouseX, mouseY) * aimSensitivity;
+        if (delta.sqrMagnitude > 0.000001f)
         {
-            _inputIdleTime = 0f;
-            _targetRawPos.x += mouseX;
-            _targetRawPos.y += mouseY;
+            _aim += delta * Time.deltaTime;
+            _aim.x = Mathf.Clamp(_aim.x, -aimMax, aimMax);
+            _aim.y = Mathf.Clamp(_aim.y, -aimMax, aimMax);
         }
-        else
+
+        bool recenterPressed = Input.GetKeyDown(recenterKey);
+        bool recenterHeld = Input.GetKey(recenterKey);
+
+        bool doRecenter = recenterHold ? recenterHeld : recenterPressed;
+        if (doRecenter)
         {
-            _inputIdleTime += Time.deltaTime;
-            if (_inputIdleTime > centeringDelay)
+            if (snapRecenter)
             {
-                _targetRawPos = Vector2.MoveTowards(_targetRawPos, new Vector2(0.5f, 0.5f), centeringSpeed * Time.deltaTime);
+                _aim = Vector2.zero;
+            }
+            else
+            {
+                _aim = Vector2.MoveTowards(_aim, Vector2.zero, recenterSpeed * Time.deltaTime);
             }
         }
 
-        _targetRawPos.x = Mathf.Clamp01(_targetRawPos.x);
-        _targetRawPos.y = Mathf.Clamp01(_targetRawPos.y);
+        Vector2 aimTarget = _aim;
+        if (aimTarget.magnitude < deadzoneRadius) aimTarget = Vector2.zero;
 
-        _clientCursorPos = Vector2.SmoothDamp(_clientCursorPos, _targetRawPos, ref _renderVelocity, cursorInputSmoothTime);
-
-        Vector2 rawInput = (_clientCursorPos - new Vector2(0.5f, 0.5f)) * 2f;
-
-        float curvedX = Mathf.Sign(rawInput.x) * Mathf.Pow(Mathf.Abs(rawInput.x), sensitivityCurve);
-        float curvedY = Mathf.Sign(rawInput.y) * Mathf.Pow(Mathf.Abs(rawInput.y), sensitivityCurve);
-
-        Vector2 targetViewport = new Vector2(curvedX, curvedY);
-        if (rawThrust < 0)
-        {
-            rawThrust *= reverseModifier;
-        }
+        if (rawThrust < 0) rawThrust *= reverseModifier;
 
         bool abilityPressed = Input.GetKeyDown(KeyCode.Space);
-        CmdUpdateInputs(rawThrust, rawRoll, targetViewport, abilityPressed);
 
+        bool shouldSend =
+            Time.time >= _nextSendTime &&
+            (Mathf.Abs(rawThrust - _lastSentThrust) > inputEpsilon ||
+             Mathf.Abs(rawRoll - _lastSentRoll) > inputEpsilon ||
+             (aimTarget - _lastSentAim).sqrMagnitude > (inputEpsilon * inputEpsilon) ||
+             abilityPressed || recenterPressed);
+
+        if (shouldSend)
+        {
+            _nextSendTime = Time.time + 1f / sendRateHz;
+
+            _lastSentThrust = rawThrust;
+            _lastSentRoll = rawRoll;
+            _lastSentAim = aimTarget;
+
+            CmdUpdateInputs(rawThrust, rawRoll, aimTarget, abilityPressed);
+        }
         if (UIManager.Instance != null && !UIManager.Instance.isEndMatch)
         {
             bool tabHeld = Input.GetKey(KeyCode.Tab);
@@ -252,13 +276,16 @@ public class PlayerController : NetworkBehaviour
     {
         if (!isLocalPlayer) return;
 
-        float x = _clientCursorPos.x * Screen.width;
-        float y = (1f - _clientCursorPos.y) * Screen.height;
+        float cx = Screen.width * 0.5f;
+        float cy = Screen.height * 0.5f;
+
+        float scale = 200f;
+        float x = cx + (_aim.x * scale);
+        float y = cy - (_aim.y * scale);
 
         GUI.color = Color.red;
         GUI.Box(new Rect(x - 10, y - 10, 20, 20), "+");
-        float cx = Screen.width / 2;
-        float cy = Screen.height / 2;
+
         GUI.color = new Color(.2f, .2f, 1, 0.4f);
         GUI.Box(new Rect(cx - 2, cy - 2, 4, 4), ".");
     }

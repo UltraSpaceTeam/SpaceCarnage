@@ -2,6 +2,7 @@
 using UnityEngine.UI;
 using TMPro;
 using UnityEngine.InputSystem.XR;
+using Mirror;
 
 public class HUDController : MonoBehaviour
 {
@@ -33,6 +34,9 @@ public class HUDController : MonoBehaviour
     [Header("Ammo Indicator")]
     [SerializeField] private TextMeshProUGUI ammoText;   // Текст типа "10/20" или "Reloading..."
 
+    [Header("Match Timer")]
+    [SerializeField] private TextMeshProUGUI matchTimerText;
+
     private float _targetFillAmount = 1f;
 
     private void Start()
@@ -58,6 +62,10 @@ public class HUDController : MonoBehaviour
 
         UpdateAbilityIndicator();
         UpdateAmmoIndicator();
+        if (matchTimerText != null)
+        {
+            matchTimerText.text = GetMatchTimerText();
+        }
     }
 
     private void UpdateAmmoIndicator()
@@ -243,4 +251,26 @@ public class HUDController : MonoBehaviour
 
         Destroy(item, killFeedDuration);
     }
+
+    private string GetMatchTimerText()
+    {
+        const float MatchDuration = 600f;
+        const float EndingDuration = 30f;
+        if (Player.ClientTimerState == 1 && Player.ClientMatchStartTime > 0)
+        {
+            var elapsed = NetworkTime.time - Player.ClientMatchStartTime;
+            var rem = Mathf.Max(0, MatchDuration - (float)elapsed);
+            return $"{(int)(rem / 60):D2}:{(int)(rem % 60):D2}";
+        }
+
+        if (Player.ClientTimerState == 2 && Player.ClientEndingStartTime > 0)
+        {
+            var elapsed = NetworkTime.time - Player.ClientEndingStartTime;
+            var rem = Mathf.Max(0, EndingDuration - (float)elapsed);
+            return $"{(int)(rem / 60):D2}:{(int)(rem % 60):D2}";
+        }
+
+        return "--:--";
+    }
+
 }

@@ -67,6 +67,7 @@ public class Health : NetworkBehaviour, IDieable
         {
             if (Player.ActivePlayers.TryGetValue(source.AttackerId, out Player attackerPlayer))
             {
+                source = DamageContext.Weapon(source.AttackerId, attackerPlayer.Nickname, source.WeaponID);
                 var attackerAssembler = attackerPlayer.GetComponent<ShipAssembler>();
                 var attackerAbility = attackerAssembler?.CurrentEngine?.ability;
                 var attackerInvis = attackerAbility as InvisAbility;

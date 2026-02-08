@@ -22,10 +22,11 @@ public class BorderDamage : NetworkBehaviour
         _health = GetComponent<Health>();
     }
 
-	[Server]
+    [ServerCallback]
     void FixedUpdate()
     {
-         bool currentOutside = IsOutsideBorder();
+
+        bool currentOutside = IsOutsideBorder();
         
         if (currentOutside != _isOutside)
         {

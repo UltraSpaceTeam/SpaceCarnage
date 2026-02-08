@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Mirror;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -44,6 +45,10 @@ public class Player : NetworkBehaviour
 
     [HideInInspector] public NetworkAudio networkAudio;
     [SerializeField] private GameObject HitVFX;
+
+    public static double ClientMatchStartTime { get; private set; }
+    public static double ClientEndingStartTime { get; private set; }
+    public static int ClientTimerState { get; private set; }
 
     private void Awake()
     {
@@ -151,6 +156,8 @@ public class Player : NetworkBehaviour
         health.OnHealthUpdate += HandleHealthUpdate;
         UIManager.Instance.UpdateHealth(100, 100);
 
+        CmdRequestMatchTimer();
+
         var config = ConfigManager.LoadConfig();
         if (config != null && !string.IsNullOrEmpty(config.username))
         {
@@ -163,6 +170,63 @@ public class Player : NetworkBehaviour
     }
 
     [Command]
+    private void CmdRequestMatchTimer()
+    {
+        if (SessionManager.Instance != null)
+            SessionManager.Instance.SendTimerTo(this);
+    }
+
+    private void OnDestroy()
+    {
+        if (ActivePlayers.ContainsKey(netId))
+            ActivePlayers.Remove(netId);
+    }
+
+    [Server]
+    private void KickForDuplicateAccount(int playerId)
+    {
+        if (playerId <= 0) return;
+
+        var dupes = ActivePlayers.Values
+            .Where(p => p != null && p.isServer && p.ServerPlayerId == playerId)
+            .ToList();
+
+        if (dupes.Count <= 1) return;
+
+        Debug.LogWarning($"[Auth/Account] Duplicate login playerId={playerId}. Kicking {dupes.Count} players.");
+
+        foreach (var p in dupes)
+        {
+            p.TargetKicked(p.connectionToClient, $"Duplicate login for playerId={playerId}");
+        }
+
+        StartCoroutine(KickLater(dupes));
+    }
+
+    [Server]
+    private IEnumerator KickLater(List<Player> players)
+    {
+        yield return new WaitForSeconds(0.2f);
+
+        foreach (var p in players)
+        {
+            if (p == null) continue;
+            var conn = p.connectionToClient;
+            if (conn != null)
+            {
+                Debug.LogWarning($"[Auth/Nick] Disconnecting connId={conn.connectionId} nick={p.Nickname} netId={p.netId}");
+                conn.Disconnect();
+            }
+        }
+    }
+
+    [TargetRpc]
+    private void TargetKicked(NetworkConnection target, string reason)
+    {
+        Debug.LogWarning($"[CLIENT] Kicked: {reason}");
+    }
+
+    [Command]
     private void CmdSetNickname(string newName, int playerId)
     {
         if (newName.Length > 20) newName = newName.Substring(0, 20);
@@ -171,6 +235,11 @@ public class Player : NetworkBehaviour
         ServerPlayerId = playerId;
 
         Debug.Log($"[Server] Player {netId} set nickname to: {Nickname} (ID: {ServerPlayerId})");
+
+        if (SessionManager.Instance != null)
+            SessionManager.Instance.BindIdentity(this);
+
+        KickForDuplicateAccount(ServerPlayerId);
     }
     public override void OnStopLocalPlayer()
     {
@@ -531,6 +600,23 @@ public class Player : NetworkBehaviour
             GameObject vfx = Instantiate(HitVFX, transform.position, transform.rotation);
             NetworkServer.Spawn(vfx);
         }
+    }
+
+    [ClientRpc]
+    public void RpcSetMatchTimer(int state, double matchStart, double endingStart)
+    {
+        ClientTimerState = state;
+        ClientMatchStartTime = matchStart;
+        ClientEndingStartTime = endingStart;
+        Debug.Log($"[Timer] state={state} matchStart={matchStart} endingStart={endingStart}");
+    }
+
+    [TargetRpc]
+    public void TargetSetMatchTimer(NetworkConnection target, int state, double matchStart, double endingStart)
+    {
+        ClientTimerState = state;
+        ClientMatchStartTime = matchStart;
+        ClientEndingStartTime = endingStart;
     }
 }
 
