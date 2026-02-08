@@ -15,8 +15,8 @@ public class AsteroidMovement : NetworkBehaviour
 		base.OnStartServer();
 		_rigidBody = GetComponent<Rigidbody>();
 				
-		//_rigidBody.AddForce(_initialForce, ForceMode.Impulse);
-		_rigidBody.AddTorque(_initialTorque, ForceMode.Impulse);
+		_rigidBody.AddForce(_initialForce, ForceMode.VelocityChange);
+		_rigidBody.AddTorque(_initialTorque, ForceMode.VelocityChange);
 	}	
 	
 	// Метод для установки параметров движения при спавне
