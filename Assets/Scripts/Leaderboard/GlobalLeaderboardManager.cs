@@ -16,6 +16,9 @@ public class GlobalLeaderboardUI : MonoBehaviour
     [SerializeField] private Button closeButton;
     [SerializeField] private Button refreshButton;
 
+    [Header("Loading Indicator")]
+    [SerializeField] private TextMeshProUGUI loadingText;
+
     [Header("Settings")]
     [SerializeField] private int topLimit = 20;
 
@@ -58,6 +61,11 @@ public class GlobalLeaderboardUI : MonoBehaviour
         isLoading = true;
 
         ClearRows();
+
+        if (loadingText != null) loadingText.gameObject.SetActive(true);
+
+        yourPositionText.text = "";
+        totalPlayersText.text = "";
 
         try
         {
@@ -121,6 +129,8 @@ public class GlobalLeaderboardUI : MonoBehaviour
         finally
         {
             isLoading = false;
+
+            if (loadingText != null) loadingText.gameObject.SetActive(false);
         }
     }
 
