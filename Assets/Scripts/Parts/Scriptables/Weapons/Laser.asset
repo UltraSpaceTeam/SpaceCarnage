@@ -18,7 +18,7 @@ MonoBehaviour:
   prefab: {fileID: 595135914896999659, guid: b7c2450b1146769478be099f4a23c655, type: 3}
   mass: 5
   strategy: {fileID: 11400000, guid: 249925ed106214c43a5aa5899baa2d30, type: 2}
-  damage: 3
+  damage: 10
   fireRate: 20
   range: 300
   ammo: 60

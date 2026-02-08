@@ -20,9 +20,17 @@ public class SessionManager : MonoBehaviour
     private enum MatchState { Waiting, Playing, Finished }
     private MatchState currentState = MatchState.Waiting;
 
-    private const float MatchDuration = 600f;
+    private const float MatchDuration = 20f;
     private const float EndingDuration = 30f;
     private float stateTimer = 0f;
+
+    private double matchStartTime;
+    private double endingStartTime;
+    private int syncedState;
+
+    private const int STATE_WAITING = 0;
+    private const int STATE_PLAYING = 1;
+    private const int STATE_ENDING = 2;
 
     private int _port;
     private string _ip;
@@ -151,7 +159,7 @@ public class SessionManager : MonoBehaviour
         }
 
         Debug.Log($"[SessionManager] Player connected netId={player.netId} id={player.ServerPlayerId} nick={player.Nickname}");
-
+        player.TargetSetMatchTimer(player.connectionToClient, syncedState, matchStartTime, endingStartTime);
         if (Player.ActivePlayers.Count == 1 && currentState == MatchState.Waiting)
         {
             StartCoroutine(MatchTimerCoroutine());
@@ -198,7 +206,11 @@ public class SessionManager : MonoBehaviour
     private IEnumerator MatchTimerCoroutine()
     {
         currentState = MatchState.Playing;
+        syncedState = STATE_PLAYING;
+        matchStartTime = NetworkTime.time;
         stateTimer = MatchDuration;
+        endingStartTime = 0;
+        BroadcastTimer();
 
         while (stateTimer > 0)
         {
@@ -208,7 +220,10 @@ public class SessionManager : MonoBehaviour
         }
 
         _endingPhase = true;
+        syncedState = STATE_ENDING;
+        endingStartTime = NetworkTime.time;
         stateTimer = EndingDuration;
+        BroadcastTimer();
 
         Debug.Log("[SessionManager] Match Ending...");
         foreach (var player in Player.ActivePlayers.Values) player.RpcShowEndMatchLeaderboard();
@@ -373,6 +388,10 @@ public class SessionManager : MonoBehaviour
         currentState = MatchState.Waiting;
         stateTimer = 0f;
         _endingPhase = false;
+        syncedState = STATE_WAITING;
+        matchStartTime = 0;
+        endingStartTime = 0;
+        BroadcastTimer();
         NetworkManager.singleton.ServerChangeScene(nextSceneName);
     }
 
@@ -390,4 +409,24 @@ public class SessionManager : MonoBehaviour
         if (int.TryParse(str, out int val)) return val;
         return defaultValue;
     }
+
+
+    private void BroadcastTimer()
+    {
+        foreach (var p in Player.ActivePlayers.Values)
+        {
+            if (p != null)
+                p.TargetSetMatchTimer(p.connectionToClient, syncedState, matchStartTime, endingStartTime);
+        }
+    }
+
+    public void SendTimerTo(Player player)
+    {
+        if (!NetworkServer.active) return;
+        if (player == null || player.connectionToClient == null) return;
+
+        player.TargetSetMatchTimer(player.connectionToClient, syncedState, matchStartTime, endingStartTime);
+    }
+
+
 }
