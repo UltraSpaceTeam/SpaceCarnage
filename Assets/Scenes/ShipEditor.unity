@@ -4844,7 +4844,7 @@ MonoBehaviour:
   networkAddress: localhost
   maxConnections: 100
   disconnectInactiveConnections: 1
-  disconnectInactiveTimeout: 60
+  disconnectInactiveTimeout: 20
   authenticator: {fileID: 0}
   playerPrefab: {fileID: 7355391291780638397, guid: 2fedcb40000960246bcfa51695ea60ee, type: 3}
   autoCreatePlayer: 1
@@ -11594,7 +11594,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -415, y: 227.99995}
+  m_AnchoredPosition: {x: -415, y: 227.99997}
   m_SizeDelta: {x: -884, y: -506}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2069628544
