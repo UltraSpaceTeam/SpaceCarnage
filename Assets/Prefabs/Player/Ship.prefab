@@ -24,6 +24,7 @@ GameObject:
   - component: {fileID: 1777793323013347561}
   - component: {fileID: 2998477240684721031}
   - component: {fileID: 3929164233251984185}
+  - component: {fileID: 2404021576103127275}
   m_Layer: 6
   m_Name: Ship
   m_TagString: Player
@@ -441,6 +442,38 @@ MonoBehaviour:
   maxPitch: 1.5
   minVolume: 0.2
   maxVolume: 0.4
+--- !u!114 &2404021576103127275
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7355391291780638397}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: efb5a1b89590e4f4fafe0c15405a2682, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  syncDirection: 0
+  syncMode: 0
+  syncInterval: 0
+  damageSelf: 0
+  damageOther: 1
+  damageLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  requireOtherRigidbody: 1
+  ignoreIfNoHealthOnOther: 1
+  energyToDamage: 0.05
+  minRelativeSpeed: 2
+  maxRelativeSpeed: 25
+  massProtection: 0.02
+  perTargetCooldown: 0.15
+  useImpulseScale: 1
+  impulseForFullDamage: 50
+  collisionWeaponId: Collision
+  environmentName: Environment
+  asteroidWeaponId: Asteroid
 --- !u!1001 &7358209773595079354
 PrefabInstance:
   m_ObjectHideFlags: 0
