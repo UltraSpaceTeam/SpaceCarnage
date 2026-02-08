@@ -171,6 +171,9 @@ public class Player : NetworkBehaviour
         ServerPlayerId = playerId;
 
         Debug.Log($"[Server] Player {netId} set nickname to: {Nickname} (ID: {ServerPlayerId})");
+
+        if (SessionManager.Instance != null)
+            SessionManager.Instance.BindIdentity(this);
     }
     public override void OnStopLocalPlayer()
     {

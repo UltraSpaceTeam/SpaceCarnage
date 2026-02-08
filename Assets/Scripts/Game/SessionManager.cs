@@ -13,7 +13,7 @@ public class SessionManager : MonoBehaviour
 {
     public static SessionManager Instance { get; private set; }
 
-    private List<PlayerMatchStats> matchStats = new List<PlayerMatchStats>();
+    private readonly Dictionary<uint, PlayerMatchStats> matchStats = new();
 
     [SerializeField] private string nextSceneName = "TestMultiplayerScene";
 
@@ -24,11 +24,19 @@ public class SessionManager : MonoBehaviour
     private const float EndingDuration = 30f;
     private float stateTimer = 0f;
 
+    private int _port;
+    private string _ip;
+    private int _maxPlayers;
+    private bool _endingPhase;
+
     private class PlayerMatchStats
     {
+        public uint NetId;
+        public string Nickname;
         public int PlayerId;
         public int Kills;
         public int Deaths;
+        public bool Left;
     }
 
     private void Awake()
@@ -51,14 +59,14 @@ public class SessionManager : MonoBehaviour
     private async Task StartDedicatedServer()
     {
         Debug.Log(">>> STARTING DEDICATED SERVER <<<");
-        int port = GetArgInt("-port", 7777);
-        string ip = GetArg("-ip", "auto");
-        int maxPlayers = GetArgInt("-maxPlayers", 20);
+        _port = GetArgInt("-port", 7777);
+        _ip = GetArg("-ip", "auto");
+        _maxPlayers = GetArgInt("-maxPlayers", 20);
 
         if (Transport.active is KcpTransport kcp)
         {
-            kcp.Port = (ushort)port;
-            Debug.Log($"[SessionManager] Port set to {port}");
+            kcp.Port = (ushort)_port;
+            Debug.Log($"[SessionManager] Port set to {_port}");
         }
 
         NetworkManager.singleton.StartServer();
@@ -67,7 +75,7 @@ public class SessionManager : MonoBehaviour
         NetworkManager.singleton.ServerChangeScene(nextSceneName);
 
         await Task.Delay(1000);
-        await RegisterGameServerAsync(port, ip, maxPlayers);
+        await RegisterGameServerAsync(_port, _ip, _maxPlayers);
     }
 
     public async Task<int> RegisterGameServerAsync(int port = 7777, string ipAddress = "auto", int maxPlayers = 20)
@@ -122,21 +130,51 @@ public class SessionManager : MonoBehaviour
     public void ConnectPlayer(Player player)
     {
         if (player == null) return;
-        int pId = player.ServerPlayerId;
+        if (!matchStats.TryGetValue(player.netId, out var s))
+        {
+            s = new PlayerMatchStats
+            {
+                NetId = player.netId,
+                PlayerId = player.ServerPlayerId,
+                Nickname = player.Nickname,
+                Kills = player.Kills,
+                Deaths = player.Deaths,
+                Left = false
+            };
+            matchStats[player.netId] = s;
+        }
+        else
+        {
+            s.Kills = player.Kills;
+            s.Deaths = player.Deaths;
+            s.Left = false;
+        }
 
-        var existing = matchStats.Find(s => s.PlayerId == player.ServerPlayerId);
-        if (existing == null) matchStats.Add(new PlayerMatchStats { PlayerId = pId, Kills = player.Kills, Deaths = player.Deaths });
-        else { existing.Kills = player.Kills; existing.Deaths = player.Deaths; }
-
-        _ = NotifyPlayerJoined(pId);
+        Debug.Log($"[SessionManager] Player connected netId={player.netId} id={player.ServerPlayerId} nick={player.Nickname}");
 
         if (Player.ActivePlayers.Count == 1 && currentState == MatchState.Waiting)
         {
             StartCoroutine(MatchTimerCoroutine());
             Debug.Log("[SessionManager] Match Started!");
         }
+    }
 
-        Debug.Log($"[SessionManager] Player connected: {player.Nickname} (ID: {pId})");
+    [Server]
+    public void BindIdentity(Player player)
+    {
+        if (player == null) return;
+
+        if (!matchStats.TryGetValue(player.netId, out var s))
+        {
+            s = new PlayerMatchStats { NetId = player.netId };
+            matchStats[player.netId] = s;
+        }
+
+        s.PlayerId = player.ServerPlayerId;
+        s.Nickname = player.Nickname;
+
+        if (s.PlayerId > 0)
+            _ = NotifyPlayerJoined(s.PlayerId);
     }
 
     private async Task NotifyPlayerJoined(int playerId)
@@ -169,7 +207,7 @@ public class SessionManager : MonoBehaviour
             if ((int)(MatchDuration - stateTimer) % 10 == 0) SendHealthcheck();
         }
 
-        currentState = MatchState.Finished;
+        _endingPhase = true;
         stateTimer = EndingDuration;
 
         Debug.Log("[SessionManager] Match Ending...");
@@ -182,45 +220,80 @@ public class SessionManager : MonoBehaviour
             if ((int)(EndingDuration - stateTimer) % 10 == 0) SendHealthcheck();
         }
 
+        _endingPhase = false;
+
         Debug.Log("[SessionManager] Match Over. Restarting.");
 
-        foreach (var kvp in Player.ActivePlayers)
-        {
-            var p = kvp.Value;
-            var s = matchStats.Find(x => x.PlayerId == p.ServerPlayerId);
-            if (s != null) { s.Kills = p.Kills; s.Deaths = p.Deaths; }
-        }
 
-        SendResultsToServer();
+        foreach (var p in Player.ActivePlayers.Values)
+        {
+            if (matchStats.TryGetValue(p.netId, out var s))
+            {
+                s.Kills = p.Kills;
+                s.Deaths = p.Deaths;
+                s.PlayerId = p.ServerPlayerId;
+                s.Nickname = p.Nickname;
+                s.Left = false;
+            }
+        }
+      
+
+        Debug.Log("[Result] BEFORE SEND: " + string.Join(", ",
+            matchStats.Values.Select(s => $"{s.PlayerId}:{s.Kills}/{s.Deaths}")));
+        yield return SendResultsCoroutine();
+        currentState = MatchState.Finished;
+        SendHealthcheck();
+
         RestartServer();
+        yield return new WaitForSeconds(1f);
+        _ = RegisterGameServerAsync(_port, _ip, _maxPlayers);
+    }
+
+    [Server]
+    private IEnumerator SendResultsCoroutine()
+    {
+        var task = SendResultsToServer();
+        while (!task.IsCompleted) yield return null;
     }
 
     [Server]
     public void DisconnectPlayer(Player player)
     {
         if (player == null) return;
-        var stats = matchStats.Find(s => s.PlayerId == player.ServerPlayerId);
-        if (stats != null)
+        if (matchStats.TryGetValue(player.netId, out var s))
         {
-            stats.Kills = player.Kills;
-            stats.Deaths = player.Deaths;
+            s.Kills = player.Kills;
+            s.Deaths = player.Deaths;
+            s.Left = true;
         }
     }
 
     [Server]
-    private async void SendResultsToServer()
+    private async Task SendResultsToServer()
     {
-        if (matchStats.Count == 0 || GameData.Instance == null) return;
-
-        var payload = new GameData.GameResultRequest
+        if (matchStats.Count == 0 || GameData.Instance == null)
         {
-            SessionId = GameData.Instance.SessionId,
-            Leaderboard = matchStats.Select(s => new GameData.PlayerResult
+            Debug.LogWarning("[SessionManager] No match stats to send or GameData is null. Skipping results submission.");
+            return;
+        }
+
+        var snapshot = matchStats.Values
+            .Where(s => s.PlayerId > 0) 
+            .Select(s => new GameData.PlayerResult
             {
                 PlayerId = s.PlayerId,
                 Kills = s.Kills,
                 Deaths = s.Deaths
-            }).ToArray()
+            })
+            .ToArray();
+
+        Debug.Log($"[Result] Sending Results... session={GameData.Instance.SessionId} players={snapshot.Length}");
+
+
+        var payload = new GameData.GameResultRequest
+        {
+            SessionId = GameData.Instance.SessionId,
+            Leaderboard = snapshot
         };
 
         Debug.Log("Sending Results...");
@@ -229,8 +302,10 @@ public class SessionManager : MonoBehaviour
             await APINetworkManager.Instance.PostRequestAsync<object>("/games/result", payload);
         }
         catch (Exception ex) { Debug.LogError($"[API] Result Error: {ex.Message}"); }
-
-        matchStats.Clear();
+        finally
+        {
+            matchStats.Clear();
+        }
     }
 
     [Server]
@@ -246,14 +321,17 @@ public class SessionManager : MonoBehaviour
 
         Debug.Log("[Heartbeat] sending /games/healthcheck ...");
 
-        string gameTime = FormatTime(MatchDuration - stateTimer);
-        if (currentState == MatchState.Finished) gameTime = FormatTime(EndingDuration - stateTimer + MatchDuration);
+        string gameTime;
+        if (_endingPhase)
+            gameTime = FormatTime(EndingDuration - stateTimer + MatchDuration);
+        else
+            gameTime = FormatTime(MatchDuration - stateTimer);
 
         int[] playerIds = (Player.ActivePlayers != null)
             ? Player.ActivePlayers.Values.Select(p => p.ServerPlayerId).ToArray()
             : new int[0];
 
-        string stateString = currentState.ToString().ToLower();
+        string stateString = _endingPhase ? "playing" : currentState.ToString().ToLower();
 
         var payload = new GameData.HealthcheckRequest
         {
@@ -282,9 +360,20 @@ public class SessionManager : MonoBehaviour
     private void RestartServer()
     {
         foreach (var player in Player.ActivePlayers.Values) player.RpcHideEndMatchLeaderboard();
-        matchStats.Clear();
+
+        foreach (var kv in NetworkServer.connections)
+        {
+            var conn = kv.Value;
+            if (conn != null && conn.identity != null)
+            {
+                NetworkServer.RemovePlayerForConnection(conn, RemovePlayerOptions.Destroy);
+            }
+        }
+
         currentState = MatchState.Waiting;
-        SceneManager.LoadScene(nextSceneName);
+        stateTimer = 0f;
+        _endingPhase = false;
+        NetworkManager.singleton.ServerChangeScene(nextSceneName);
     }
 
     private string GetArg(string name, string defaultValue)
