@@ -18,9 +18,9 @@ GameObject:
   - component: {fileID: 5855091577368911447}
   - component: {fileID: 1311430522913231395}
   - component: {fileID: 3898562112293448430}
-  - component: {fileID: 2395868659906923252}
   - component: {fileID: -4591996464470318427}
   - component: {fileID: 5353057182462497616}
+  - component: {fileID: 2060896359735306755}
   m_Layer: 0
   m_Name: Asteroid
   m_TagString: Asteroid
@@ -250,26 +250,6 @@ MonoBehaviour:
   syncInterval: 0
   maxHealth: 100
   deathSound: 6
---- !u!114 &2395868659906923252
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1468997837196811053}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ee8080d357a6ff54e9787f2149676424, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  syncDirection: 0
-  syncMode: 0
-  syncInterval: 0
-  baseDamage: 20
-  damageMultiplier: 5
-  playerTag: Player
-  minSpeedForDamage: 2
-  maxSpeedForFullDamage: 15
 --- !u!114 &-4591996464470318427
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -308,6 +288,38 @@ MonoBehaviour:
   syncInterval: 0
   damagePerSecond: 10
   damageTickInterval: 1
+--- !u!114 &2060896359735306755
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1468997837196811053}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: efb5a1b89590e4f4fafe0c15405a2682, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  syncDirection: 0
+  syncMode: 0
+  syncInterval: 0
+  damageSelf: 0
+  damageOther: 1
+  damageLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  requireOtherRigidbody: 1
+  ignoreIfNoHealthOnOther: 1
+  energyToDamage: 0.008
+  minRelativeSpeed: 2
+  maxRelativeSpeed: 25
+  massProtection: 0
+  perTargetCooldown: 0.15
+  useImpulseScale: 1
+  impulseForFullDamage: 50
+  collisionWeaponId: Collision
+  environmentName: Environment
+  asteroidWeaponId: Asteroid
 --- !u!1001 &978851487360903459
 PrefabInstance:
   m_ObjectHideFlags: 0

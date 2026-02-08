@@ -222,7 +222,10 @@ public class HUDController : MonoBehaviour
                     break;
 
                 case DamageType.Collision:
-                    message = $"<b>{victim}</b> <color=#AAAAAA>[CRASH]</color> {ctx.WeaponID}";
+                    if (ctx.AttackerId != 0)
+                        message = $"<b>{ctx.AttackerName}</b> <color=#AAAAAA>[RAM]</color> <b>{victim}</b>";
+                    else
+                        message = $"<b>{victim}</b> <color=#AAAAAA>[CRASH]</color> {ctx.WeaponID}";
                     break;
 
                 case DamageType.Weapon:
