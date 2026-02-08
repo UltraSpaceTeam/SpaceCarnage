@@ -3428,11 +3428,12 @@ MonoBehaviour:
   asteroidPrefab: {fileID: 1468997837196811053, guid: aecbd52c23c85a048ac4c0380091b0cd, type: 3}
   maxAsteroids: 50
   spawnInterval: 2
-  spawnArea: {x: 79.84, y: 50, z: 50}
-  _minThrustForce: 1
-  _maxThrustForce: 5
-  _minRotationForce: 1
-  _maxRotationForce: 5
+  _minThrustForce: 2.29
+  _maxThrustForce: 7.16
+  _minRotationForce: 2.28
+  _maxRotationForce: 5.72
+  minSize: 0.6
+  maxSize: 2.5
 --- !u!4 &1546819043
 Transform:
   m_ObjectHideFlags: 0

@@ -6,9 +6,8 @@ public class AsteroidSpawnManager : NetworkBehaviour
 {
     [Header("Spawn Settings")]
     [SerializeField] private GameObject asteroidPrefab;
-    [SerializeField] private int maxAsteroids = 50;
+    [SerializeField] private int maxAsteroids = 100;
     [SerializeField] private float spawnInterval = 2f;
-    [SerializeField] private Vector3 spawnArea = new Vector3(50, 50, 50);
     
     [Header("Movement Settings")]
     [SerializeField] [Range(1, 20f)]
@@ -19,6 +18,10 @@ public class AsteroidSpawnManager : NetworkBehaviour
     private float _minRotationForce = 1f;
     [SerializeField] [Range(0, 10f)]
     private float _maxRotationForce = 5f;
+
+    [Header("Asteroid Size")]
+    [SerializeField] private float minSize = 0.6f;
+    [SerializeField] private float maxSize = 2.5f;
 
     private List<GameObject> _spawnedAsteroids = new List<GameObject>();
     private float _spawnTimer;
@@ -56,29 +59,33 @@ public class AsteroidSpawnManager : NetworkBehaviour
     private void SpawnAsteroid()
     {
         // Случайная позиция в области спавна
-        Vector3 spawnPosition = new Vector3(
-            Random.Range(-spawnArea.x / 2, spawnArea.x / 2),
-            Random.Range(-spawnArea.y / 2, spawnArea.y / 2),
-            Random.Range(-spawnArea.z / 2, spawnArea.z / 2)
-        );
+        Vector3 spawnPosition = Random.insideUnitSphere * (BorderConfiguration.borderRadius - 5f);
 
         GameObject asteroid = Instantiate(asteroidPrefab, spawnPosition, Random.rotation);
-        
+
+        float size = Random.Range(minSize, maxSize);
+        var asteroidComp = asteroid.GetComponent<Asteroid>();
+        if (asteroidComp != null)
+        {
+            asteroidComp.SetSize(size);
+        }
+
+
         // Настройка параметров движения
-        SetupAsteroidMovement(asteroid);
+        SetupAsteroidMovement(asteroid, size);
         
         NetworkServer.Spawn(asteroid);
         _spawnedAsteroids.Add(asteroid);
     }
 
     [Server]
-    private void SetupAsteroidMovement(GameObject asteroid)
+    private void SetupAsteroidMovement(GameObject asteroid, float size)
     {
         AsteroidMovement movement = asteroid.GetComponent<AsteroidMovement>();
         if (movement != null)
         {
-            float thrustForce = Random.Range(_minThrustForce, _maxThrustForce);
-            float rotationForce = Random.Range(_minRotationForce, _maxRotationForce);
+            float thrustForce = Random.Range(_minThrustForce, _maxThrustForce) * size;
+            float rotationForce = Random.Range(_minRotationForce, _maxRotationForce) * size;
             
             // Случайное направление движения (в плоскости XZ)
             Vector3 randomDirection = Random.insideUnitCircle.normalized;
@@ -96,17 +103,6 @@ public class AsteroidSpawnManager : NetworkBehaviour
     }
 
     [Server]
-    public void SpawnAsteroidAtPosition(Vector3 position, Quaternion rotation)
-    {
-        if (_spawnedAsteroids.Count >= maxAsteroids) return;
-
-        GameObject asteroid = Instantiate(asteroidPrefab, position, rotation);
-        SetupAsteroidMovement(asteroid);
-        NetworkServer.Spawn(asteroid);
-        _spawnedAsteroids.Add(asteroid);
-    }
-
-    [Server]
     public void ClearAllAsteroids()
     {
         foreach (var asteroid in _spawnedAsteroids)
@@ -121,6 +117,6 @@ public class AsteroidSpawnManager : NetworkBehaviour
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.yellow;
-        Gizmos.DrawWireCube(transform.position, spawnArea);
+        Gizmos.DrawWireSphere(transform.position, BorderConfiguration.borderRadius);
     }
 }
