@@ -175,18 +175,21 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0
   CurrentThrustOutput: 0
+  AbilityStatusValue: 0
   invertY: 0
-  centeringSpeed: 0.25
-  centeringDelay: 0.5
-  centeringSmoothTime: 0.2
-  sensitivityCurve: 0.8
   reverseModifier: 0.2
-  deadzoneRadius: 0.05
-  mouseSensitivity: 0.5
-  cursorInputSmoothTime: 0.02
-  pFactor: 0.4
-  dFactor: 0.5
+  deadzoneRadius: 0.01
+  pFactor: 1
+  dFactor: 0.8
   overSpeedDragFactor: 1
+  sendRateHz: 20
+  inputEpsilon: 0.001
+  aimSensitivity: 2
+  aimMax: 1
+  recenterKey: 324
+  recenterHold: 1
+  recenterSpeed: 12
+  snapRecenter: 0
 --- !u!114 &703890252711067340
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -201,7 +204,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   shipRoot: {fileID: 2670521280389508925}
   CurrentHullObject: {fileID: 0}
-  CurrentEngineObject: {fileID: 0}
 --- !u!114 &2366990887147708466
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -275,8 +277,8 @@ MonoBehaviour:
   explosionRadius: 5
   debrisLifetime: 10
   shieldBubblePrefab: {fileID: 1246887265069243449, guid: a1d3497c6c678804590560035945510f, type: 3}
-  HitVFX: {fileID: 3737296553817654341, guid: e1a281a8d2b2ee343bf8e920b5cb1aa7, type: 3}
   networkAudio: {fileID: 0}
+  HitVFX: {fileID: 3737296553817654341, guid: e1a281a8d2b2ee343bf8e920b5cb1aa7, type: 3}
 --- !u!114 &2470000224385826209
 MonoBehaviour:
   m_ObjectHideFlags: 0
