@@ -8,114 +8,94 @@ public class InvisAbility : AbstractAbility
     public float activationDelay = 1.5f;
     public bool breakOnAttack = true;
     public bool breakOnDamage = true;
+    public override AbilityRuntime CreateRuntime() => new InvisRuntime(this);
 
-    private bool isActive = false;
-    private bool isFullyInvisible = false;
-    private float delayTimer = 0f;
 
-    private GameObject owner;
-
-    public override void RunAbility(Rigidbody shipRb)
+    private class InvisRuntime : AbilityRuntime
     {
-        owner = shipRb.gameObject;
-        InvisManager invisManager = owner.GetComponent<InvisManager>();
+        private readonly InvisAbility cfg;
 
-        if (invisManager == null)
+        private bool isActive;
+        private bool isFullyInvisible;
+        private float delayTimer;
+
+        public InvisRuntime(InvisAbility cfg) => this.cfg = cfg;
+
+        private InvisManager Invis => rb != null ? rb.GetComponent<InvisManager>() : null;
+
+        public override void Run()
         {
-            Debug.LogWarning("InvisManager is not found! Invisibility will not be working.");
-            return;
-        }
-
-        if (isActive)
-        {
-            Deactivate();
-        }
-        else
-        {
-            Activate();
-        }
-    }
-
-    private void Activate()
-    {
-        isActive = true;
-        isFullyInvisible = false;
-        delayTimer = activationDelay;
-
-        Debug.Log($"Invisibility activation... Delay: {activationDelay} sec.");
-    }
-
-    private void Deactivate()
-    {
-        isActive = false;
-        isFullyInvisible = false;
-        delayTimer = 0f;
-
-        if (owner != null)
-        {
-            InvisManager invisManager = owner.GetComponent<InvisManager>();
-            invisManager?.SetVisible(true);
-        }
-
-        Debug.Log("Invisibility deactivated.");
-    }
-
-    public void BreakInvisibility()
-    {
-        if (isActive)
-        {
-            Debug.Log("Invisibility deactivated (attack or damage)!");
-            Deactivate();
-        }
-    }
-
-    public override void ServerUpdate(Rigidbody shipRb)
-    {
-        if (!isActive) return;
-
-        if (owner == null) owner = shipRb.gameObject;
-        InvisManager invisManager = owner.GetComponent<InvisManager>();
-
-        if (invisManager == null) return;
-
-        if (delayTimer > 0f)
-        {
-            delayTimer -= Time.fixedDeltaTime;
-
-            if (delayTimer <= 0f)
+            if (Invis == null)
             {
-                isFullyInvisible = true;
-                invisManager.SetVisible(false);
+                Debug.LogWarning("InvisManager not found!");
+                return;
+            }
 
-                Debug.Log("Ship is completely invisible!");
+            if (isActive) Deactivate();
+            else Activate();
+        }
+
+        private void Activate()
+        {
+            isActive = true;
+            isFullyInvisible = false;
+            delayTimer = cfg.activationDelay;
+        }
+
+        private void Deactivate()
+        {
+            isActive = false;
+            isFullyInvisible = false;
+            delayTimer = 0f;
+
+            Invis?.SetVisible(true);
+        }
+
+        public override void ServerUpdate()
+        {
+            if (!isActive) return;
+            if (Invis == null) return;
+
+            if (delayTimer > 0f)
+            {
+                delayTimer -= Time.fixedDeltaTime;
+                if (delayTimer <= 0f)
+                {
+                    isFullyInvisible = true;
+                    Invis.SetVisible(false);
+                }
             }
         }
-    }
 
-    public override void OnEquipped()
-    {
-        isActive = false;
-        isFullyInvisible = false;
-        delayTimer = 0f;
-    }
-
-    public override void OnUnequipped()
-    {
-        if (isActive || isFullyInvisible)
+        public override void OnUnequipped()
         {
-            Deactivate();
+            if (isActive || isFullyInvisible)
+                Deactivate();
+        }
+
+        public override void OnEquipped()
+        {
+            isActive = false;
+            isFullyInvisible = false;
+            delayTimer = 0f;
+            Invis?.SetVisible(true);
+        }
+
+        public override void OnOwnerDamaged()
+        {
+            if (cfg.breakOnDamage && isActive) Deactivate();
+        }
+
+        public override void OnOwnerAttacked()
+        {
+            if (cfg.breakOnAttack && isActive) Deactivate();
+        }
+
+        public override float GetVisualStatus()
+        {
+            if (!isActive) return 0f;
+            if (cfg.activationDelay <= 0f) return 1f;
+            return 1f - Mathf.Clamp01(delayTimer / cfg.activationDelay);
         }
     }
-
-    public override float GetVisualStatus()
-    {
-        if (!isActive) return 0f;
-        if (activationDelay <= 0f) return 1f;
-
-        return 1f - (delayTimer / activationDelay);
-    }
-
-    public bool IsActive => isActive;
-    public bool IsFullyInvisible => isFullyInvisible;
-    public float ActivationProgress => isActive ? 1f - (delayTimer / activationDelay) : 0f;
 }

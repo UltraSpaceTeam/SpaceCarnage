@@ -51,11 +51,6 @@ public class ShipAssembler : MonoBehaviour
 
     public void EquipEngine(EngineData engineData)
     {
-        if (CurrentEngine?.ability != null)
-        {
-            CurrentEngine.ability.OnUnequipped();
-        }
-
         CurrentEngine = engineData;
         if (_activeSockets == null || _activeSockets.Count == 0) return;
 

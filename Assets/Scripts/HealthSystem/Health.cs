@@ -48,20 +48,14 @@ public class Health : NetworkBehaviour, IDieable
         var ability = assembler?.CurrentEngine?.ability;
 
         // If ability is shield — absorb
-        var shieldAbility = ability as ShieldAbility;
-        if (shieldAbility != null)
+        if (TryGetComponent<PlayerController>(out var selfController))
         {
-            damage = shieldAbility.AbsorbDamage(damage);
+            damage = selfController.ServerAbsorbDamage(damage);
         }
 
         if (damage <= 0.01f) return;
+        selfController?.ServerNotifyDamaged();
 
-        // Checking invisibility of the attacker and the victim
-        var invisAbility = ability as InvisAbility;
-        if (invisAbility != null && invisAbility.breakOnDamage)
-        {
-            invisAbility.BreakInvisibility();
-        }
 
         if (source.Type == DamageType.Weapon && source.AttackerId != 0)
         {
@@ -72,9 +66,9 @@ public class Health : NetworkBehaviour, IDieable
                 var attackerAbility = attackerAssembler?.CurrentEngine?.ability;
                 var attackerInvis = attackerAbility as InvisAbility;
 
-                if (attackerInvis != null && attackerInvis.breakOnAttack)
+                if (attackerPlayer.TryGetComponent<PlayerController>(out var attackerController))
                 {
-                    attackerInvis.BreakInvisibility();
+                    attackerController.ServerNotifyAttacked();
                     Debug.Log($"{attackerPlayer.Nickname} broke invisibility by attacking {gameObject.name}");
                 }
             }

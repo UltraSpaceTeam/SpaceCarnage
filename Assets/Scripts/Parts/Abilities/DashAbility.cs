@@ -5,13 +5,20 @@ public class DashAbility : AbstractAbility
 {
     public float dashVelocityBoost = 100f;
 
+    public override AbilityRuntime CreateRuntime() => new DashRuntime(this);
+
     public DashAbility()
     {
         cooldown = 10f;
     }
-
-    public override void RunAbility(Rigidbody shipRb)
+    private class DashRuntime : AbilityRuntime
     {
-        shipRb.AddRelativeForce(Vector3.forward * dashVelocityBoost, ForceMode.Impulse);
+        private readonly DashAbility cfg;
+        public DashRuntime(DashAbility cfg) => this.cfg = cfg;
+
+        public override void Run()
+        {
+            rb.AddRelativeForce(Vector3.forward * cfg.dashVelocityBoost, ForceMode.Impulse);
+        }
     }
 }
