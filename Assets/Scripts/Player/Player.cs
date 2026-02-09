@@ -505,7 +505,7 @@ public class Player : NetworkBehaviour
         var startPositions = NetworkManager.startPositions;
         foreach (var pos in startPositions)
         {
-            if (Physics.OverlapSphere(pos.position, 10f).Length == 0)
+            if (Physics.OverlapSphere(pos.position, 5f).Length == 0)
             {
                 return pos;
             }
