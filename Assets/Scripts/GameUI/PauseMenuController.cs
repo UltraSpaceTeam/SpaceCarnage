@@ -40,9 +40,6 @@ public class PauseMenuController : MonoBehaviour
         if (pauseMenuPanel != null) pauseMenuPanel.SetActive(false);
         if (settingsPanel != null) settingsPanel.SetActive(false);
 
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
-
         IsPaused = false;
 
         if (resumeButton != null)
@@ -69,7 +66,7 @@ public class PauseMenuController : MonoBehaviour
 
     private void OpenPauseMenu()
     {
-        Debug.Log("[PAUSE] [INFO] ќткрываем главное меню паузы");
+        Debug.Log("[PAUSE] [INFO] Opening ESC-menu");
 
         if (pauseMenuPanel != null) pauseMenuPanel.SetActive(true);
         if (settingsPanel != null) settingsPanel.SetActive(false);
@@ -88,7 +85,7 @@ public class PauseMenuController : MonoBehaviour
 
     public void ResumePauseMenu()
     {
-        Debug.Log("[PAUSE] [INFO]  нопка Ђѕродолжитьї сработала Ч закрываем паузу");
+        Debug.Log("[PAUSE] [INFO] Button 'Back to the game' is working - resuming");
 
         if (pauseMenuPanel != null) pauseMenuPanel.SetActive(false);
         if (settingsPanel != null) settingsPanel.SetActive(false);
@@ -103,7 +100,7 @@ public class PauseMenuController : MonoBehaviour
 
     public void OpenSettings()
     {
-        Debug.Log("[PAUSE] [INFO]  нопка ЂЌастройкиї сработала Ч открываем панель настроек");
+        Debug.Log("[PAUSE] [INFO] Button 'Settings' is working - settings panel is opening");
 
         if (pauseMenuPanel != null) pauseMenuPanel.SetActive(false);
         if (settingsPanel != null) settingsPanel.SetActive(true);
@@ -113,7 +110,7 @@ public class PauseMenuController : MonoBehaviour
 
     public void ReturnToPauseMenu()
     {
-        Debug.Log("[PAUSE] [INFO]  нопка ЂЌазадї в настройках сработала Ч возвращаемс€ в главное меню паузы");
+        Debug.Log("[PAUSE] [INFO] Button 'Close' in settings is working - returning to the ESC-menu");
 
         if (settingsPanel != null) settingsPanel.SetActive(false);
         if (pauseMenuPanel != null) pauseMenuPanel.SetActive(true);
@@ -126,7 +123,7 @@ public class PauseMenuController : MonoBehaviour
 
     public void ExitToMenu()
     {
-        Debug.Log("[PAUSE] [INFO]  нопка Ђ¬ыходї сработала Ч выходим в главное меню");
+        Debug.Log("[PAUSE] [INFO] Button 'Exit to main menu' is working - exiting to main menu");
 
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
