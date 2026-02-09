@@ -10,129 +10,98 @@ public class ShieldAbility : AbstractAbility
     public float regenerationRate = 20f;
     public float speedReductionPercent = 0.3f;
 
+    public override AbilityRuntime CreateRuntime() => new ShieldRuntime(this);
 
-    private float currentShieldHealth;
-    private float regenTimer;
-    private bool isActive;
-    private GameObject owner;
 
-    private Player player;
-
-    public override void RunAbility(Rigidbody rb)
+    private class ShieldRuntime : AbilityRuntime
     {
-        owner = rb.gameObject;
+        private readonly ShieldAbility cfg;
 
-        // Toggle activation
-        isActive = !isActive;
+        private float currentShieldHealth;
+        private float regenTimer;
+        private bool isActive;
 
-        player = owner.GetComponent<Player>();
+        public ShieldRuntime(ShieldAbility cfg) => this.cfg = cfg;
 
-        if (isActive)
+        public override void OnEquipped()
         {
-            Debug.Log($"Shield turned ON with {currentShieldHealth}/{maxShieldHealth} health");
+            currentShieldHealth = cfg.maxShieldHealth;
             regenTimer = 0f;
-            player?.RpcShowShield(true, currentShieldHealth / maxShieldHealth);
-        }
-        else
-        {
-            Debug.Log("Shield is off.");
-            regenTimer = regenerationDelay;
+            isActive = false;
             player?.RpcShowShield(false, 0f);
         }
-    }
 
-    public override void ServerUpdate(Rigidbody rb)
-    {
-        if (owner == null) owner = rb.gameObject;
-        Player player = owner.GetComponent<Player>();
-
-        if (isActive)
+        public override void OnUnequipped()
         {
-            player?.RpcShowShield(true, currentShieldHealth / maxShieldHealth);
-        }
-        else if (currentShieldHealth < maxShieldHealth)
-        {
+            isActive = false;
             player?.RpcShowShield(false, 0f);
-            if (regenTimer > 0)
+        }
+
+        public override void Run()
+        {
+            isActive = !isActive;
+            if (isActive)
             {
-                regenTimer -= Time.fixedDeltaTime;
+                regenTimer = 0f;
+                player?.RpcShowShield(true, currentShieldHealth / Mathf.Max(0.0001f, cfg.maxShieldHealth));
             }
             else
             {
-                currentShieldHealth += regenerationRate * Time.fixedDeltaTime;
-                currentShieldHealth = Mathf.Clamp(currentShieldHealth, 0, maxShieldHealth);
+                regenTimer = cfg.regenerationDelay;
+                player?.RpcShowShield(false, 0f);
             }
-        } else
-        {
-            player?.RpcShowShield(false, 0f);
         }
 
-        // Automatically off when shield is broken
-        if (isActive && currentShieldHealth <= 0)
+        public override void ServerUpdate()
         {
+            if (isActive)
+            {
+                player?.RpcShowShield(true, currentShieldHealth / Mathf.Max(0.0001f, cfg.maxShieldHealth));
+
+                if (currentShieldHealth <= 0f)
+                {
+                    isActive = false;
+                    regenTimer = cfg.regenerationDelay;
+                    player?.RpcShowShield(false, 0f);
+                }
+                return;
+            }
+
             player?.RpcShowShield(false, 0f);
-            isActive = false;
-            regenTimer = regenerationDelay;
-            Debug.Log("Shield broken!");
+
+            if (currentShieldHealth < cfg.maxShieldHealth)
+            {
+                if (regenTimer > 0f) regenTimer -= Time.fixedDeltaTime;
+                else
+                {
+                    currentShieldHealth += cfg.regenerationRate * Time.fixedDeltaTime;
+                    currentShieldHealth = Mathf.Clamp(currentShieldHealth, 0, cfg.maxShieldHealth);
+                }
+            }
         }
-    }
 
-    public override float AbsorbDamage(float incomingDamage)
-    {
-        if (!isActive) return incomingDamage;
-
-        Player player = owner?.GetComponent<Player>();
-
-        if (incomingDamage >= currentShieldHealth)
+        public override float AbsorbDamage(float incomingDamage)
         {
-            float leftover = incomingDamage - currentShieldHealth;
-            currentShieldHealth = 0f;
-            isActive = false;
-            player?.RpcShowShield(false, 0f);
-            regenTimer = regenerationDelay;
-            Debug.Log("Shield broken! Remaining damage: " + leftover);
-            return leftover;
-        }
-        else
-        {
+            if (!isActive) return incomingDamage;
+
+            if (incomingDamage >= currentShieldHealth)
+            {
+                float leftover = incomingDamage - currentShieldHealth;
+                currentShieldHealth = 0f;
+                isActive = false;
+                regenTimer = cfg.regenerationDelay;
+                player?.RpcShowShield(false, 0f);
+                return leftover;
+            }
+
             currentShieldHealth -= incomingDamage;
-            Debug.Log($"Shield absorbed {incomingDamage}. Shield has: {currentShieldHealth} health");
             return 0f;
         }
-    }
 
-    public override float GetSpeedMultiplier()
-    {
-        return isActive ? (1f - speedReductionPercent) : 1f;
-    }
+        public override float GetSpeedMultiplier()
+            => isActive ? (1f - cfg.speedReductionPercent) : 1f;
 
-    public override void OnEquipped()
-    {
-        currentShieldHealth = maxShieldHealth;
-        isActive = false;
-        regenTimer = 0f;
-        Debug.Log("Shield equipped - full health, inactive");
+        public override float GetVisualStatus()
+            => cfg.maxShieldHealth <= 0 ? 0f : currentShieldHealth / cfg.maxShieldHealth;
     }
-
-    public override void OnUnequipped()
-    {
-        isActive = false;
-        isActive = false;
-        if (owner != null)
-        {
-            Player player = owner.GetComponent<Player>();
-            player?.RpcShowShield(false, 0f);
-        }
-    }
-
-    public override float GetVisualStatus()
-    {
-        if (maxShieldHealth <= 0) return 0f;
-        return currentShieldHealth / maxShieldHealth;
-    }
-
-    public float ShieldPercentage => currentShieldHealth / maxShieldHealth;
-    public bool IsShieldActive => isActive;
-    public float CurrentShieldHealth => currentShieldHealth;
-    public float MaxShieldHealth => maxShieldHealth;
 }

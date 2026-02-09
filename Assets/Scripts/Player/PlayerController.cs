@@ -35,8 +35,9 @@ public class PlayerController : NetworkBehaviour
     [SerializeField] private float dFactor = 1.0f;
 
 
-    private Health health; // temp
-    private AbstractAbility currentAbility;
+    private Health _health; // temp
+    private AbstractAbility _abilityAsset;
+    private AbilityRuntime _ability;
 
 
     [Header("Physics Settings")]
@@ -110,7 +111,7 @@ public class PlayerController : NetworkBehaviour
         {
             return;
         }
-        if (health != null && health.IsDead) return;
+        if (_health != null && _health.IsDead) return;
 
         if (isPaused)
         {
@@ -216,9 +217,9 @@ public class PlayerController : NetworkBehaviour
     [Command]
     void CmdSelfDestruct() // temp
     {
-        if (health != null && !health.IsDead)
+        if (_health != null && !_health.IsDead)
         {
-            health.TakeDamage(9999, DamageContext.Suicide(name));
+            _health.TakeDamage(9999, DamageContext.Suicide(name));
         }
     }
 
@@ -249,26 +250,27 @@ public class PlayerController : NetworkBehaviour
 
         if (engine != null)
         {
-            if (engine.ability != currentAbility)
+            if (engine.ability != _abilityAsset)
             {
-                currentAbility?.OnUnequipped();
-                currentAbility = engine.ability;
-                currentAbility?.OnEquipped();
-            }
+                _ability?.OnUnequipped();
+                _ability = null;
 
-            currentAbility?.ServerUpdate(rb);
+                _abilityAsset = engine.ability;
 
-            if (currentAbility != null)
-            {
-                AbilityStatusValue = currentAbility.GetVisualStatus();
+                if (_abilityAsset != null)
+                {
+                    _ability = _abilityAsset.CreateRuntime();
+                    _ability.Bind(rb, GetComponent<Player>());
+                    _ability.OnEquipped();
+                }
             }
-            else
-            {
-                AbilityStatusValue = 0f;
-            }
+            _ability?.ServerUpdate();
+            AbilityStatusValue = _ability != null ? _ability.GetVisualStatus() : 0f;
+
         }
 
-        float speedMult = currentAbility?.GetSpeedMultiplier() ?? 1f;
+
+        float speedMult = _ability?.GetSpeedMultiplier() ?? 1f;
 
         float sumMass = weapon.mass + engine.mass + hull.mass;
         rb.mass = sumMass;
@@ -299,13 +301,28 @@ public class PlayerController : NetworkBehaviour
 
         if (activateAbility)
         {
-            if (CurrentTime >= abilityReadyTime && currentAbility != null)
+            if (CurrentTime >= abilityReadyTime && _ability != null)
             {
-                currentAbility.RunAbility(rb);
-                abilityReadyTime = CurrentTime + currentAbility.cooldown;
+                _ability.Run();
+                abilityReadyTime = CurrentTime + _abilityAsset.cooldown;
             }
         }
         activateAbility = false;
+    }
+
+    public float ServerAbsorbDamage(float damage)
+    {
+        return _ability != null ? _ability.AbsorbDamage(damage) : damage;
+    }
+
+    public void ServerNotifyDamaged()
+    {
+        _ability?.OnOwnerDamaged();
+    }
+
+    public void ServerNotifyAttacked()
+    {
+        _ability?.OnOwnerAttacked();
     }
 
     void OnGUI()

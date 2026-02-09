@@ -1,5 +1,6 @@
 using UnityEngine;
 using Mirror;
+using System.Collections.Generic;
 
 [RequireComponent(typeof(Health))]
 [RequireComponent(typeof(Projectile))]
@@ -63,18 +64,25 @@ public class Rocket : NetworkBehaviour
         _hasExploded = true;
 
         Collider[] hits = Physics.OverlapSphere(transform.position, explosionRadius, explosionLayers);
+
+        float baseDamage = _projectile.damage;
+        var damaged = new HashSet<Health>();
+
         foreach (var hit in hits)
         {
-            Rigidbody targetRb = hit.attachedRigidbody;
-            if (targetRb != null && targetRb.gameObject != gameObject)
-            {
-                if (targetRb.TryGetComponent<IDieable>(out var targetHealth))
-                {
-                    var ctx = DamageContext.Weapon(_projectile.OwnerId, _projectile.ownerName, _projectile.weaponName);
-                    targetHealth.TakeDamage(explosionDamage, ctx);
-                }
-                targetRb.AddExplosionForce(explosionForce, transform.position, explosionRadius);
-            }
+
+            if (hit == null) continue;
+            if (hit.gameObject == gameObject) continue;
+
+            Health h = hit.attachedRigidbody.GetComponent<Health>();
+            if (h == null) continue;
+            if (!damaged.Add(h)) continue;
+            var ctx = DamageContext.Weapon(_projectile.OwnerId, _projectile.ownerName, _projectile.weaponName);
+            h.TakeDamage(baseDamage, ctx);
+
+            Rigidbody rb = h.GetComponent<Rigidbody>();
+            if (rb != null)
+                rb.AddExplosionForce(explosionForce, transform.position, explosionRadius);
         }
 
         if (source.AttackerName != "hit")
