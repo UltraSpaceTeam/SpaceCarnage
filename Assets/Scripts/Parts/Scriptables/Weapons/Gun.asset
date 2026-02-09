@@ -16,9 +16,9 @@ MonoBehaviour:
   partName: Gun
   partType: 1
   prefab: {fileID: 595135914896999659, guid: d1dcd2b65a37ee048b50022e886c94f5, type: 3}
-  mass: 5
+  mass: 10
   strategy: {fileID: 11400000, guid: dd97fbd55eaaa7e49a8ebf994a48bfac, type: 2}
-  damage: 80
+  damage: 110
   fireRate: 1
   range: 200
   ammo: 10
