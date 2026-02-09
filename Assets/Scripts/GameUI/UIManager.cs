@@ -140,6 +140,8 @@ public class UIManager : MonoBehaviour
 
     private void Update()
     {
+        if (PauseMenuController.IsPaused) return;
+
         if (isLeaderboardShown && Player.ActivePlayers.Count > 0)
         {
             updateTimer += Time.deltaTime;

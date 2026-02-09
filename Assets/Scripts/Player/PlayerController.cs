@@ -1,6 +1,7 @@
 using UnityEngine;
 using Mirror;
 using System;
+using Unity.VisualScripting.Antlr3.Runtime;
 
 [RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(ShipAssembler))]
@@ -75,6 +76,8 @@ public class PlayerController : NetworkBehaviour
 
     private double CurrentTime => (NetworkClient.active || NetworkServer.active) ? NetworkTime.time : Time.timeAsDouble;
 
+    private bool isPaused => PauseMenuController.Instance != null && PauseMenuController.IsPaused;
+
     void Awake()
     {
         rb = GetComponent<Rigidbody>();
@@ -101,6 +104,22 @@ public class PlayerController : NetworkBehaviour
             return;
         }
         if (health != null && health.IsDead) return;
+
+        if (isPaused)
+        {
+            thrustInput = 0f;
+            rollInput = 0f;
+            aimTargetInput = Vector2.zero;
+            activateAbility = false;
+            return;
+        }
+
+        if (Input.GetKeyDown(KeyCode.P))
+        {
+            Debug.Log("P pressed detected!");
+            PauseMenuController.Instance.TogglePauseMenu();
+            return;
+        }
 
         if (Input.GetKeyDown(KeyCode.Delete)) // temp
         {
@@ -275,6 +294,8 @@ public class PlayerController : NetworkBehaviour
     void OnGUI()
     {
         if (!isLocalPlayer) return;
+
+        if (isPaused) return;
 
         float cx = Screen.width * 0.5f;
         float cy = Screen.height * 0.5f;
