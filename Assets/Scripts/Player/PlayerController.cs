@@ -87,7 +87,7 @@ public class PlayerController : NetworkBehaviour
         rb = GetComponent<Rigidbody>();
         shipAssembler = GetComponent<ShipAssembler>();
 
-        health = GetComponent<Health>(); // temp
+        _health = GetComponent<Health>(); // temp
     }
     public override void OnStartLocalPlayer()
     {
