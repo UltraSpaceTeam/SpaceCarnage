@@ -97,12 +97,6 @@ public class PlayerController : NetworkBehaviour
         {
             cam.SetTarget(this.transform);
         }
-
-        if (isLocalPlayer && !PauseMenuController.IsPaused)
-        {
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
-        }
     }
 
     void Update()
@@ -113,6 +107,15 @@ public class PlayerController : NetworkBehaviour
         }
         if (_health != null && _health.IsDead) return;
 
+        ApplyCursorState();
+
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            Debug.Log("[PlayerController] [INFO] ESC pressed detected!");
+            PauseMenuController.Instance.TogglePauseMenu();
+            return;
+        }
+
         if (isPaused)
         {
             thrustInput = 0f;
@@ -122,12 +125,6 @@ public class PlayerController : NetworkBehaviour
             return;
         }
 
-        if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            Debug.Log("[PlayerController] [INFO] ESC pressed detected!");
-            PauseMenuController.Instance.TogglePauseMenu();
-            return;
-        }
 
         if (Input.GetKeyDown(KeyCode.Delete)) // temp
         {
@@ -323,6 +320,15 @@ public class PlayerController : NetworkBehaviour
     public void ServerNotifyAttacked()
     {
         _ability?.OnOwnerAttacked();
+    }
+
+
+    private void ApplyCursorState()
+    {
+        bool shouldShow = isPaused || (_health != null && _health.IsDead);
+
+        Cursor.visible = shouldShow;
+        Cursor.lockState = shouldShow ? CursorLockMode.None : CursorLockMode.Locked;
     }
 
     void OnGUI()

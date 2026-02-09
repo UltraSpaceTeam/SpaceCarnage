@@ -257,7 +257,7 @@ public class HUDController : MonoBehaviour
 
     private string GetMatchTimerText()
     {
-        const float MatchDuration = 300f;
+        const float MatchDuration = 600f;
         const float EndingDuration = 30f;
         if (Player.ClientTimerState == 1 && Player.ClientMatchStartTime > 0)
         {

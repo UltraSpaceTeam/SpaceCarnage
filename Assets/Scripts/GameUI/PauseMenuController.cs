@@ -90,12 +90,14 @@ public class PauseMenuController : MonoBehaviour
         if (pauseMenuPanel != null) pauseMenuPanel.SetActive(false);
         if (settingsPanel != null) settingsPanel.SetActive(false);
 
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
+        
 
         EventSystem.current.SetSelectedGameObject(null);
 
         IsPaused = false;
+
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
     }
 
     public void OpenSettings()
