@@ -19,6 +19,11 @@ public class DeathScreenController : MonoBehaviour
 
     public void Show(DamageContext source)
     {
+        if (PauseMenuController.IsPaused)
+        {
+            PauseMenuController.Instance.TogglePauseMenu();
+        }
+
         panel.SetActive(true);
         deathSourceText.text = $"Killed by: {source.AttackerName} with {source.WeaponID}";
 
