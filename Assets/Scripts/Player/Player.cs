@@ -275,17 +275,12 @@ public class Player : NetworkBehaviour
 
         Deaths++;
 
-        if (source.Type == DamageType.Weapon && source.AttackerId != 0)
+        if ((source.Type == DamageType.Weapon || source.Type == DamageType.Collision) && source.AttackerId != 0)
         {
             if (ActivePlayers.TryGetValue(source.AttackerId, out var killer))
             {
                 Debug.Log($"[Death] Killer found: {killer.Nickname} (netId: {killer.netId}), incrementing kills");
                 killer.Kills++;
-            }
-            else
-            {
-                Debug.LogWarning($"[Death] Killer with netId {source.AttackerId} NOT found in ActivePlayers!");
-                Debug.LogWarning("Current ActivePlayers netIds: " + string.Join(", ", ActivePlayers.Keys));
             }
         }
 
