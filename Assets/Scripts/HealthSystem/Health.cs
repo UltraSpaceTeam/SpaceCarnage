@@ -69,7 +69,6 @@ public class Health : NetworkBehaviour, IDieable
                 if (attackerPlayer.TryGetComponent<PlayerController>(out var attackerController))
                 {
                     attackerController.ServerNotifyAttacked();
-                    Debug.Log($"{attackerPlayer.Nickname} broke invisibility by attacking {gameObject.name}");
                 }
             }
         }

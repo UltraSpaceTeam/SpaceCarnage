@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: Invisibility
   m_EditorClassIdentifier: 
   cooldown: 20
-  activationDelay: 1.5
+  activationDelay: 1.25
   breakOnAttack: 1
   breakOnDamage: 1
