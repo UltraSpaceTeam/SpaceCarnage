@@ -87,8 +87,12 @@ public class PlayerController : NetworkBehaviour
         shipAssembler = GetComponent<ShipAssembler>();
 
         health = GetComponent<Health>(); // temp
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
+
+        if (isLocalPlayer && !PauseMenuController.IsPaused)
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+        }
     }
     public override void OnStartLocalPlayer()
     {
