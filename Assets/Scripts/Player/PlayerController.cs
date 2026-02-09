@@ -114,9 +114,9 @@ public class PlayerController : NetworkBehaviour
             return;
         }
 
-        if (Input.GetKeyDown(KeyCode.P))
+        if (Input.GetKeyDown(KeyCode.Escape))
         {
-            Debug.Log("P pressed detected!");
+            Debug.Log("[PlayerController] [INFO] ESC pressed detected!");
             PauseMenuController.Instance.TogglePauseMenu();
             return;
         }
@@ -211,21 +211,21 @@ public class PlayerController : NetworkBehaviour
 
         if (shipAssembler.CurrentHull == null)
         {
-            Debug.LogWarning("No hull equipped!");
+            Debug.LogWarning("[PlayerController] [WARN] No hull equipped!");
             return;
         }
         HullData hull = shipAssembler.CurrentHull;
 
         if (shipAssembler.CurrentEngine == null)
         {
-            Debug.LogWarning("No engine equipped!");
+            Debug.LogWarning("[PlayerController] [WARN] No engine equipped!");
             return;
         }
         EngineData engine = shipAssembler.CurrentEngine;
 
         if (shipAssembler.CurrentWeapon == null)
         {
-            Debug.LogWarning("No weapon equipped!");
+            Debug.LogWarning("[PlayerController] [WARN] No weapon equipped!");
             return;
         }
         WeaponData weapon = shipAssembler.CurrentWeapon;

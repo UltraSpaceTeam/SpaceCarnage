@@ -16,7 +16,7 @@ public class PauseMenuController : MonoBehaviour
                 _instance = FindObjectOfType<PauseMenuController>(true);
                 if (_instance != null)
                 {
-                    Debug.Log("[PAUSE] Instance found by lazy method: " + _instance.gameObject.name);
+                    Debug.Log("[PAUSE] [INFO] Instance found by lazy method: " + _instance.gameObject.name);
                     _instance.gameObject.SetActive(true);
                 }
             }
@@ -30,14 +30,13 @@ public class PauseMenuController : MonoBehaviour
     [SerializeField] private GameObject pauseMenuPanel;
     [SerializeField] private GameObject settingsPanel;
 
-    [Header("Buttons (прив€жи в инспекторе один раз!)")]
+    [Header("Buttons")]
     [SerializeField] private Button resumeButton;
     [SerializeField] private Button settingsButton;
     [SerializeField] private Button exitButton;
 
     private void Awake()
     {
-        // —крываем панели при старте
         if (pauseMenuPanel != null) pauseMenuPanel.SetActive(false);
         if (settingsPanel != null) settingsPanel.SetActive(false);
 
@@ -70,7 +69,7 @@ public class PauseMenuController : MonoBehaviour
 
     private void OpenPauseMenu()
     {
-        Debug.Log("[PAUSE] ќткрываем главное меню паузы");
+        Debug.Log("[PAUSE] [INFO] ќткрываем главное меню паузы");
 
         if (pauseMenuPanel != null) pauseMenuPanel.SetActive(true);
         if (settingsPanel != null) settingsPanel.SetActive(false);
@@ -89,7 +88,7 @@ public class PauseMenuController : MonoBehaviour
 
     public void ResumePauseMenu()
     {
-        Debug.Log("[PAUSE]  нопка Ђѕродолжитьї сработала Ч закрываем паузу");
+        Debug.Log("[PAUSE] [INFO]  нопка Ђѕродолжитьї сработала Ч закрываем паузу");
 
         if (pauseMenuPanel != null) pauseMenuPanel.SetActive(false);
         if (settingsPanel != null) settingsPanel.SetActive(false);
@@ -104,7 +103,7 @@ public class PauseMenuController : MonoBehaviour
 
     public void OpenSettings()
     {
-        Debug.Log("[PAUSE]  нопка ЂЌастройкиї сработала Ч открываем панель настроек");
+        Debug.Log("[PAUSE] [INFO]  нопка ЂЌастройкиї сработала Ч открываем панель настроек");
 
         if (pauseMenuPanel != null) pauseMenuPanel.SetActive(false);
         if (settingsPanel != null) settingsPanel.SetActive(true);
@@ -114,7 +113,7 @@ public class PauseMenuController : MonoBehaviour
 
     public void ReturnToPauseMenu()
     {
-        Debug.Log("[PAUSE]  нопка ЂЌазадї в настройках сработала Ч возвращаемс€ в главное меню паузы");
+        Debug.Log("[PAUSE] [INFO]  нопка ЂЌазадї в настройках сработала Ч возвращаемс€ в главное меню паузы");
 
         if (settingsPanel != null) settingsPanel.SetActive(false);
         if (pauseMenuPanel != null) pauseMenuPanel.SetActive(true);
@@ -127,7 +126,7 @@ public class PauseMenuController : MonoBehaviour
 
     public void ExitToMenu()
     {
-        Debug.Log("[PAUSE]  нопка Ђ¬ыходї сработала Ч выходим в главное меню");
+        Debug.Log("[PAUSE] [INFO]  нопка Ђ¬ыходї сработала Ч выходим в главное меню");
 
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
