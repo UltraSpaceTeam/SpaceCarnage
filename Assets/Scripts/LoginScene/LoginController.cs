@@ -258,22 +258,24 @@ public class LoginController : MonoBehaviour
     {
         ResetUsernameFieldColor();
         ResetPasswordFieldColor();
-    
-        bool hasError = false;
-    
-        if (string.IsNullOrWhiteSpace(username) || username.Length < 1 || username.Length > 40)
-        {
-            MarkFieldAsError(usernameInput, usernameInputBackground);
-            hasError = true;
-        }
-    
+
+        var state = ValidationResult.SUCCESS;
+
         if (string.IsNullOrWhiteSpace(password) || password.Length < 5 || password.Length > 40 || !ValidatePasswordSpecialCharacters(password))
         {
             MarkFieldAsError(passwordInput, passwordInputBackground);
-            hasError = true;
+            state = ValidationResult.PASSWORD_INVALID;
+        }
+
+        if (string.IsNullOrWhiteSpace(username) || username.Length < 1 || username.Length > 40)
+        {
+            MarkFieldAsError(usernameInput, usernameInputBackground);
+            state = ValidationResult.USERNAME_INVALID;
         }
     
-        return hasError ? ValidationResult.USERNAME_INVALID : ValidationResult.SUCCESS;
+        
+    
+        return state;
     }
 
     private bool ValidatePasswordSpecialCharacters(string password)
