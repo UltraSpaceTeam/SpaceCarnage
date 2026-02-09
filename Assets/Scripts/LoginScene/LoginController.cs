@@ -41,6 +41,23 @@ public class LoginController : MonoBehaviour
         registerButton.onClick.AddListener(() => ChangeState(State.REGISTER));
         loginOrRegisterButton.onClick.AddListener(LoginOrRegister);
         exitGameButton.onClick.AddListener(ExitGame);
+
+        usernameInput.onSelect.AddListener((text) => {
+            ResetUsernameFieldColor();
+        });
+    
+        passwordInput.onSelect.AddListener((text) => {
+            ResetPasswordFieldColor();
+        });
+    
+        usernameInput.onValueChanged.AddListener((text) => {
+            ResetUsernameFieldColor();
+        });
+    
+        passwordInput.onValueChanged.AddListener((text) => {
+            ResetPasswordFieldColor();
+        });
+
         loadingIndicator.SetActive(false);
         ChangeState(State.LOGIN);
         _ = CheckAutoLoginAsync();
@@ -102,7 +119,7 @@ public class LoginController : MonoBehaviour
     public void ChangeState(State newState)
     {
         currentState = newState;
-        loginButtonText.text = newState == State.LOGIN ? "Login":"Register";//Пока так.
+        loginButtonText.text = newState == State.LOGIN ? "Login":"Register";//пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ.
 
         loginButton.interactable = newState != State.LOGIN;
         registerButton.interactable = newState != State.REGISTER;
@@ -217,6 +234,18 @@ public class LoginController : MonoBehaviour
         SceneManager.LoadScene(nextSceneName);
     }
 
+    public void OnUsernameFieldSelected()
+    {
+        if (usernameInput != null && usernameInput.image != null)
+            usernameInput.image.color = normalColor;
+    }
+
+    public void OnPasswordFieldSelected()
+    {
+        if (passwordInput != null && passwordInput.image != null)
+            passwordInput.image.color = normalColor;
+    }
+
     private void Update()
     {
         if ((Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter)) && loginButton.interactable)
@@ -227,17 +256,24 @@ public class LoginController : MonoBehaviour
 
     public ValidationResult ValidateCredentials(string username, string password)
     {
+        ResetUsernameFieldColor();
+        ResetPasswordFieldColor();
+    
+        bool hasError = false;
+    
         if (string.IsNullOrWhiteSpace(username) || username.Length < 1 || username.Length > 40)
         {
-            SetInputColor(usernameInputBackground, errorColor);
-            return ValidationResult.USERNAME_INVALID;
+            MarkFieldAsError(usernameInput, usernameInputBackground);
+            hasError = true;
         }
+    
         if (string.IsNullOrWhiteSpace(password) || password.Length < 5 || password.Length > 40 || !ValidatePasswordSpecialCharacters(password))
         {
-            SetInputColor(passwordInputBackground, errorColor);
-            return ValidationResult.PASSWORD_INVALID;
+            MarkFieldAsError(passwordInput, passwordInputBackground);
+            hasError = true;
         }
-        return ValidationResult.SUCCESS;
+    
+        return hasError ? ValidationResult.USERNAME_INVALID : ValidationResult.SUCCESS;
     }
 
     private bool ValidatePasswordSpecialCharacters(string password)
@@ -305,6 +341,44 @@ public class LoginController : MonoBehaviour
         feedbackText.text = message;
         feedBackWindow.SetActive(true);
     }
+
+    public void ResetUsernameFieldColor()
+    {
+        if (usernameInput != null)
+        {
+            if (usernameInput.image != null)
+                usernameInput.image.color = normalColor;
+        
+            if (usernameInputBackground != null)
+                usernameInputBackground.color = normalColor;
+        }
+    }
+
+    public void ResetPasswordFieldColor()
+    {
+        if (passwordInput != null)
+        {
+            if (passwordInput.image != null)
+                passwordInput.image.color = normalColor;
+        
+            if (passwordInputBackground != null)
+                passwordInputBackground.color = normalColor;
+        }
+    }
+
+    private void MarkFieldAsError(TMP_InputField inputField, Image backgroundImage)
+    {
+        if (inputField != null && inputField.image != null)
+        {
+            inputField.image.color = errorColor;
+        }
+    
+        if (backgroundImage != null)
+        {
+            backgroundImage.color = errorColor;
+        }
+    }
+
     public void CloseFeedbackMessage()
     {
         feedBackWindow.SetActive(false);
