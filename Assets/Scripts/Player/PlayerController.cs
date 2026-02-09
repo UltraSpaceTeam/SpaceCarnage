@@ -62,7 +62,10 @@ public class PlayerController : NetworkBehaviour
     private float _lastSentThrust;
     private float _lastSentRoll;
     private Vector2 _lastSentAim;
-    private bool _lastSentAbility;
+
+    private bool _abilityQueued;
+    private bool _recenterQueued;
+
 
     public float AbilityCooldownRemaining
     {
@@ -131,7 +134,7 @@ public class PlayerController : NetworkBehaviour
         float mouseX = Input.GetAxis("Mouse X") * aimSensitivity;
         float mouseY = Input.GetAxis("Mouse Y") * aimSensitivity * (invertY ? -1 : 1);
 
-        Vector2 delta = new Vector2(mouseX, mouseY) * aimSensitivity;
+        Vector2 delta = new Vector2(mouseX, mouseY);
         if (delta.sqrMagnitude > 0.000001f)
         {
             _aim += delta * Time.deltaTime;
@@ -139,7 +142,12 @@ public class PlayerController : NetworkBehaviour
             _aim.y = Mathf.Clamp(_aim.y, -aimMax, aimMax);
         }
 
+        bool abilityPressed = Input.GetKeyDown(KeyCode.Space);
+        if (abilityPressed) _abilityQueued = true;
+
         bool recenterPressed = Input.GetKeyDown(recenterKey);
+        if (recenterPressed) _recenterQueued = true;
+
         bool recenterHeld = Input.GetKey(recenterKey);
 
         bool doRecenter = recenterHold ? recenterHeld : recenterPressed;
@@ -160,24 +168,29 @@ public class PlayerController : NetworkBehaviour
 
         if (rawThrust < 0) rawThrust *= reverseModifier;
 
-        bool abilityPressed = Input.GetKeyDown(KeyCode.Space);
 
-        bool shouldSend =
-            Time.time >= _nextSendTime &&
-            (Mathf.Abs(rawThrust - _lastSentThrust) > inputEpsilon ||
-             Mathf.Abs(rawRoll - _lastSentRoll) > inputEpsilon ||
-             (aimTarget - _lastSentAim).sqrMagnitude > (inputEpsilon * inputEpsilon) ||
-             abilityPressed || recenterPressed);
+        bool timeOk = Time.time >= _nextSendTime;
+
+        bool inputsChanged =
+            Mathf.Abs(rawThrust - _lastSentThrust) > inputEpsilon ||
+            Mathf.Abs(rawRoll - _lastSentRoll) > inputEpsilon ||
+            (aimTarget - _lastSentAim).sqrMagnitude > (inputEpsilon * inputEpsilon);
+
+        bool shouldSend = (timeOk && inputsChanged) || _abilityQueued || _recenterQueued;
 
         if (shouldSend)
         {
-            _nextSendTime = Time.time + 1f / sendRateHz;
+            if (timeOk) _nextSendTime = Time.time + 1f / sendRateHz;
 
             _lastSentThrust = rawThrust;
             _lastSentRoll = rawRoll;
             _lastSentAim = aimTarget;
+            bool sendAbility = _abilityQueued;
 
-            CmdUpdateInputs(rawThrust, rawRoll, aimTarget, abilityPressed);
+            _abilityQueued = false;
+            _recenterQueued = false;
+
+            CmdUpdateInputs(rawThrust, rawRoll, aimTarget, sendAbility);
         }
         if (UIManager.Instance != null && !UIManager.Instance.isEndMatch)
         {
