@@ -267,7 +267,7 @@ MonoBehaviour:
   syncInterval: 0
   baseHP: 50
   hpPower: 2
-  baseMass: 50
+  baseMass: 20
   massPower: 3
   baseScale: 100
   HitVFX: {fileID: 3737296553817654341, guid: 64ef7b660680dd9458da14740727a78f, type: 3}
@@ -310,7 +310,7 @@ MonoBehaviour:
     m_Bits: 4294967295
   requireOtherRigidbody: 1
   ignoreIfNoHealthOnOther: 1
-  energyToDamage: 0.008
+  energyToDamage: 0.003
   minRelativeSpeed: 2
   maxRelativeSpeed: 25
   massProtection: 0
