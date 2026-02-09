@@ -42,6 +42,8 @@ public class ShipShooting : NetworkBehaviour
     {
         if (!isLocalPlayer) return;
 
+        if (PauseMenuController.IsPaused) return;
+
         if (_assembler.CurrentWeapon == null) return;
 
         if (_cachedWeapon != CurrentWeaponData) ResetWeaponState();
