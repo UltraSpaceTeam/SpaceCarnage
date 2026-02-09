@@ -16,6 +16,6 @@ MonoBehaviour:
   partName: Shield
   partType: 2
   prefab: {fileID: 5389579586531250488, guid: dcedf9c3611207144af138d851a92080, type: 3}
-  mass: 10
-  power: 50
+  mass: 20
+  power: 55
   ability: {fileID: 11400000, guid: fef6ab6226d89c745b4761dd6ce919b8, type: 2}

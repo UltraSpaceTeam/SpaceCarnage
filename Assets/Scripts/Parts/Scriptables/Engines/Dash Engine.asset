@@ -16,6 +16,6 @@ MonoBehaviour:
   partName: Dash
   partType: 2
   prefab: {fileID: 5389579586531250488, guid: dcedf9c3611207144af138d851a92080, type: 3}
-  mass: 5
-  power: 90
+  mass: 10
+  power: 70
   ability: {fileID: 11400000, guid: 4db1ab6c38b70174e9134d0ee0110ce6, type: 2}
