@@ -331,7 +331,7 @@ public class PlayerController : NetworkBehaviour
         Cursor.lockState = shouldShow ? CursorLockMode.None : CursorLockMode.Locked;
     }
 
-    void OnGUI()
+    public void OnGUI()
     {
         if (!isLocalPlayer) return;
 

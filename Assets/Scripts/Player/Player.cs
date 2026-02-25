@@ -613,5 +613,12 @@ public class Player : NetworkBehaviour
         ClientMatchStartTime = matchStart;
         ClientEndingStartTime = endingStart;
     }
+
+#if UNITY_INCLUDE_TESTS
+    public void TestTriggerOnDie(DamageContext ctx)
+    {
+        OnDie(ctx);
+    }
+#endif
 }
 

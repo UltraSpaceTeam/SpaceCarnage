@@ -161,4 +161,17 @@ public class ShipAssembler : MonoBehaviour
             EquipEngine(list[newIndex]);
         }
     }
+
+#if UNITY_INCLUDE_TESTS
+    public void SetEngineForTests(EngineData engineData)
+    {
+        CurrentEngine = engineData;
+
+        // Если уже есть hull — сразу прицепляем двигатель
+        if (CurrentHullObject != null && engineData != null)
+        {
+            EquipEngine(engineData);
+        }
+    }
+#endif
 }
