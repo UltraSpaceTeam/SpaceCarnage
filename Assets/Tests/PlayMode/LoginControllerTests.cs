@@ -87,8 +87,8 @@ public class LoginControllerTests
         var go = new GameObject(name);
         go.transform.SetParent(testGameObject.transform);
         var inputField = go.AddComponent<TMP_InputField>();
-        var textMesh = go.AddComponent<TextMeshProUGUI>();
-        inputField.textComponent = textMesh;
+        //var textMesh = go.AddComponent<TextMeshProUGUI>();
+        //inputField.textComponent = textMesh;
         var image = go.AddComponent<Image>();
         inputField.image = image;
         return inputField;
@@ -468,7 +468,61 @@ public class LoginControllerTests
         Assert.AreEqual(Color.white, usernameInputBackground.color);
         Assert.AreEqual(Color.white, passwordInputBackground.color);
     }
-
-
+	
+	[Test]
+    public void ResetUsernameFieldColor_WhenCalled_ResetsUsernameColor()
+    {
+        // Arrange
+        usernameInputBackground.color = Color.red;
+        usernameInput.image.color = Color.red;
+        
+        // Act
+		loginController.ResetUsernameFieldColor();
+        
+        // Assert
+        Assert.AreEqual(Color.white, usernameInputBackground.color);
+        Assert.AreEqual(Color.white, usernameInput.image.color);
+    }
+	
+	[Test]
+    public void ResetPasswordFieldColor_WhenCalled_ResetsPasswordColor()
+    {
+        // Arrange
+        passwordInputBackground.color = Color.red;
+        passwordInput.image.color = Color.red;
+        
+        // Act
+		loginController.ResetPasswordFieldColor();
+        
+        // Assert
+        Assert.AreEqual(Color.white, passwordInputBackground.color);
+        Assert.AreEqual(Color.white, passwordInput.image.color);
+    }
+	
+	[Test]
+    public void OnUsernameFieldSelected_WhenCalled_ResetsUsernameColor()
+    {
+        // Arrange
+        usernameInput.image.color = Color.red;
+        
+        // Act
+		loginController.OnUsernameFieldSelected();
+        
+        // Assert
+        Assert.AreEqual(Color.white, usernameInput.image.color);
+    }
+	
+	[Test]
+    public void OnPasswordFieldSelected_WhenCalled_ResetsPasswordColor()
+    {
+        // Arrange
+        passwordInput.image.color = Color.red;
+        
+        // Act
+		loginController.OnPasswordFieldSelected();
+        
+        // Assert
+        Assert.AreEqual(Color.white, passwordInput.image.color);
+    }
     #endregion
 }

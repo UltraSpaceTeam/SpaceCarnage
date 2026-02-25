@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.TestTools;
 using Mirror;
 using System.Reflection;
+using kcp2k;
 
 
 public class BorderDamageTests
@@ -14,8 +15,8 @@ public class BorderDamageTests
     private NetworkIdentity networkIdentity;
     private Transform objectTransform;
 
-    [SetUp]
-    public void Setup()
+    [UnitySetUp]
+    public IEnumerator Setup()
     {
         testGameObject = new GameObject("TestPlayer");
         networkIdentity = testGameObject.AddComponent<NetworkIdentity>();
@@ -39,10 +40,13 @@ public class BorderDamageTests
         var isClientField = typeof(NetworkIdentity).GetField("_isClient", 
             BindingFlags.NonPublic | BindingFlags.Instance);
         isClientField?.SetValue(networkIdentity, false);
+		
+		
+        yield return null;
     }	
 	
-	[TearDown]
-    public void Teardown()
+	[UnityTearDown]
+    public IEnumerator Teardown()
     {
         var instanceField = typeof(UIManager).GetField("Instance", 
             BindingFlags.Public | BindingFlags.Static);
@@ -55,6 +59,9 @@ public class BorderDamageTests
         {
             Object.DestroyImmediate(testGameObject);
         }
+		
+		
+        yield return null;
     }
 
     private void SetPrivateField(string fieldName, object value)
@@ -127,17 +134,27 @@ public class BorderDamageTests
 		Assert.IsFalse(result);
 	}
 	
-	[Test]
-    public void FixedUpdate_WhenEnteringBorderZone_StartsDamageCoroutine()
+	[UnityTest]
+    public IEnumerator FixedUpdate_WhenEnteringBorderZone_StartsDamageCoroutine()
     {
+		        // Запускаем мини-сервер
+        var transportGO = new GameObject("TestTransport");
+        var transport = transportGO.AddComponent<KcpTransport>();
+        Transport.active = transport;
+
+        NetworkServer.Listen(7777);
+        yield return null;
+		
         // Arrange
+		health.SetMaxHealth(100);
         objectTransform.position = new Vector3(15f, 0f, 0f);
 		BorderConfiguration.borderRadius = 10f;
+        yield return null;
+       
+        NetworkServer.Spawn(testGameObject);
+        yield return null;
         
-        //CallPrivateMethod("Awake");
-        
-        // Act
-        CallPrivateMethod("FixedUpdate");
+        yield return null;
         
         // Assert
         bool isOutside = (bool)GetPrivateField("_isOutside");
@@ -145,6 +162,46 @@ public class BorderDamageTests
         
         Assert.IsTrue(isOutside);
         Assert.IsNotNull(damageCoroutine);
+		
+		
+        NetworkServer.Shutdown();
+        Object.DestroyImmediate(transportGO);
+    }
+
+	[UnityTest]
+    public IEnumerator FixedUpdate_WhenExitingBorderZone_StopsDamageCoroutine()
+    {
+		        // Запускаем мини-сервер
+        var transportGO = new GameObject("TestTransport");
+        var transport = transportGO.AddComponent<KcpTransport>();
+        Transport.active = transport;
+
+        NetworkServer.Listen(7777);
+        yield return null;
+		
+        // Arrange
+		health.SetMaxHealth(100);
+		SetPrivateField("_isOutside", true);
+        objectTransform.position = new Vector3(5f, 0f, 0f);
+		BorderConfiguration.borderRadius = 10f;
+        yield return null;
+       
+        NetworkServer.Spawn(testGameObject);
+        yield return null;
+        
+		
+        yield return null;
+        
+        // Assert
+        bool isOutside = (bool)GetPrivateField("_isOutside");
+        var damageCoroutine = GetPrivateField("_damageCoroutine");
+        
+        Assert.IsFalse(isOutside);
+        Assert.IsNull(damageCoroutine);
+		
+		
+        NetworkServer.Shutdown();
+        Object.DestroyImmediate(transportGO);
     }
 	
 }
