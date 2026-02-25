@@ -1,137 +1,162 @@
+using System.Collections;
+using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
 using Mirror;
+using System.Text.RegularExpressions;
 using kcp2k;
-using System.Collections;
 
 public class PlayerPlayModeTests
 {
-    private GameObject playerGO;
-    private Player player;
-    private Health health;
-    private PlayerController controller;
-    private ShipShooting shooting;
-    private ShipAssembler assembler;
-    private NetworkAudio networkAudio;
-
-    private GameObject transportGO;
-    private KcpTransport transport;
-
-    [UnitySetUp]
-    public IEnumerator SetUp()
+    T GetField<T>(object obj, string name)
     {
-        transportGO = new GameObject("TestTransport");
-        transport = transportGO.AddComponent<KcpTransport>();
-        Transport.active = transport;
-
-        if (!NetworkServer.active)
-        {
-            NetworkServer.Listen(7777);
-        }
-        yield return null;
-
-        var resGO = new GameObject("FakeResources");
-        var res = resGO.AddComponent<GameResources>();
-
-        playerGO = new GameObject("TestPlayer");
-        playerGO.SetActive(false);
-
-        playerGO.AddComponent<NetworkIdentity>();
-
-        health = playerGO.AddComponent<Health>();
-        controller = playerGO.AddComponent<PlayerController>();
-        shooting = playerGO.AddComponent<ShipShooting>();
-        assembler = playerGO.AddComponent<ShipAssembler>();
-        networkAudio = playerGO.AddComponent<NetworkAudio>();
-
-        player = playerGO.AddComponent<Player>();
-
-        player.enabled = false;
-        controller.enabled = false;
-        shooting.enabled = false;
-        assembler.enabled = false;
-        networkAudio.enabled = false;
-
-        health.SetMaxHealth(100f);
-
-        playerGO.SetActive(true);
-        yield return null;
-
-        NetworkServer.Spawn(playerGO);
-        yield return null;
-
-        var conn = new NetworkConnectionToClient(999);
-        NetworkServer.AddPlayerForConnection(conn, playerGO);
-        yield return null;
-
-        Debug.Log($"[SetUp] «авершено | netId = {player.netId} | isServer = {player.isServer}");
+        var f = obj.GetType().GetField(name,
+            BindingFlags.NonPublic | BindingFlags.Instance);
+        Assert.IsNotNull(f, $"Field {name} not found");
+        return (T)f.GetValue(obj);
     }
 
-    [UnityTearDown]
-    public IEnumerator TearDown()
+    void Invoke(object obj, string name, params object[] args)
     {
-        if (NetworkServer.active)
-            NetworkServer.Shutdown();
+        var m = obj.GetType().GetMethod(name,
+            BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public);
+        Assert.IsNotNull(m, $"Method {name} not found");
+        m.Invoke(obj, args);
+    }
 
-        if (playerGO != null)
-            Object.DestroyImmediate(playerGO);
+    GameObject CreatePlayer()
+    {
+        var go = new GameObject("Player");
 
-        if (transportGO != null)
-            Object.DestroyImmediate(transportGO);
+        go.AddComponent<NetworkIdentity>();
+        go.AddComponent<Rigidbody>();
+        go.AddComponent<Health>();
 
-        var fakeRes = GameObject.Find("FakeGameResources");
-        if (fakeRes != null)
-            Object.DestroyImmediate(fakeRes);
+        go.AddComponent<PlayerController>().enabled = false;
+        go.AddComponent<ShipShooting>().enabled = false;
+        go.AddComponent<ShipAssembler>().enabled = false;
+        go.AddComponent<NetworkAudio>().enabled = false;
 
-        yield return null;
+        go.AddComponent<Player>();
+
+        return go;
     }
 
     [Test]
-    public void Awake_DidNotThrow_AndObjectSpawned()
+    public void SyncVars_DefaultValues()
     {
-        Assert.IsTrue(player.isServer, "ѕосле Spawn должен быть серверным");
-        Assert.IsNotNull(player.netIdentity, "NetworkIdentity должен быть назначен");
-        Assert.Greater(player.netId, 0u, "netId должен быть присвоен");
+        var go = CreatePlayer();
+        var p = go.GetComponent<Player>();
+
+        Assert.IsTrue(p.IsActive);
+        Assert.AreEqual(0, p.Kills);
+        Assert.AreEqual(0, p.Deaths);
+        Assert.AreEqual("Player", p.Nickname);
+
+        Object.DestroyImmediate(go);
     }
 
     [Test]
-    public void IsActive_DefaultValue_IsTrue()
+    public void RpcSetMatchTimer_SetsStatics_WithoutMirrorRuntime()
     {
-        Assert.IsTrue(player.IsActive);
+        var go = CreatePlayer();
+        var p = go.GetComponent<Player>();
+
+        p.Test_SetMatchTimer(2, 10, 20);
+
+        Assert.AreEqual(2, Player.ClientTimerState);
+        Assert.AreEqual(10, Player.ClientMatchStartTime);
+        Assert.AreEqual(20, Player.ClientEndingStartTime);
+
+        Object.DestroyImmediate(go);
     }
 
     [Test]
-    public void ServerPlayerId_CanBeSetAndRead()
+    public void RpcShowShield_NoPrefab_LogsWarning()
     {
-        player.ServerPlayerId = 12345;
-        Assert.AreEqual(12345, player.ServerPlayerId);
+        var go = CreatePlayer();
+        var p = go.GetComponent<Player>();
+
+        LogAssert.Expect(LogType.Warning, "Shield prefab not assigned in Player!");
+
+        Invoke(p, "ShowShield", true, 1f);
+
+        Object.DestroyImmediate(go);
+    }
+
+    [Test]
+    public void RpcShowShield_CreatesInstance()
+    {
+        var go = CreatePlayer();
+        var p = go.GetComponent<Player>();
+
+        var shieldPrefab = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        p.shieldBubblePrefab = shieldPrefab;
+
+        Invoke(p, "ShowShield", true, 1f);
+
+        var instance = GetField<GameObject>(p, "currentShieldInstance");
+
+        Assert.IsNotNull(instance);
+        Assert.IsTrue(instance.activeSelf);
+
+        Object.DestroyImmediate(shieldPrefab);
+        Object.DestroyImmediate(go);
     }
 
     [UnityTest]
-    public IEnumerator OnDie_CanBeTriggeredViaTestHelper()
+    public IEnumerator ServerHandleDeath_IncrementsDeaths()
     {
-        DamageContext ctx = DamageContext.Suicide("Test Suicide");
+        var go = CreatePlayer();
+        var p = go.GetComponent<Player>();
+
+        var ctx = DamageContext.Suicide("test");
+
+        Invoke(p, "HandleDeath", ctx);
+
+        yield return null;
+
+        Assert.AreEqual(1, p.Deaths);
+
+        Object.DestroyImmediate(go);
+    }
+
+    [Test]
+    public void OnStopLocalPlayer_DisablesPlayer()
+    {
+        var go = CreatePlayer();
+        var p = go.GetComponent<Player>();
+
+        p.OnStopLocalPlayer();   // ? напр€мую
+
+        Assert.IsFalse(p.IsActive);
+
+        Object.DestroyImmediate(go);
+    }
+
+    [UnityTest]
+    public IEnumerator RpcSpawnDebris_DoesNotCrash()
+    {
+        var go = CreatePlayer();
+        var p = go.GetComponent<Player>();
+
+        Assert.DoesNotThrow(() => Invoke(p, "SpawnDebris"));
+
+        yield return null;
+
+        Object.DestroyImmediate(go);
+    }
+
+    [Test]
+    public void TestTriggerOnDie_NoCrash()
+    {
+        var go = CreatePlayer();
+        var p = go.GetComponent<Player>();
 
         Assert.DoesNotThrow(() =>
-        {
-            player.TestTriggerOnDie(ctx);
-        });
+            p.TestTriggerOnDie(DamageContext.Suicide("test")));
 
-        yield return null;
-
-        Assert.Pass("OnDie успешно выполнен без исключений");
-    }
-
-    [UnityTest]
-    public IEnumerator DeathViaHealth_TriggersServerLogic()
-    {
-        health.TakeDamage(2000f, DamageContext.Suicide("Lethal"));
-
-        yield return null;
-
-        Assert.IsTrue(health.IsDead);
-
-        yield return null;
+        Object.DestroyImmediate(go);
     }
 }
