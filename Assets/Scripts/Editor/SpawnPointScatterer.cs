@@ -4,6 +4,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using Mirror;
 using System.Linq;
+using System.Reflection;
 
 public class SpawnPointScatterer : EditorWindow
 {
@@ -188,5 +189,15 @@ public class SpawnPointScatterer : EditorWindow
             return new Vector3(v.x, 0f, v.y);
         }
     }
+
+#if UNITY_INCLUDE_TESTS
+    // Только для тестов — вызываем приватный метод через reflection
+    public static Vector3 Test_SamplePosition(float radius, float innerRadius, float surfaceBias, bool fullSphere)
+    {
+        return (Vector3)typeof(SpawnPointScatterer)
+            .GetMethod("SamplePosition", BindingFlags.Static | BindingFlags.NonPublic)
+            .Invoke(null, new object[] { radius, innerRadius, surfaceBias, fullSphere });
+    }
+#endif
 }
 #endif

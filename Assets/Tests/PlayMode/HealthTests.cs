@@ -30,11 +30,9 @@ public class HealthPlayModeTests
         testObject = new GameObject("TestHealthObject");
         testObject.AddComponent<NetworkIdentity>();
 
-        // Health — основной тестируемый компонент
         health = testObject.AddComponent<Health>();
         health.SetMaxHealth(100f);
 
-        // Подписка на событие смерти
         deathEventTriggered = false;
         deathHandler = ctx => deathEventTriggered = true;
         health.OnDeath += deathHandler;
@@ -56,7 +54,6 @@ public class HealthPlayModeTests
         if (testObject != null) Object.DestroyImmediate(testObject);
         if (transportGO != null) Object.DestroyImmediate(transportGO);
 
-        // Убираем фейковый GameResources
         var fakeRes = GameObject.Find("FakeGameResources");
         if (fakeRes != null) Object.DestroyImmediate(fakeRes);
 

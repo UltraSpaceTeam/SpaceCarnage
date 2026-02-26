@@ -38,6 +38,7 @@ public class Rocket : NetworkBehaviour
 
     private void FixedUpdate()
     {
+        if (netIdentity == null) return;
         if (!isServer || _hasExploded || _health.IsDead) return;
 
         Collider[] colliders = Physics.OverlapSphere(transform.position, explosionRadius, proximityLayers);
@@ -60,23 +61,27 @@ public class Rocket : NetworkBehaviour
     [Server]
     private void Detonate(DamageContext source)
     {
+        DetonateInternal(source);
+    }
+
+    private void DetonateInternal(DamageContext source)
+    {
         if (_hasExploded) return;
         _hasExploded = true;
 
         Collider[] hits = Physics.OverlapSphere(transform.position, explosionRadius, explosionLayers);
-
         float baseDamage = _projectile.damage;
         var damaged = new HashSet<Health>();
 
         foreach (var hit in hits)
         {
-
             if (hit == null) continue;
             if (hit.gameObject == gameObject) continue;
 
-            Health h = hit.attachedRigidbody.GetComponent<Health>();
+            Health h = hit.attachedRigidbody?.GetComponent<Health>();
             if (h == null) continue;
             if (!damaged.Add(h)) continue;
+
             var ctx = DamageContext.Weapon(_projectile.OwnerId, _projectile.ownerName, _projectile.weaponName);
             h.TakeDamage(baseDamage, ctx);
 
@@ -85,14 +90,10 @@ public class Rocket : NetworkBehaviour
                 rb.AddExplosionForce(explosionForce, transform.position, explosionRadius);
         }
 
-        if (source.AttackerName != "hit")
+        if (source.AttackerName != "hit" && _projectile.HitVFX != null)
         {
-            if (_projectile.HitVFX != null)
-            {
-                GameObject vfx = Instantiate(_projectile.HitVFX, transform.position, transform.rotation);
-                NetworkServer.Spawn(vfx);
-                
-            }
+            GameObject vfx = Instantiate(_projectile.HitVFX, transform.position, transform.rotation);
+            NetworkServer.Spawn(vfx);
         }
     }
 
