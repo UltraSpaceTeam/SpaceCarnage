@@ -66,6 +66,19 @@ jobs:
           buildMethod: ${{ matrix.targetPlatform.clientMethod }}
           allowDirtyBuild: true 
 
+  test:
+    name: Test
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Run tests with coverage  # <-- Added missing name field
+        run: |
+          ./unity -projectPath . -batchmode -nographics -runTests
+
+
   docker-push-server:
     name: Docker Push Linux Server
     needs: build
