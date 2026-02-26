@@ -19,16 +19,13 @@ public class ShipAssemblerPlayModeTests
     [SetUp]
     public void SetUp()
     {
-        // Создаём корневой объект
         assemblerObject = new GameObject("TestAssembler");
         assembler = assemblerObject.AddComponent<ShipAssembler>();
 
-        // Создаём тестовые данные
         hullData = ScriptableObject.CreateInstance<HullData>();
         weaponData = ScriptableObject.CreateInstance<WeaponData>();
         engineData = ScriptableObject.CreateInstance<EngineData>();
 
-        // Минимальные префабы
         hullPrefab = new GameObject("TestHull");
         weaponPrefab = new GameObject("TestWeapon");
         enginePrefab = new GameObject("TestEngine");
@@ -37,7 +34,6 @@ public class ShipAssemblerPlayModeTests
         weaponData.prefab = weaponPrefab;
         engineData.prefab = enginePrefab;
 
-        // Добавляем хотя бы один сокет на hull (чтобы EquipWeapon/EquipEngine нашли куда цеплять)
         var socketsRoot = new GameObject("Sockets");
         socketsRoot.transform.SetParent(hullPrefab.transform);
 
@@ -61,10 +57,6 @@ public class ShipAssemblerPlayModeTests
         if (engineData != null) Object.DestroyImmediate(engineData);
     }
 
-    // -------------------------------------------------------------------------
-    // Тесты
-    // -------------------------------------------------------------------------
-
     [Test]
     public void EquipHull_SetsCurrentHull_And_CreatesInstance()
     {
@@ -87,7 +79,6 @@ public class ShipAssemblerPlayModeTests
         Assert.IsNotNull(assembler.CurrentWeaponObject);
         Assert.AreEqual(weaponPrefab.name + "(Clone)", assembler.CurrentWeaponObject.name);
 
-        // Проверяем, что объект прикреплён где-то под hull
         Assert.IsNotNull(assembler.CurrentWeaponObject.transform.parent);
         Assert.AreEqual(assembler.CurrentHullObject.transform, assembler.CurrentWeaponObject.transform.root);
     }
@@ -110,33 +101,26 @@ public class ShipAssemblerPlayModeTests
         assembler.EquipHull(hullData);
         var firstHull = assembler.CurrentHullObject;
 
-        // Запоминаем ссылку до уничтожения
         var originalReference = firstHull;
 
         assembler.EquipHull(hullData);
 
-        // Даём Unity обработать Destroy (если это Destroy, а не DestroyImmediate)
         yield return null;
 
-        // Проверяем двумя способами
         Assert.IsTrue(originalReference == null, "Старая ссылка должна стать 'fake null'");
         Assert.IsFalse(originalReference, "Старая ссылка должна быть falsy после уничтожения");
 
-        // Дополнительно: новая часть должна быть другой
         Assert.AreNotSame(originalReference, assembler.CurrentHullObject);
     }
 
     [Test]
     public void EquipWeapon_WithoutHull_SetsCurrentWeapon_ButDoesNotCreateObject()
     {
-        // Act
         assembler.EquipWeapon(weaponData);
 
-        // Assert — подстраиваемся под текущее поведение
         Assert.IsNotNull(assembler.CurrentWeapon, "CurrentWeapon должен быть установлен даже без hull");
         Assert.AreSame(weaponData, assembler.CurrentWeapon);
 
-        // Но объект не должен создаться (или должен быть null)
         Assert.IsNull(assembler.CurrentWeaponObject, "Объект оружия не должен создаваться без hull");
     }
 
@@ -146,7 +130,6 @@ public class ShipAssemblerPlayModeTests
         Assert.IsNull(assembler.CurrentEngine);
     }
 
-    // Если у тебя есть событие OnHullEquipped / OnWeaponEquipped / OnEngineEquipped
     [Test]
     public void OnHullEquipped_Invoked_WhenHullIsSet()
     {
@@ -157,6 +140,4 @@ public class ShipAssemblerPlayModeTests
 
         Assert.IsTrue(called);
     }
-
-    // Можно добавить аналогичные для OnWeaponEquipped, OnEngineEquipped
 }

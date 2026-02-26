@@ -90,15 +90,23 @@ public class AsteroidSpawnManagerTests
             .GetField("_spawnedAsteroids", BindingFlags.NonPublic | BindingFlags.Instance);
         var list = (List<GameObject>)listField.GetValue(manager);
 
+        list.Clear();
+
+        typeof(AsteroidSpawnManager)
+            .GetField("_spawnTimer", BindingFlags.NonPublic | BindingFlags.Instance)
+            .SetValue(manager, 999f);
+
         int countBefore = list.Count;
 
         var spawnMethod = typeof(AsteroidSpawnManager)
             .GetMethod("SpawnAsteroid", BindingFlags.NonPublic | BindingFlags.Instance);
+
         spawnMethod.Invoke(manager, null);
 
         yield return null;
 
-        Assert.AreEqual(countBefore + 1, list.Count, "SpawnAsteroid должен добавить астероид в список");
+        Assert.AreEqual(countBefore + 1, list.Count,
+            "SpawnAsteroid должен добавить астероид в список");
     }
 
     [UnityTest]

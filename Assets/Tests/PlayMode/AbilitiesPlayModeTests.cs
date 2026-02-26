@@ -20,8 +20,6 @@ public class AbilityRuntimePlayModeTests
         f.SetValue(target, value);
     }
 
-    #region Helpers � Dash
-
     private (DashAbility ability, AbilityRuntime runtime, Rigidbody rb, GameObject go)
         CreateDashSetup(float boost = 100f)
     {
@@ -37,8 +35,6 @@ public class AbilityRuntimePlayModeTests
 
         return (ability, runtime, rb, go);
     }
-
-    #endregion
 
     [Test]
     public void Dash_DefaultCooldown_Is10()
@@ -96,8 +92,6 @@ public class AbilityRuntimePlayModeTests
         Object.Destroy(goHigh); Object.Destroy(abilityHigh);
     }
 
-    #region Helpers � Shield
-
     private (ShieldAbility ability, AbilityRuntime runtime, Rigidbody rb, GameObject go)
         CreateShieldSetup(
             float maxHealth = 100f,
@@ -119,8 +113,6 @@ public class AbilityRuntimePlayModeTests
 
         return (ability, runtime, rb, go);
     }
-
-    #endregion
 
     [Test]
     public void Shield_OnEquipped_SetsFullHealth()
@@ -385,8 +377,6 @@ public class AbilityRuntimePlayModeTests
         Object.Destroy(go); Object.Destroy(ability);
     }
 
-    #region Helpers � Invis
-
     private (InvisAbility ability, AbilityRuntime runtime, Rigidbody rb, GameObject go)
         CreateInvisSetup(
             float activationDelay = 1.5f,
@@ -407,8 +397,6 @@ public class AbilityRuntimePlayModeTests
 
         return (ability, runtime, rb, go);
     }
-
-    #endregion
 
     [Test]
     public void Invis_InitialState_IsInactive()

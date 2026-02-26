@@ -1,25 +1,25 @@
 ﻿# Summary
 |||
 |:---|:---|
-| Generated on: | 26.02.2026 - 1:24:25 |
+| Generated on: | 26.02.2026 - 11:35:36 |
 | Parser: | MultiReportParser (2x OpenCoverParser) |
 | Assemblies: | 1 |
 | Classes: | 59 |
 | Files: | 56 |
-| Covered lines: | 814 |
-| Uncovered lines: | 3048 |
-| Coverable lines: | 3862 |
-| Total lines: | 6801 |
-| Line coverage: | 21% (814 of 3862) |
+| Covered lines: | 1069 |
+| Uncovered lines: | 2797 |
+| Coverable lines: | 3866 |
+| Total lines: | 6820 |
+| Line coverage: | 27.6% (1069 of 3866) |
 | Covered branches: | 0 |
 | Total branches: | 0 |
-| Covered methods: | 171 |
-| Total methods: | 491 |
-| Method coverage: | 34.8% (171 of 491) |
+| Covered methods: | 199 |
+| Total methods: | 492 |
+| Method coverage: | 40.4% (199 of 492) |
 
 |**Name**|**Covered**|**Uncovered**|**Coverable**|**Total**|**Line coverage**|**Covered**|**Total**|**Branch coverage**|**Covered**|**Total**|**Method coverage**|
 |:---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-|**Game**|**814**|**3048**|**3862**|**7062**|**21%**|**0**|**0**|****|**171**|**491**|**34.8%**|
+|**Game**|**1069**|**2797**|**3866**|**7081**|**27.6%**|**0**|**0**|****|**199**|**492**|**40.4%**|
 |AbilityRuntime|12|0|12|25|100%|0|0||9|9|100%|
 |APINetworkManager|0|23|23|147|0%|0|0||0|8|0%|
 |Asteroid|36|11|47|90|76.5%|0|0||14|17|82.3%|
@@ -43,7 +43,7 @@
 |GameResources|3|1|4|13|75%|0|0||1|1|100%|
 |GlobalLeaderboardUI|91|38|129|200|70.5%|0|0||9|10|90%|
 |Health|56|33|89|161|62.9%|0|0||10|14|71.4%|
-|HUDController|0|176|176|279|0%|0|0||0|9|0%|
+|HUDController|148|29|177|287|83.6%|0|0||9|9|100%|
 |InvisAbility|56|3|59|101|94.9%|0|0||13|13|100%|
 |InvisManager|24|34|58|92|41.3%|0|0||6|8|75%|
 |LoginConfigData|3|0|3|59|100%|0|0||1|1|100%|
@@ -54,18 +54,18 @@
 |NetworkAudioManager|0|13|13|29|0%|0|0||0|3|0%|
 |NetworkEffectDestroyer|0|18|18|35|0%|0|0||0|3|0%|
 |PauseMenuController|1|83|84|144|1.1%|0|0||2|10|20%|
-|Player|81|336|417|650|19.4%|0|0||16|49|32.6%|
+|Player|135|282|417|650|32.3%|0|0||20|49|40.8%|
 |PlayerCamera|0|26|26|63|0%|0|0||0|3|0%|
-|PlayerController|39|170|209|353|18.6%|0|0||8|16|50%|
+|PlayerController|44|165|209|353|21%|0|0||10|16|62.5%|
 |Projectile|27|29|56|95|48.2%|0|0||7|12|58.3%|
 |ProjectileStrategy|0|12|12|23|0%|0|0||0|1|0%|
 |RaycastStrategy|0|24|24|38|0%|0|0||0|1|0%|
-|Rocket|20|40|60|105|33.3%|0|0||4|8|50%|
+|Rocket|17|43|60|105|28.3%|0|0||3|8|37.5%|
 |SessionAuthenticator|0|58|58|102|0%|0|0||0|10|0%|
-|SessionManager|0|259|259|447|0%|0|0||0|23|0%|
+|SessionManager|31|228|259|447|11.9%|0|0||9|23|39.1%|
 |SettingsController|0|40|40|77|0%|0|0||0|7|0%|
 |ShieldAbility|64|0|64|107|100%|0|0||10|10|100%|
-|ShipAssembler|72|44|116|177|62%|0|0||17|21|80.9%|
+|ShipAssembler|76|40|116|177|65.5%|0|0||18|21|85.7%|
 |ShipConfigData|0|3|3|55|0%|0|0||0|1|0%|
 |ShipConfigManager|0|28|28|55|0%|0|0||0|4|0%|
 |ShipEditorUI|0|404|404|693|0%|0|0||0|30|0%|
@@ -75,7 +75,7 @@
 |ShipShooting|59|84|143|220|41.2%|0|0||11|17|64.7%|
 |ShowContextPanel|0|21|21|38|0%|0|0||0|2|0%|
 |SoundData|0|5|5|30|0%|0|0||0|1|0%|
-|SpawnPointScatterer|0|131|131|192|0%|0|0||0|9|0%|
+|SpawnPointScatterer|15|119|134|203|11.1%|0|0||2|10|20%|
 |TabToNextController|0|12|12|26|0%|0|0||0|2|0%|
-|UIManager|0|96|96|153|0%|0|0||0|15|0%|
+|UIManager|1|95|96|153|1%|0|0||2|15|13.3%|
 |VFXAutoDestroy|0|15|15|28|0%|0|0||0|2|0%|

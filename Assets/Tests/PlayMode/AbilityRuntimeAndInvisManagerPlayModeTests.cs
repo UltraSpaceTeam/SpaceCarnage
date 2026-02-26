@@ -33,8 +33,6 @@ public class AbilityRuntimeBaseAndInvisManagerTests
         m.Invoke(target, args);
     }
 
-    #region Bind
-
     [Test]
     public void Bind_StoresRigidbody()
     {
@@ -88,10 +86,6 @@ public class AbilityRuntimeBaseAndInvisManagerTests
 
         Object.Destroy(go);
     }
-
-    #endregion
-
-    #region Default virtual methods
 
     [Test]
     public void DefaultServerUpdate_DoesNotThrow()
@@ -162,10 +156,6 @@ public class AbilityRuntimeBaseAndInvisManagerTests
         Assert.DoesNotThrow(() => runtime.OnOwnerAttacked());
     }
 
-    #endregion
-
-    #region Run (через stub)
-
     [Test]
     public void StubRun_IsCalled()
     {
@@ -175,20 +165,12 @@ public class AbilityRuntimeBaseAndInvisManagerTests
             "Run должен вызыватьс€ и выполн€тьс€ в наследнике");
     }
 
-    #endregion
-
-    #region Helpers
-
     private (InvisManager mgr, GameObject go) CreateInvisManager()
     {
         var go = new GameObject("InvisManagerTest");
         var mgr = go.AddComponent<InvisManager>();
         return (mgr, go);
     }
-
-    #endregion
-
-    #region Ќачальное состо€ние (SyncVar)
 
     [Test]
     public void InvisManager_DefaultIsVisible_IsTrue()
@@ -201,10 +183,6 @@ public class AbilityRuntimeBaseAndInvisManagerTests
 
         Object.Destroy(go);
     }
-
-    #endregion
-
-    #region RefreshRenderers Ч null-safety
 
     [Test]
     public void InvisManager_RefreshRenderers_DoesNotThrow_WithoutAssembler()
@@ -227,10 +205,6 @@ public class AbilityRuntimeBaseAndInvisManagerTests
 
         Object.Destroy(go);
     }
-
-    #endregion
-
-    #region SetVisible Ч [Server] guard
 
     [Test]
     public void InvisManager_SetVisible_WhenNotServer_DoesNotChangeIsVisible()
@@ -256,10 +230,6 @@ public class AbilityRuntimeBaseAndInvisManagerTests
 
         Object.Destroy(go);
     }
-
-    #endregion
-
-    #region UpdateRendererList / ApplyVisibility Ч через RefreshRenderers
 
     [Test]
     public void InvisManager_ShipRenderersListEmpty_WithoutAssembler()
@@ -305,10 +275,6 @@ public class AbilityRuntimeBaseAndInvisManagerTests
 
         Object.Destroy(go);
     }
-
-    #endregion
-
-    #region ApplyVisibility Ч через рефлексию (без Mirror)
 
     [Test]
     public void InvisManager_ApplyVisibility_True_DoesNotThrow_WithEmptyLists()
@@ -375,10 +341,6 @@ public class AbilityRuntimeBaseAndInvisManagerTests
         Object.Destroy(go);
     }
 
-    #endregion
-
-    #region OnVisibleChanged hook
-
     [Test]
     public void InvisManager_OnVisibleChanged_DoesNotThrow()
     {
@@ -389,6 +351,4 @@ public class AbilityRuntimeBaseAndInvisManagerTests
 
         Object.Destroy(go);
     }
-
-    #endregion
 }
