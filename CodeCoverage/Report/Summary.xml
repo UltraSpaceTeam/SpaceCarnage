@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CoverageReport scope="Summary">
+  <Summary>
+    <Generatedon>26.02.2026 - 11:35:36</Generatedon>
+    <Parser>MultiReportParser (2x OpenCoverParser)</Parser>
+    <Assemblies>1</Assemblies>
+    <Classes>59</Classes>
+    <Files>56</Files>
+    <Coveredlines>1069</Coveredlines>
+    <Uncoveredlines>2797</Uncoveredlines>
+    <Coverablelines>3866</Coverablelines>
+    <Totallines>6820</Totallines>
+    <Linecoverage>27.6</Linecoverage>
+    <Coveredbranches>0</Coveredbranches>
+    <Totalbranches>0</Totalbranches>
+    <Coveredmethods>199</Coveredmethods>
+    <Totalmethods>492</Totalmethods>
+    <Methodcoverage>40.4</Methodcoverage>
+  </Summary>
+  <Coverage>
+    <Assembly name="Game" classes="59" coverage="27.6" coveredlines="1069" coverablelines="3866" totallines="7081" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="199" totalmethods="492" methodcoverage="40.4">
+      <Class name="AbilityRuntime" coverage="100" coveredlines="12" coverablelines="12" totallines="25" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="9" totalmethods="9" methodcoverage="100" />
+      <Class name="APINetworkManager" coverage="0" coveredlines="0" coverablelines="23" totallines="147" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="0" totalmethods="8" methodcoverage="0" />
+      <Class name="Asteroid" coverage="76.5" coveredlines="36" coverablelines="47" totallines="90" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="14" totalmethods="17" methodcoverage="82.3" />
+      <Class name="AsteroidCollisionDamage" coverage="51.8" coveredlines="14" coverablelines="27" totallines="47" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="5" totalmethods="6" methodcoverage="83.3" />
+      <Class name="AsteroidMovement" coverage="100" coveredlines="11" coverablelines="11" totallines="30" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="2" totalmethods="2" methodcoverage="100" />
+      <Class name="AsteroidSpawnManager" coverage="94.3" coveredlines="84" coverablelines="89" totallines="167" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="8" totalmethods="9" methodcoverage="88.8" />
+      <Class name="AsteroidsPlacer" coverage="100" coveredlines="12" coverablelines="12" totallines="32" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="2" totalmethods="2" methodcoverage="100" />
+      <Class name="AudioManager" coverage="0" coveredlines="0" coverablelines="54" totallines="91" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="0" totalmethods="6" methodcoverage="0" />
+      <Class name="BorderConfiguration" coverage="100" coveredlines="1" coverablelines="1" totallines="6" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="1" totalmethods="1" methodcoverage="100" />
+      <Class name="BorderDamage" coverage="0" coveredlines="0" coverablelines="68" totallines="113" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="0" totalmethods="9" methodcoverage="0" />
+      <Class name="BorderWarningController" coverage="0" coveredlines="0" coverablelines="9" totallines="27" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="0" totalmethods="2" methodcoverage="0" />
+      <Class name="BuildScript" coverage="0" coveredlines="0" coverablelines="67" totallines="164" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="0" totalmethods="15" methodcoverage="0" />
+      <Class name="BypassCertificate" coverage="0" coveredlines="0" coverablelines="3" totallines="147" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="0" totalmethods="1" methodcoverage="0" />
+      <Class name="CollisionDamage" coverage="0" coveredlines="0" coverablelines="84" totallines="140" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="0" totalmethods="6" methodcoverage="0" />
+      <Class name="ConfigManager" coverage="25" coveredlines="8" coverablelines="32" totallines="59" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="2" totalmethods="4" methodcoverage="50" />
+      <Class name="DamageContext" coverage="83.3" coveredlines="10" coverablelines="12" totallines="33" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="5" totalmethods="7" methodcoverage="71.4" />
+      <Class name="DashAbility" coverage="100" coveredlines="10" coverablelines="10" totallines="24" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="4" totalmethods="4" methodcoverage="100" />
+      <Class name="DeathScreenController" coverage="52.6" coveredlines="20" coverablelines="38" totallines="65" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="4" totalmethods="5" methodcoverage="80" />
+      <Class name="DeathSphere" coverage="0" coveredlines="0" coverablelines="4" totallines="10" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="0" totalmethods="1" methodcoverage="0" />
+      <Class name="GameData" coverage="0" coveredlines="0" coverablelines="28" totallines="90" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="0" totalmethods="15" methodcoverage="0" />
+      <Class name="GameResources" coverage="75" coveredlines="3" coverablelines="4" totallines="13" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="1" totalmethods="1" methodcoverage="100" />
+      <Class name="GlobalLeaderboardUI" coverage="70.5" coveredlines="91" coverablelines="129" totallines="200" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="9" totalmethods="10" methodcoverage="90" />
+      <Class name="Health" coverage="62.9" coveredlines="56" coverablelines="89" totallines="161" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="10" totalmethods="14" methodcoverage="71.4" />
+      <Class name="HUDController" coverage="83.6" coveredlines="148" coverablelines="177" totallines="287" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="9" totalmethods="9" methodcoverage="100" />
+      <Class name="InvisAbility" coverage="94.9" coveredlines="56" coverablelines="59" totallines="101" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="13" totalmethods="13" methodcoverage="100" />
+      <Class name="InvisManager" coverage="41.3" coveredlines="24" coverablelines="58" totallines="92" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="6" totalmethods="8" methodcoverage="75" />
+      <Class name="LoginConfigData" coverage="100" coveredlines="3" coverablelines="3" totallines="59" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="1" totalmethods="1" methodcoverage="100" />
+      <Class name="LoginController" coverage="0" coveredlines="0" coverablelines="248" totallines="420" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="0" totalmethods="23" methodcoverage="0" />
+      <Class name="LoginSceneCamera" coverage="0" coveredlines="0" coverablelines="14" totallines="27" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="0" totalmethods="2" methodcoverage="0" />
+      <Class name="MatchState" coverage="0" coveredlines="0" coverablelines="4" totallines="17" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="0" totalmethods="1" methodcoverage="0" />
+      <Class name="NetworkAudio" coverage="0" coveredlines="0" coverablelines="13" totallines="27" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="0" totalmethods="3" methodcoverage="0" />
+      <Class name="NetworkAudioManager" coverage="0" coveredlines="0" coverablelines="13" totallines="29" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="0" totalmethods="3" methodcoverage="0" />
+      <Class name="NetworkEffectDestroyer" coverage="0" coveredlines="0" coverablelines="18" totallines="35" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="0" totalmethods="3" methodcoverage="0" />
+      <Class name="PauseMenuController" coverage="1.1" coveredlines="1" coverablelines="84" totallines="144" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="2" totalmethods="10" methodcoverage="20" />
+      <Class name="Player" coverage="32.3" coveredlines="135" coverablelines="417" totallines="650" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="20" totalmethods="49" methodcoverage="40.8" />
+      <Class name="PlayerCamera" coverage="0" coveredlines="0" coverablelines="26" totallines="63" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="0" totalmethods="3" methodcoverage="0" />
+      <Class name="PlayerController" coverage="21" coveredlines="44" coverablelines="209" totallines="353" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="10" totalmethods="16" methodcoverage="62.5" />
+      <Class name="Projectile" coverage="48.2" coveredlines="27" coverablelines="56" totallines="95" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="7" totalmethods="12" methodcoverage="58.3" />
+      <Class name="ProjectileStrategy" coverage="0" coveredlines="0" coverablelines="12" totallines="23" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="0" totalmethods="1" methodcoverage="0" />
+      <Class name="RaycastStrategy" coverage="0" coveredlines="0" coverablelines="24" totallines="38" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="0" totalmethods="1" methodcoverage="0" />
+      <Class name="Rocket" coverage="28.3" coveredlines="17" coverablelines="60" totallines="105" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="3" totalmethods="8" methodcoverage="37.5" />
+      <Class name="SessionAuthenticator" coverage="0" coveredlines="0" coverablelines="58" totallines="102" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="0" totalmethods="10" methodcoverage="0" />
+      <Class name="SessionManager" coverage="11.9" coveredlines="31" coverablelines="259" totallines="447" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="9" totalmethods="23" methodcoverage="39.1" />
+      <Class name="SettingsController" coverage="0" coveredlines="0" coverablelines="40" totallines="77" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="0" totalmethods="7" methodcoverage="0" />
+      <Class name="ShieldAbility" coverage="100" coveredlines="64" coverablelines="64" totallines="107" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="10" totalmethods="10" methodcoverage="100" />
+      <Class name="ShipAssembler" coverage="65.5" coveredlines="76" coverablelines="116" totallines="177" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="18" totalmethods="21" methodcoverage="85.7" />
+      <Class name="ShipConfigData" coverage="0" coveredlines="0" coverablelines="3" totallines="55" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="0" totalmethods="1" methodcoverage="0" />
+      <Class name="ShipConfigManager" coverage="0" coveredlines="0" coverablelines="28" totallines="55" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="0" totalmethods="4" methodcoverage="0" />
+      <Class name="ShipEditorUI" coverage="0" coveredlines="0" coverablelines="404" totallines="693" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="0" totalmethods="30" methodcoverage="0" />
+      <Class name="ShipEngineFX" coverage="0" coveredlines="0" coverablelines="65" totallines="119" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="0" totalmethods="7" methodcoverage="0" />
+      <Class name="ShipNetworkSync" coverage="0" coveredlines="0" coverablelines="48" totallines="84" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="0" totalmethods="9" methodcoverage="0" />
+      <Class name="ShipPartDatabase" coverage="0" coveredlines="0" coverablelines="7" totallines="21" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="0" totalmethods="1" methodcoverage="0" />
+      <Class name="ShipShooting" coverage="41.2" coveredlines="59" coverablelines="143" totallines="220" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="11" totalmethods="17" methodcoverage="64.7" />
+      <Class name="ShowContextPanel" coverage="0" coveredlines="0" coverablelines="21" totallines="38" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="0" totalmethods="2" methodcoverage="0" />
+      <Class name="SoundData" coverage="0" coveredlines="0" coverablelines="5" totallines="30" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="0" totalmethods="1" methodcoverage="0" />
+      <Class name="SpawnPointScatterer" coverage="11.1" coveredlines="15" coverablelines="134" totallines="203" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="2" totalmethods="10" methodcoverage="20" />
+      <Class name="TabToNextController" coverage="0" coveredlines="0" coverablelines="12" totallines="26" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="0" totalmethods="2" methodcoverage="0" />
+      <Class name="UIManager" coverage="1" coveredlines="1" coverablelines="96" totallines="153" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="2" totalmethods="15" methodcoverage="13.3" />
+      <Class name="VFXAutoDestroy" coverage="0" coveredlines="0" coverablelines="15" totallines="28" branchcoverage="" coveredbranches="0" totalbranches="0" coveredmethods="0" totalmethods="2" methodcoverage="0" />
+    </Assembly>
+  </Coverage>
+</CoverageReport>

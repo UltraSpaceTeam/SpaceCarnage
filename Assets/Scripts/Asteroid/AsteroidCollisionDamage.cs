@@ -39,6 +39,9 @@ public class AsteroidCollisionDamage : NetworkBehaviour
         float scaledDamage = baseDamage * (1f + speedFactor * damageMultiplier);
         return Mathf.RoundToInt(scaledDamage);
     }
-	
-	
+
+#if UNITY_INCLUDE_TESTS
+    public float TestCalculateSpeedFactor(float speed) => CalculateSpeedFactor(speed);
+    public int TestCalculateFinalDamage(float factor) => CalculateFinalDamage(factor);
+#endif
 }

@@ -54,7 +54,7 @@ public class AsteroidSpawnManager : NetworkBehaviour
 	[Server]
 	private void FixedUpdate()
 	{
-		if (!isServer) return;
+		//if (!isServer) return;
 
         _spawnTimer -= Time.deltaTime;
         

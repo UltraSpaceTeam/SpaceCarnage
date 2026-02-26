@@ -31,13 +31,13 @@ public class Asteroid : NetworkBehaviour
         _health.OnDeath += OnDie;
         ApplySizeServer(_size * baseScale);
     }
+
     [Server]
     public void SetSize(float size)
     {
         _size = Mathf.Clamp(size, 0.3f, 5f);
         ApplySizeServer(_size * baseScale);
     }
-
 
     [Server]
     private void ApplySizeServer(float size)
@@ -55,9 +55,36 @@ public class Asteroid : NetworkBehaviour
     {
         transform.localScale = Vector3.one * newSize * baseScale;
     }
+
     private void OnDie(DamageContext ctx)
     {
-        GameObject vfx = Instantiate(HitVFX, transform.position, transform.rotation);
-        NetworkServer.Spawn(vfx);
+        if (HitVFX != null) 
+        {
+            GameObject vfx = Instantiate(HitVFX, transform.position, transform.rotation);
+            NetworkServer.Spawn(vfx);
+        }
     }
+
+#if UNITY_INCLUDE_TESTS
+    public void TestOnSizeChanged(float oldSize, float newSize)
+    {
+        OnSizeChanged(oldSize, newSize);
+    }
+#endif
+
+#if UNITY_INCLUDE_TESTS
+    public GameObject TestHitVFX { get; set; }
+#endif
+
+#if UNITY_INCLUDE_TESTS
+    public void TestOnDie(DamageContext ctx) => OnDie(ctx);
+#endif
+
+#if UNITY_INCLUDE_TESTS
+    public float TestBaseHP => baseHP;
+    public float TestBaseMass => baseMass;
+    public float TestBaseScale => baseScale;
+    public float TestHpPower => hpPower;
+    public float TestMassPower => massPower;
+#endif
 }

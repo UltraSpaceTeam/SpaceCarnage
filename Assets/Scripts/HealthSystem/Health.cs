@@ -31,12 +31,11 @@ public class Health : NetworkBehaviour, IDieable
         currentHealth = value;
     }
 
-    private void Start()
+    public override void OnStartServer()
     {
-        if (isServer)
-        {
-            currentHealth = maxHealth;
-        }
+        base.OnStartServer();
+        Debug.Log($"[Health.OnStartServer] netId={netIdentity.netId} | Setting currentHealth = {maxHealth}");
+        currentHealth = maxHealth;
     }
 
     [Server]
@@ -151,4 +150,12 @@ public class Health : NetworkBehaviour, IDieable
     {
         return currentHealth / maxHealth;
     }
+
+#if UNITY_INCLUDE_TESTS
+    public float TestMaxHealth => maxHealth;
+#endif
+
+#if UNITY_INCLUDE_TESTS
+    public void TestSetMaxHealth(float value) => SetMaxHealth(value);
+#endif
 }

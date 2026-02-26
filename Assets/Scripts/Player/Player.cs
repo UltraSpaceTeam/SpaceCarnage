@@ -57,10 +57,12 @@ public class Player : NetworkBehaviour
         shooting = GetComponent<ShipShooting>();
         assembler = GetComponent<ShipAssembler>();
 
-        if (isServer)
+        try
         {
-            health.OnDeath += OnDie;
+            if (isServer)
+                health.OnDeath += OnDie;
         }
+        catch (NullReferenceException) { }
 
         networkAudio = GetComponent<NetworkAudio>();
     }
@@ -178,8 +180,12 @@ public class Player : NetworkBehaviour
 
     private void OnDestroy()
     {
-        if (ActivePlayers.ContainsKey(netId))
-            ActivePlayers.Remove(netId);
+        try
+        {
+            if (ActivePlayers.ContainsKey(netId))
+                ActivePlayers.Remove(netId);
+        }
+        catch (NullReferenceException) { }
     }
 
     [Server]
@@ -265,27 +271,28 @@ public class Player : NetworkBehaviour
         }
     }
 
+    public void HandleDeath(DamageContext source)
+    {
+        Deaths++;
+
+        if ((source.Type == DamageType.Weapon || source.Type == DamageType.Collision)
+            && source.AttackerId != 0)
+        {
+            if (ActivePlayers.TryGetValue(source.AttackerId, out var killer))
+                killer.Kills++;
+        }
+    }
+
     [Server]
     private void ServerHandleDeath(DamageContext source)
     {
         Debug.Log($"[Death] {Nickname} died. AttackerId: {source.AttackerId}, Type: {source.Type}");
         RpcSpawnDebris();
-
         SetPlayerState(false);
 
-        Deaths++;
-
-        if ((source.Type == DamageType.Weapon || source.Type == DamageType.Collision) && source.AttackerId != 0)
-        {
-            if (ActivePlayers.TryGetValue(source.AttackerId, out var killer))
-            {
-                Debug.Log($"[Death] Killer found: {killer.Nickname} (netId: {killer.netId}), incrementing kills");
-                killer.Kills++;
-            }
-        }
+        HandleDeath(source);
 
         TargetShowDeathScreen(connectionToClient, source);
-
         RpcAddKillFeed(source, Nickname);
     }
 
@@ -300,6 +307,11 @@ public class Player : NetworkBehaviour
 
     [ClientRpc]
     private void RpcSpawnDebris()
+    {
+        SpawnDebris();
+    }
+
+    private void SpawnDebris()
     {
         List<GameObject> partsToExplode = new List<GameObject>();
 
@@ -529,6 +541,11 @@ public class Player : NetworkBehaviour
     [ClientRpc]
     public void RpcShowShield(bool show, float healthRatio)
     {
+        ShowShield(show, healthRatio);
+    }
+
+    public void ShowShield(bool show, float healthRatio)
+    {
         if (shieldBubblePrefab == null)
         {
             Debug.LogWarning("Shield prefab not assigned in Player!");
@@ -613,5 +630,21 @@ public class Player : NetworkBehaviour
         ClientMatchStartTime = matchStart;
         ClientEndingStartTime = endingStart;
     }
+
+#if UNITY_INCLUDE_TESTS
+    public void TestTriggerOnDie(DamageContext ctx)
+    {
+        OnDie(ctx);
+    }
+#endif
+
+#if UNITY_INCLUDE_TESTS
+    public void Test_SetMatchTimer(int state, double matchStart, double endingStart)
+    {
+        ClientTimerState = state;
+        ClientMatchStartTime = matchStart;
+        ClientEndingStartTime = endingStart;
+    }
+#endif
 }
 

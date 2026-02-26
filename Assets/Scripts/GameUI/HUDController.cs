@@ -2,6 +2,7 @@
 using UnityEngine.UI;
 using TMPro;
 using UnityEngine.InputSystem.XR;
+using System;
 using Mirror;
 
 public class HUDController : MonoBehaviour
@@ -189,6 +190,10 @@ public class HUDController : MonoBehaviour
 
     private Player FindLocalPlayer()
     {
+#if UNITY_INCLUDE_TESTS
+        if (_findLocalPlayerOverride != null) return _findLocalPlayerOverride();
+#endif
+
         foreach (var player in Player.ActivePlayers.Values)
             if (player.isLocalPlayer) return player;
         return null;
@@ -276,4 +281,7 @@ public class HUDController : MonoBehaviour
         return "--:--";
     }
 
+#if UNITY_INCLUDE_TESTS
+    public Func<Player> _findLocalPlayerOverride;
+#endif
 }
