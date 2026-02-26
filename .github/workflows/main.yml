@@ -23,11 +23,7 @@ jobs:
                 - platform: StandaloneWindows64
                   buildDirectory: Windows
                   clientMethod: BuildScript.BuildWindowsClient
-                  serverMethod: BuildScript.BuildWindowsServer
-                - platform: StandaloneLinux64
-                  buildDirectory: Linux
-                  clientMethod: BuildScript.BuildLinuxClient
-                  serverMethod: BuildScript.BuildLinuxServer
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
