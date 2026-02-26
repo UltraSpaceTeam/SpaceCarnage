@@ -23,11 +23,7 @@ jobs:
                 - platform: StandaloneWindows64
                   buildDirectory: Windows
                   clientMethod: BuildScript.BuildWindowsClient
-                  serverMethod: BuildScript.BuildWindowsServer
-                - platform: StandaloneLinux64
-                  buildDirectory: Linux
-                  clientMethod: BuildScript.BuildLinuxClient
-                  serverMethod: BuildScript.BuildLinuxServer
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -70,68 +66,45 @@ jobs:
           buildMethod: ${{ matrix.targetPlatform.clientMethod }}
           allowDirtyBuild: true 
 
-      - name: Upload Client Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: Client-${{ matrix.targetPlatform.platform }}
-          path: Builds/${{ matrix.targetPlatform.buildDirectory }}/Client
-          if-no-files-found: error
-          
-      - name: Server ${{ matrix.targetPlatform.platform }}
-        if: ${{ matrix.targetPlatform.platform == 'StandaloneLinux64' }}
-        uses: game-ci/unity-builder@v4
-        env:
-          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-        with:
-          targetPlatform: ${{ matrix.targetPlatform.platform }}
-          versioning: Semantic
-          allowDirtyBuild: true
-          buildMethod: ${{ matrix.targetPlatform.serverMethod }}
+name: Unity Tests
 
-      - name: Upload Server Artifact
-        if: ${{ matrix.targetPlatform.platform == 'StandaloneLinux64' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: Server-Linux64-DockerReady
-          path: Builds/${{ matrix.targetPlatform.buildDirectory }}/Server
-          if-no-files-found: error
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
 
+jobs:
   test:
-    name: Test
-    needs: build
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
+    name: Run Unity Tests
+    runs-on: ubuntu-latest   # или windows-latest, если нужны специфические вещи
+
     steps:
-        run: |
-          dotnet test ./GameServer.Tests/GameServer.Tests.csproj -c Release --no-build --verbosity normal \
-            --logger "trx;LogFileName=test_results.trx" \
-            --results-directory ./TestResults \
-            --collect:"XPlat Code Coverage" \
-            --settings ./coverlet.runsettings
-
-      - name: Generate coverage report (HTML + Summary)
-        uses: danielpalme/ReportGenerator-GitHub-Action@5
+      - uses: actions/checkout@v4
         with:
-          reports: "./TestResults/**/coverage.cobertura.xml"
-          targetdir: "./coveragereport"
-          reporttypes: "HtmlInline;Cobertura;MarkdownSummary"
-          title: "GameServer Coverage"
-          tag: "${{ github.run_number }}"
+          lfs: true
 
-      - name: Publish coverage summary
-        run: cat ./coveragereport/Summary.md >> $GITHUB_STEP_SUMMARY
-
-      - name: Upload test results + coverage
-        uses: actions/upload-artifact@v4
+      # === 1. Устанавливаем Unity ===
+      - uses: game-ci/unity-setup@v4
         with:
-          name: test-results-and-coverage
-          path: |
-            ./TestResults
-            ./coveragereport
+          unity-version: 6000.0.62f1   # ← поменяй на свою версию
 
+      # === 2. Запускаем тесты (EditMode + PlayMode) ===
+      - uses: game-ci/unity-test-runner@v4
+        id: tests
+        with:
+          project-path: .
+          unity-version: 6000.0.62f1
+          test-mode: playmode           # только PlayMode
+          # test-mode: editmode           # только EditMode
+          results-path: TestResults.xml
+          coverage-options: 'generateHtmlReport;generateBadgeReport;generateXmlReport;'
+          artifacts-path: TestResults
+
+      # === 3. Публикуем результаты ===
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Test-Results
+          path: TestResults
 
   docker-push-server:
     name: Docker Push Linux Server
