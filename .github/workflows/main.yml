@@ -97,6 +97,42 @@ jobs:
           name: Server-Linux64-DockerReady
           path: Builds/${{ matrix.targetPlatform.buildDirectory }}/Server
           if-no-files-found: error
+
+  test:
+    name: Test
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+        run: |
+          dotnet test ./GameServer.Tests/GameServer.Tests.csproj -c Release --no-build --verbosity normal \
+            --logger "trx;LogFileName=test_results.trx" \
+            --results-directory ./TestResults \
+            --collect:"XPlat Code Coverage" \
+            --settings ./coverlet.runsettings
+
+      - name: Generate coverage report (HTML + Summary)
+        uses: danielpalme/ReportGenerator-GitHub-Action@5
+        with:
+          reports: "./TestResults/**/coverage.cobertura.xml"
+          targetdir: "./coveragereport"
+          reporttypes: "HtmlInline;Cobertura;MarkdownSummary"
+          title: "GameServer Coverage"
+          tag: "${{ github.run_number }}"
+
+      - name: Publish coverage summary
+        run: cat ./coveragereport/Summary.md >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload test results + coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-and-coverage
+          path: |
+            ./TestResults
+            ./coveragereport
+
+
   docker-push-server:
     name: Docker Push Linux Server
     needs: build
