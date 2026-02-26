@@ -70,34 +70,6 @@ jobs:
           buildMethod: ${{ matrix.targetPlatform.clientMethod }}
           allowDirtyBuild: true 
 
-      - name: Upload Client Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: Client-${{ matrix.targetPlatform.platform }}
-          path: Builds/${{ matrix.targetPlatform.buildDirectory }}/Client
-          if-no-files-found: error
-          
-      - name: Server ${{ matrix.targetPlatform.platform }}
-        if: ${{ matrix.targetPlatform.platform == 'StandaloneLinux64' }}
-        uses: game-ci/unity-builder@v4
-        env:
-          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-        with:
-          targetPlatform: ${{ matrix.targetPlatform.platform }}
-          versioning: Semantic
-          allowDirtyBuild: true
-          buildMethod: ${{ matrix.targetPlatform.serverMethod }}
-
-      - name: Upload Server Artifact
-        if: ${{ matrix.targetPlatform.platform == 'StandaloneLinux64' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: Server-Linux64-DockerReady
-          path: Builds/${{ matrix.targetPlatform.buildDirectory }}/Server
-          if-no-files-found: error
-
   test:
     name: Test
     needs: build
