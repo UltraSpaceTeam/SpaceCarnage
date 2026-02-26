@@ -66,18 +66,45 @@ jobs:
           buildMethod: ${{ matrix.targetPlatform.clientMethod }}
           allowDirtyBuild: true 
 
-  test:
-    name: Test
-    needs: build
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - name: Run tests with coverage  # <-- Added missing name field
-        run: |
-          ./unity -projectPath . -batchmode -nographics -runTests
+name: Unity Tests
 
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+
+jobs:
+  test:
+    name: Run Unity Tests
+    runs-on: ubuntu-latest   # или windows-latest, если нужны специфические вещи
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      # === 1. Устанавливаем Unity ===
+      - uses: game-ci/unity-setup@v4
+        with:
+          unity-version: 6000.0.62f1   # ← поменяй на свою версию
+
+      # === 2. Запускаем тесты (EditMode + PlayMode) ===
+      - uses: game-ci/unity-test-runner@v4
+        id: tests
+        with:
+          project-path: .
+          unity-version: 6000.0.62f1
+          test-mode: playmode           # только PlayMode
+          # test-mode: editmode           # только EditMode
+          results-path: TestResults.xml
+          coverage-options: 'generateHtmlReport;generateBadgeReport;generateXmlReport;'
+          artifacts-path: TestResults
+
+      # === 3. Публикуем результаты ===
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Test-Results
+          path: TestResults
 
   docker-push-server:
     name: Docker Push Linux Server
