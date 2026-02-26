@@ -677,11 +677,19 @@ public class ShipEditorUI : MonoBehaviour
 
     void SaveConfiguration()
     {
-		ShipConfigData data = new ShipConfigData();
-		data.hull_id = selectedComponents[ShipComponentType.Hull].componentId;
-		data.weapon_id = selectedComponents[ShipComponentType.Weapon].componentId;
-		data.engine_id = selectedComponents[ShipComponentType.Engine].componentId;
-		
+        if (!selectedComponents.ContainsKey(ShipComponentType.Hull) ||
+            !selectedComponents.ContainsKey(ShipComponentType.Weapon) ||
+            !selectedComponents.ContainsKey(ShipComponentType.Engine))
+        {
+            Debug.Log("Cannot save incomplete configuration - skipping save");
+            return;
+        }
+    
+        ShipConfigData data = new ShipConfigData();
+        data.hull_id = selectedComponents[ShipComponentType.Hull].componentId;
+        data.weapon_id = selectedComponents[ShipComponentType.Weapon].componentId;
+        data.engine_id = selectedComponents[ShipComponentType.Engine].componentId;
+    
         ShipConfigManager.SaveConfig(data);
     }
 	
