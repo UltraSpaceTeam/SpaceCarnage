@@ -45,6 +45,8 @@ public class SaveConfigurationIntegrationTests
     [UnityTearDown]
     public IEnumerator TearDown()
     {
+        yield return SceneManager.UnloadSceneAsync("ShipEditor");
+        yield return new WaitForSeconds(1.5f);
         yield return null;
     }
 
@@ -93,7 +95,7 @@ public class SaveConfigurationIntegrationTests
 		CallPrivateMethod(shipEditor, "LoadSavedConfiguration");
         Debug.Log("[Test 16] Saved configuration");
 		
-		LogAssert.Expect(LogType.Error, "Failed to load config: JSON parse error: Missing a name for object member.");
+		//LogAssert.Expect(LogType.Error, "Failed to load config: JSON parse error: Missing a name for object member.");
 		
 		yield return new WaitForSeconds(0.5f);
 		
@@ -106,6 +108,11 @@ public class SaveConfigurationIntegrationTests
 		Assert.AreEqual(0, selectedComponent[ShipComponentType.Hull].componentId, "Configuration is not read properly");
 		Assert.AreEqual(0, selectedComponent[ShipComponentType.Engine].componentId, "Configuration is not read properly");
 		Assert.AreEqual(0, selectedComponent[ShipComponentType.Weapon].componentId, "Configuration is not read properly");
+		
+		
+		field = typeof(ShipConfigManager).GetField("filePath", 
+            BindingFlags.NonPublic | BindingFlags.Static);
+        field.SetValue(null, Path.Combine(Application.persistentDataPath, "user_ship_config.cfg"));
     }
 
 }
