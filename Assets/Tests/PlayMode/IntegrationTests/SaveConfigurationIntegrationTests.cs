@@ -9,7 +9,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 
-public class SaveConfigurationTests
+public class SaveConfigurationIntegrationTests
 {
     private Player _hostPlayer;
 	

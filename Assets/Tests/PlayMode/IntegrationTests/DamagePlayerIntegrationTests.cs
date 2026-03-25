@@ -7,7 +7,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 
-public class ShieldIntegrationTests
+public class DamagePlayerIntegrationTests
 {
     private Player _hostPlayer;
 
