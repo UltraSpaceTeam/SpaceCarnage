@@ -21,12 +21,15 @@ public class DamagePlayerIntegrationTests
         if (NetworkClient.active) NetworkClient.Shutdown();
         Player.ActivePlayers.Clear();
 
-        yield return SceneManager.LoadSceneAsync("TestMultiplayerScene", LoadSceneMode.Single);
+        yield return SceneManager.LoadSceneAsync("TestMultiplayerScene", LoadSceneMode.Additive);
         yield return new WaitForSeconds(0.6f);
-
+		
         // Запускаем только Host
         var nm = Object.FindAnyObjectByType<NetworkManager>();
         Assert.NotNull(nm, "NetworkManager not found in scene");
+
+		nm.offlineScene = SceneManager.GetActiveScene().name;
+		nm.onlineScene = SceneManager.GetActiveScene().name;
 
         nm.StartHost();
         yield return new WaitForSeconds(1.5f);
@@ -44,9 +47,12 @@ public class DamagePlayerIntegrationTests
 
     [UnityTearDown]
     public IEnumerator TearDown()
-    {
-        var nm = Object.FindAnyObjectByType<NetworkManager>();
-        if (nm != null) nm.StopHost();
+    {	
+        if (NetworkServer.active) NetworkServer.Shutdown();
+        if (NetworkClient.active) NetworkClient.Shutdown();
+        Player.ActivePlayers.Clear();
+        yield return SceneManager.UnloadSceneAsync("TestMultiplayerScene");
+        yield return new WaitForSeconds(1.5f);
         yield return null;
     }
 
