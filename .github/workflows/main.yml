@@ -88,7 +88,8 @@ jobs:
         id: check_integration
         run: |
           # Проверяем, есть ли проваленные Integration тесты
-          FAILED_COUNT=$(xmlstarlet sel -t -v "count(//test-suite[contains(@name, 'Integration')]/test-case[@result='Failed'])" TestResults_20260325_232805.xml)
+          XML=$(find "artifacts" -name '*.xml' | head -n 1)
+          FAILED_COUNT=$(xmlstarlet sel -t -v "count(//test-suite[contains(@name, 'Integration')]/test-case[@result='Failed'])" "$XML")
           
           if [ "$FAILED_COUNT" -gt 0 ]; then
           echo "❌ Found $FAILED_COUNT failed Integration tests"
@@ -99,6 +100,7 @@ jobs:
       
       - name: Extract Integration test results
         run: |
+          XML=$(find "artifacts" -name '*.xml' | head -n 1)
           echo "## Integration Tests Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
@@ -112,7 +114,7 @@ jobs:
           -o "  ✅ " -v "@name" \
           -o " (" -v "@duration" \
           -o "s)" -n \
-          TestResults_20260325_232805.xml >> $GITHUB_STEP_SUMMARY
+          "$XML" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY            
             
       - name: Client ${{ matrix.targetPlatform.platform }}
