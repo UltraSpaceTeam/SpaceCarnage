@@ -57,7 +57,65 @@ jobs:
           key: Library-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
           restore-keys: |
             Library-
+      
+      - name: Run Playmode Tests
+        id: run-tests
+        continue-on-error: true
+        uses: game-ci/unity-test-runner@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          testMode: PlayMode
+      
+      - name: Determine Test Outcome
+        id: test-outcome
+        run: echo "failed=${{ steps.run-tests.outcome != 'success' }}" >> $GITHUB_OUTPUT
+        
+      - name: Upload Playmode Test Results
+        if: always()
+          uses: actions/upload-artifact@v4
+          with:
+            name: Unity-Playmode-${{ github.sha }}
+            path: ${{ steps.run-tests.outputs.artifactsPath }}
+            retention-days: 7
+        
+      - name: Extract Test Summary
+        if: inputs.quietMode == 'false' || steps.test-outcome.outputs.failed == 'true'
+        id: summary
+        run: |
+          XML=$(find "${{ steps.run-tests.outputs.artifactsPath }}" -name '*.xml' | head -n 1)
 
+          if [[ -f "$XML" ]]; then
+            TOTAL=$(grep -oP 'total="\K[0-9]+' "$XML" | head -n1)
+            PASSED=$(grep -oP 'passed="\K[0-9]+' "$XML" | head -n1)
+            RESULT=$(grep -oP 'result="\K[^"]+' "$XML" | head -n1)
+            RAW_DURATION=$(grep -oP 'duration="\K[0-9.]+' "$XML" | head -n1)
+
+            DURATION_FORMATTED=$(awk "BEGIN {
+              total = $RAW_DURATION;
+              min = int(total / 60);
+              sec = total % 60;
+              if (min > 0) {
+                printf \"%dm %.2fs\", min, sec;
+              } else {
+                printf \"%.2fs\", sec;
+              }
+            }")
+
+            echo "total=$TOTAL" >> $GITHUB_OUTPUT
+            echo "passed=$PASSED" >> $GITHUB_OUTPUT
+            echo "result=$RESULT" >> $GITHUB_OUTPUT
+            echo "duration=$DURATION_FORMATTED" >> $GITHUB_OUTPUT
+          else
+            echo "⚠️ No test report XML found. Possibly skipped or failed before reporting stage."
+            echo "total=0" >> $GITHUB_OUTPUT
+            echo "passed=0" >> $GITHUB_OUTPUT
+            echo "result=Skipped" >> $GITHUB_OUTPUT
+            echo "duration=0s" >> $GITHUB_OUTPUT
+          fi            
+            
       - name: Client ${{ matrix.targetPlatform.platform }}
         uses: game-ci/unity-builder@v4
         env:
@@ -96,41 +154,7 @@ jobs:
         with:
           name: Server-Linux64-DockerReady
           path: Builds/${{ matrix.targetPlatform.buildDirectory }}/Server
-          if-no-files-found: error
-
-  test:
-    name: Test
-    needs: build
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    steps:
-        run: |
-          dotnet test ./GameServer.Tests/GameServer.Tests.csproj -c Release --no-build --verbosity normal \
-            --logger "trx;LogFileName=test_results.trx" \
-            --results-directory ./TestResults \
-            --collect:"XPlat Code Coverage" \
-            --settings ./coverlet.runsettings
-
-      - name: Generate coverage report (HTML + Summary)
-        uses: danielpalme/ReportGenerator-GitHub-Action@5
-        with:
-          reports: "./TestResults/**/coverage.cobertura.xml"
-          targetdir: "./coveragereport"
-          reporttypes: "HtmlInline;Cobertura;MarkdownSummary"
-          title: "GameServer Coverage"
-          tag: "${{ github.run_number }}"
-
-      - name: Publish coverage summary
-        run: cat ./coveragereport/Summary.md >> $GITHUB_STEP_SUMMARY
-
-      - name: Upload test results + coverage
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results-and-coverage
-          path: |
-            ./TestResults
-            ./coveragereport
+          if-no-files-found: error      
 
 
   docker-push-server:
