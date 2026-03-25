@@ -43,8 +43,19 @@ public class NetworkTestUtils
         {
             var players = Object.FindObjectsByType<Player>(FindObjectsSortMode.None);
 
-            HostPlayer = players.FirstOrDefault(p => p.isServer);
-            RemoteClientPlayer = players.FirstOrDefault(p => p.isLocalPlayer && !p.isServer);
+            HostPlayer = players.FirstOrDefault(p =>
+            {
+                if (p == null) return false;
+                var id = p.GetComponent<NetworkIdentity>();
+                return id != null && id.isServer;
+            });
+
+            RemoteClientPlayer = players.FirstOrDefault(p =>
+            {
+                if (p == null) return false;
+                var id = p.GetComponent<NetworkIdentity>();
+                return id != null && id.isLocalPlayer && !id.isServer;
+            });
 
             if (HostPlayer != null && RemoteClientPlayer != null)
                 yield break;
