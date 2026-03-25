@@ -81,40 +81,40 @@ jobs:
           path: ${{ steps.run-tests.outputs.artifactsPath }}
           retention-days: 7
         
-      - name: Extract Test Summary
-        if: inputs.quietMode == 'false' || steps.test-outcome.outputs.failed == 'true'
-        id: summary
+      - name: Install xmlstarlet
+        run: sudo apt-get update && sudo apt-get install -y xmlstarlet
+
+      - name: Check Integration tests
+        id: check_integration
         run: |
-          XML=$(find "${{ steps.run-tests.outputs.artifactsPath }}" -name '*.xml' | head -n 1)
-
-          if [[ -f "$XML" ]]; then
-            TOTAL=$(grep -oP 'total="\K[0-9]+' "$XML" | head -n1)
-            PASSED=$(grep -oP 'passed="\K[0-9]+' "$XML" | head -n1)
-            RESULT=$(grep -oP 'result="\K[^"]+' "$XML" | head -n1)
-            RAW_DURATION=$(grep -oP 'duration="\K[0-9.]+' "$XML" | head -n1)
-
-            DURATION_FORMATTED=$(awk "BEGIN {
-              total = $RAW_DURATION;
-              min = int(total / 60);
-              sec = total % 60;
-              if (min > 0) {
-                printf \"%dm %.2fs\", min, sec;
-              } else {
-                printf \"%.2fs\", sec;
-              }
-            }")
-
-            echo "total=$TOTAL" >> $GITHUB_OUTPUT
-            echo "passed=$PASSED" >> $GITHUB_OUTPUT
-            echo "result=$RESULT" >> $GITHUB_OUTPUT
-            echo "duration=$DURATION_FORMATTED" >> $GITHUB_OUTPUT
+          # Проверяем, есть ли проваленные Integration тесты
+          XML=$(find "artifacts" -name '*.xml' | head -n 1)
+          FAILED_COUNT=$(xmlstarlet sel -t -v "count(//test-suite[contains(@name, 'Integration')]/test-case[@result='Failed'])" "$XML")
+          
+          if [ "$FAILED_COUNT" -gt 0 ]; then
+          echo "❌ Found $FAILED_COUNT failed Integration tests"
           else
-            echo "⚠️ No test report XML found. Possibly skipped or failed before reporting stage."
-            echo "total=0" >> $GITHUB_OUTPUT
-            echo "passed=0" >> $GITHUB_OUTPUT
-            echo "result=Skipped" >> $GITHUB_OUTPUT
-            echo "duration=0s" >> $GITHUB_OUTPUT
-          fi            
+          echo "✅ All Integration tests passed"
+          fi
+      
+      - name: Extract Integration test results
+        run: |
+          XML=$(find "artifacts" -name '*.xml' | head -n 1)
+          echo "## Integration Tests Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          xmlstarlet sel -t \
+          -m "//test-suite[contains(@name, 'Integration')]" \
+          -o "📦 " -v "@name" \
+          -o " (" -v "@result" \
+          -o ") - " -v "@duration" \
+          -o "s" -n \
+          -m "./test-case" \
+          -o "  ✅ " -v "@name" \
+          -o " (" -v "@duration" \
+          -o "s)" -n \
+          "$XML" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY            
             
       - name: Client ${{ matrix.targetPlatform.platform }}
         uses: game-ci/unity-builder@v4
