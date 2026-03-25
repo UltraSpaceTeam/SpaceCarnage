@@ -1,7 +1,7 @@
 using System;
 using System.IO;
-using UnityEditor;
 using UnityEngine;
+using UnityEditor;
 
 public class BuildScript
 {
