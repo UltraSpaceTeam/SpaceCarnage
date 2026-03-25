@@ -75,11 +75,11 @@ jobs:
         
       - name: Upload Playmode Test Results
         if: always()
-          uses: actions/upload-artifact@v4
-          with:
-            name: Unity-Playmode-${{ github.sha }}
-            path: ${{ steps.run-tests.outputs.artifactsPath }}
-            retention-days: 7
+        uses: actions/upload-artifact@v4
+        with:
+          name: Unity-Playmode-${{ github.sha }}
+          path: ${{ steps.run-tests.outputs.artifactsPath }}
+          retention-days: 7
         
       - name: Extract Test Summary
         if: inputs.quietMode == 'false' || steps.test-outcome.outputs.failed == 'true'
