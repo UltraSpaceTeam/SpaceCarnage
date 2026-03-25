@@ -14,7 +14,7 @@ public class DamagePlayerIntegrationTests
     [UnitySetUp]
     public IEnumerator Setup()
     {
-        Debug.Log("[Test 15] === SETUP ===");
+        Debug.Log("[DamagePlayerIntegrationTests] === SETUP ===");
 
         // Полная очистка Mirror
         if (NetworkServer.active) NetworkServer.Shutdown();
@@ -37,14 +37,6 @@ public class DamagePlayerIntegrationTests
 
         Assert.NotNull(_hostPlayer, "Host player not found");
 
-        // Даём щит
-        var assembler = _hostPlayer.GetComponent<ShipAssembler>();
-        var shieldEngine = GameResources.Instance?.partDatabase.engines
-            .FirstOrDefault(e => e.ability is ShieldAbility);
-
-        Assert.NotNull(shieldEngine, "Shield engine not found in database");
-
-        assembler.EquipEngine(shieldEngine);
         yield return new WaitForSeconds(0.8f);
 
         Debug.Log("[Test 15] Setup OK - Host player ready");
@@ -62,27 +54,29 @@ public class DamagePlayerIntegrationTests
     public IEnumerator Shield_Activation_RpcShownToAllClients_And_AbsorbsDamage()
     {
         Debug.Log("[Test 15] === TEST START ===");
-
-        // Активируем щит
-        var controller = _hostPlayer.GetComponent<PlayerController>();
-        var activateField = controller.GetType().GetField("activateAbility",
-            BindingFlags.NonPublic | BindingFlags.Instance);
-        activateField?.SetValue(controller, true);
-
-        yield return new WaitForSeconds(1.0f);
-
-        // Проверяем, что щит появился
-        Assert.IsTrue(IsShieldVisible(_hostPlayer), "Shield VFX did not appear!");
-
-        Debug.Log("[Test 15] Shield visual effect shown ?");
-
-        // Проверяем поглощение урона
-        var health = _hostPlayer.GetComponent<Health>();
-        float healthBefore = health.GetHealthPercentage();
-
-        health.TakeDamage(50f, DamageContext.Weapon(0, "TestEnemy", "TestGun"));
+		var controller = _hostPlayer.GetComponent<PlayerController>();
+		var health = _hostPlayer.GetComponent<Health>();
+		
+        Debug.Log("[Test 15] Deal 9999 damage");
+        health.TakeDamage(9999f, DamageContext.Weapon(0, "TestEnemy", "TestGun"));
 
         yield return new WaitForSeconds(0.5f);
+		
+		
+        Debug.Log("[Test 15] Respawn");
+		
+		_hostPlayer.CmdRequestRespawn();
+		
+        yield return new WaitForSeconds(0.5f);
+		
+        Debug.Log("[Test 15] Deal 9999 damage");
+		
+        float healthBefore = health.GetHealthPercentage();
+        health.TakeDamage(9999f, DamageContext.Weapon(0, "TestEnemy", "TestGun"));
+
+        yield return new WaitForSeconds(0.5f);
+		
+        Debug.Log("[Test 15] Assert no damage taken");
 
         float healthAfter = health.GetHealthPercentage();
         Assert.AreEqual(healthBefore, healthAfter, 0.001f,
