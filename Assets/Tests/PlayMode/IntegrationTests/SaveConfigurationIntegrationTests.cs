@@ -38,7 +38,7 @@ public class SaveConfigurationIntegrationTests
         if (NetworkClient.active) NetworkClient.Shutdown();
         Player.ActivePlayers.Clear();
 
-        yield return SceneManager.LoadSceneAsync("ShipEditor", LoadSceneMode.Single);
+        yield return SceneManager.LoadSceneAsync("ShipEditor", LoadSceneMode.Additive);
         yield return new WaitForSeconds(1.5f);
     }
 
