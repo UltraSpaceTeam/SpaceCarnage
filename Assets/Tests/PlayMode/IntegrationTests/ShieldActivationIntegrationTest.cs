@@ -16,7 +16,6 @@ public class ShieldIntegrationTests
     {
         Debug.Log("[Test 08] === SETUP ===");
 
-        // Полная очистка Mirror
         if (NetworkServer.active) NetworkServer.Shutdown();
         if (NetworkClient.active) NetworkClient.Shutdown();
         Player.ActivePlayers.Clear();
