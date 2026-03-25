@@ -546,6 +546,10 @@ public class Player : NetworkBehaviour
 
     public void ShowShield(bool show, float healthRatio)
     {
+#if UNITY_INCLUDE_TESTS
+        Test_OnShieldShown?.Invoke(show, healthRatio);
+#endif
+
         if (shieldBubblePrefab == null)
         {
             Debug.LogWarning("Shield prefab not assigned in Player!");
@@ -645,6 +649,10 @@ public class Player : NetworkBehaviour
         ClientMatchStartTime = matchStart;
         ClientEndingStartTime = endingStart;
     }
+#endif
+
+#if UNITY_INCLUDE_TESTS
+    public System.Action<bool, float> Test_OnShieldShown;
 #endif
 }
 

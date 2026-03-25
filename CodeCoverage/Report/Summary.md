@@ -1,81 +1,81 @@
 ﻿# Summary
 |||
 |:---|:---|
-| Generated on: | 26.02.2026 - 11:35:36 |
+| Generated on: | 25.03.2026 - 14:58:53 |
 | Parser: | MultiReportParser (2x OpenCoverParser) |
 | Assemblies: | 1 |
 | Classes: | 59 |
 | Files: | 56 |
-| Covered lines: | 1069 |
-| Uncovered lines: | 2797 |
-| Coverable lines: | 3866 |
-| Total lines: | 6820 |
-| Line coverage: | 27.6% (1069 of 3866) |
+| Covered lines: | 1067 |
+| Uncovered lines: | 2803 |
+| Coverable lines: | 3870 |
+| Total lines: | 6828 |
+| Line coverage: | 27.5% (1067 of 3870) |
 | Covered branches: | 0 |
 | Total branches: | 0 |
-| Covered methods: | 199 |
+| Covered methods: | 173 |
 | Total methods: | 492 |
-| Method coverage: | 40.4% (199 of 492) |
+| Method coverage: | 35.1% (173 of 492) |
 
 |**Name**|**Covered**|**Uncovered**|**Coverable**|**Total**|**Line coverage**|**Covered**|**Total**|**Branch coverage**|**Covered**|**Total**|**Method coverage**|
 |:---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-|**Game**|**1069**|**2797**|**3866**|**7081**|**27.6%**|**0**|**0**|****|**199**|**492**|**40.4%**|
-|AbilityRuntime|12|0|12|25|100%|0|0||9|9|100%|
-|APINetworkManager|0|23|23|147|0%|0|0||0|8|0%|
-|Asteroid|36|11|47|90|76.5%|0|0||14|17|82.3%|
-|AsteroidCollisionDamage|14|13|27|47|51.8%|0|0||5|6|83.3%|
+|**Game**|**1067**|**2803**|**3870**|**7089**|**27.5%**|**0**|**0**|****|**173**|**492**|**35.1%**|
+|AbilityRuntime|5|7|12|25|41.6%|0|0||2|9|22.2%|
+|APINetworkManager|4|19|23|147|17.3%|0|0||3|8|37.5%|
+|Asteroid|29|18|47|90|61.7%|0|0||6|17|35.2%|
+|AsteroidCollisionDamage|0|27|27|47|0%|0|0||0|6|0%|
 |AsteroidMovement|11|0|11|30|100%|0|0||2|2|100%|
-|AsteroidSpawnManager|84|5|89|167|94.3%|0|0||8|9|88.8%|
-|AsteroidsPlacer|12|0|12|32|100%|0|0||2|2|100%|
-|AudioManager|0|54|54|91|0%|0|0||0|6|0%|
+|AsteroidSpawnManager|72|17|89|167|80.8%|0|0||7|9|77.7%|
+|AsteroidsPlacer|0|12|12|32|0%|0|0||0|2|0%|
+|AudioManager|25|29|54|91|46.2%|0|0||3|6|50%|
 |BorderConfiguration|1|0|1|6|100%|0|0||1|1|100%|
-|BorderDamage|0|68|68|113|0%|0|0||0|9|0%|
+|BorderDamage|17|51|68|113|25%|0|0||4|9|44.4%|
 |BorderWarningController|0|9|9|27|0%|0|0||0|2|0%|
 |BuildScript|0|67|67|164|0%|0|0||0|15|0%|
 |BypassCertificate|0|3|3|147|0%|0|0||0|1|0%|
-|CollisionDamage|0|84|84|140|0%|0|0||0|6|0%|
+|CollisionDamage|76|8|84|140|90.4%|0|0||6|6|100%|
 |ConfigManager|8|24|32|59|25%|0|0||2|4|50%|
-|DamageContext|10|2|12|33|83.3%|0|0||5|7|71.4%|
-|DashAbility|10|0|10|24|100%|0|0||4|4|100%|
-|DeathScreenController|20|18|38|65|52.6%|0|0||4|5|80%|
+|DamageContext|7|5|12|33|58.3%|0|0||2|7|28.5%|
+|DashAbility|5|5|10|24|50%|0|0||1|4|25%|
+|DeathScreenController|4|34|38|65|10.5%|0|0||1|5|20%|
 |DeathSphere|0|4|4|10|0%|0|0||0|1|0%|
-|GameData|0|28|28|90|0%|0|0||0|15|0%|
+|GameData|9|19|28|90|32.1%|0|0||3|15|20%|
 |GameResources|3|1|4|13|75%|0|0||1|1|100%|
-|GlobalLeaderboardUI|91|38|129|200|70.5%|0|0||9|10|90%|
-|Health|56|33|89|161|62.9%|0|0||10|14|71.4%|
-|HUDController|148|29|177|287|83.6%|0|0||9|9|100%|
-|InvisAbility|56|3|59|101|94.9%|0|0||13|13|100%|
-|InvisManager|24|34|58|92|41.3%|0|0||6|8|75%|
+|GlobalLeaderboardUI|0|129|129|200|0%|0|0||0|10|0%|
+|Health|32|57|89|161|35.9%|0|0||7|14|50%|
+|HUDController|106|71|177|287|59.8%|0|0||8|9|88.8%|
+|InvisAbility|18|41|59|101|30.5%|0|0||7|13|53.8%|
+|InvisManager|27|31|58|92|46.5%|0|0||6|8|75%|
 |LoginConfigData|3|0|3|59|100%|0|0||1|1|100%|
 |LoginController|0|248|248|420|0%|0|0||0|23|0%|
 |LoginSceneCamera|0|14|14|27|0%|0|0||0|2|0%|
-|MatchState|0|4|4|17|0%|0|0||0|1|0%|
+|MatchState|3|1|4|17|75%|0|0||1|1|100%|
 |NetworkAudio|0|13|13|27|0%|0|0||0|3|0%|
-|NetworkAudioManager|0|13|13|29|0%|0|0||0|3|0%|
-|NetworkEffectDestroyer|0|18|18|35|0%|0|0||0|3|0%|
-|PauseMenuController|1|83|84|144|1.1%|0|0||2|10|20%|
-|Player|135|282|417|650|32.3%|0|0||20|49|40.8%|
-|PlayerCamera|0|26|26|63|0%|0|0||0|3|0%|
-|PlayerController|44|165|209|353|21%|0|0||10|16|62.5%|
-|Projectile|27|29|56|95|48.2%|0|0||7|12|58.3%|
+|NetworkAudioManager|3|10|13|29|23%|0|0||1|3|33.3%|
+|NetworkEffectDestroyer|1|17|18|35|5.5%|0|0||1|3|33.3%|
+|PauseMenuController|24|60|84|144|28.5%|0|0||4|10|40%|
+|Player|87|330|417|650|20.8%|0|0||17|49|34.6%|
+|PlayerCamera|22|4|26|63|84.6%|0|0||3|3|100%|
+|PlayerController|117|92|209|353|55.9%|0|0||9|16|56.2%|
+|Projectile|1|55|56|95|1.7%|0|0||1|12|8.3%|
 |ProjectileStrategy|0|12|12|23|0%|0|0||0|1|0%|
 |RaycastStrategy|0|24|24|38|0%|0|0||0|1|0%|
-|Rocket|17|43|60|105|28.3%|0|0||3|8|37.5%|
+|Rocket|3|57|60|105|5%|0|0||1|8|12.5%|
 |SessionAuthenticator|0|58|58|102|0%|0|0||0|10|0%|
-|SessionManager|31|228|259|447|11.9%|0|0||9|23|39.1%|
+|SessionManager|66|193|259|447|25.4%|0|0||11|23|47.8%|
 |SettingsController|0|40|40|77|0%|0|0||0|7|0%|
-|ShieldAbility|64|0|64|107|100%|0|0||10|10|100%|
-|ShipAssembler|76|40|116|177|65.5%|0|0||18|21|85.7%|
-|ShipConfigData|0|3|3|55|0%|0|0||0|1|0%|
-|ShipConfigManager|0|28|28|55|0%|0|0||0|4|0%|
-|ShipEditorUI|0|404|404|693|0%|0|0||0|30|0%|
-|ShipEngineFX|0|65|65|119|0%|0|0||0|7|0%|
-|ShipNetworkSync|0|48|48|84|0%|0|0||0|9|0%|
+|ShieldAbility|4|60|64|107|6.2%|0|0||1|10|10%|
+|ShipAssembler|78|38|116|177|67.2%|0|0||17|21|80.9%|
+|ShipConfigData|3|0|3|55|100%|0|0||1|1|100%|
+|ShipConfigManager|8|20|28|55|28.5%|0|0||2|4|50%|
+|ShipEditorUI|0|408|408|701|0%|0|0||0|30|0%|
+|ShipEngineFX|59|6|65|119|90.7%|0|0||6|7|85.7%|
+|ShipNetworkSync|45|3|48|84|93.7%|0|0||8|9|88.8%|
 |ShipPartDatabase|0|7|7|21|0%|0|0||0|1|0%|
-|ShipShooting|59|84|143|220|41.2%|0|0||11|17|64.7%|
+|ShipShooting|56|87|143|220|39.1%|0|0||8|17|47%|
 |ShowContextPanel|0|21|21|38|0%|0|0||0|2|0%|
-|SoundData|0|5|5|30|0%|0|0||0|1|0%|
-|SpawnPointScatterer|15|119|134|203|11.1%|0|0||2|10|20%|
+|SoundData|5|0|5|30|100%|0|0||1|1|100%|
+|SpawnPointScatterer|0|134|134|203|0%|0|0||0|10|0%|
 |TabToNextController|0|12|12|26|0%|0|0||0|2|0%|
-|UIManager|1|95|96|153|1%|0|0||2|15|13.3%|
+|UIManager|20|76|96|153|20.8%|0|0||7|15|46.6%|
 |VFXAutoDestroy|0|15|15|28|0%|0|0||0|2|0%|
