@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Linq;
+using System.Reflection;
 using Mirror;
 using NUnit.Framework;
 using UnityEngine;
@@ -16,9 +17,8 @@ public class PlayerDisconnectIntegrationTests
     {
         Debug.Log("[Test 11] === SETUP ===");
 
-        if (NetworkServer.active) NetworkServer.Shutdown();
-        if (NetworkClient.active) NetworkClient.Shutdown();
-        Player.ActivePlayers.Clear();
+        // Полная агрессивная очистка перед тестом
+        AggressiveCleanup();
 
         yield return SceneManager.LoadSceneAsync("TestMultiplayerScene", LoadSceneMode.Single);
         yield return new WaitForSeconds(0.6f);
@@ -37,10 +37,8 @@ public class PlayerDisconnectIntegrationTests
         _sessionManager = Object.FindAnyObjectByType<SessionManager>();
         Assert.NotNull(_sessionManager, "SessionManager not found");
 
-        // Даём нормальную сборку корабля
         EquipBasicShip(_hostPlayer);
 
-        // Даём тестовую статистику
         _hostPlayer.Kills = 5;
         _hostPlayer.Deaths = 2;
 
@@ -52,8 +50,7 @@ public class PlayerDisconnectIntegrationTests
     [UnityTearDown]
     public IEnumerator TearDown()
     {
-        var nm = Object.FindAnyObjectByType<NetworkManager>();
-        if (nm != null) nm.StopHost();
+        AggressiveCleanup();
         yield return null;
     }
 
@@ -65,12 +62,10 @@ public class PlayerDisconnectIntegrationTests
         int killsBefore = _hostPlayer.Kills;
         int deathsBefore = _hostPlayer.Deaths;
 
-        // Симулируем отключение текущего игрока (как будто он дисконнектится)
         Debug.Log("[Test 11] Simulating player disconnect...");
 
         _sessionManager.DisconnectPlayer(_hostPlayer);
 
-        // Удаляем игрока с сервера (как делает Mirror при реальном отключении)
         var connection = _hostPlayer.connectionToClient;
         if (connection != null)
         {
@@ -79,18 +74,15 @@ public class PlayerDisconnectIntegrationTests
 
         yield return new WaitForSeconds(1.0f);
 
-        // Проверки
         Assert.IsFalse(Player.ActivePlayers.ContainsKey(_hostPlayer.netId),
             "Disconnected player still remains in ActivePlayers");
 
         Debug.Log("[Test 11] Player successfully removed from ActivePlayers ?");
 
-        // Статистика должна остаться (SessionManager сохраняет её при DisconnectPlayer)
         Assert.AreEqual(killsBefore, _hostPlayer.Kills, "Kills were not preserved on disconnect");
         Assert.AreEqual(deathsBefore, _hostPlayer.Deaths, "Deaths were not preserved on disconnect");
 
-        Debug.Log($"[Test 11] Statistics preserved ? Kills: {_hostPlayer.Kills}, Deaths: {_hostPlayer.Deaths} ?");
-
+        Debug.Log($"[Test 11] Statistics preserved ? Kills: {_hostPlayer.Kills}, Deaths: {_hostPlayer.Deaths}");
         Debug.Log("[Test 11] === PASSED ===");
     }
 
@@ -106,5 +98,46 @@ public class PlayerDisconnectIntegrationTests
         if (hull != null) assembler.EquipHull(hull);
         if (weapon != null) assembler.EquipWeapon(weapon);
         if (engine != null) assembler.EquipEngine(engine);
+    }
+
+    // ====================== АГРЕССИВНАЯ ОЧИСТКА ======================
+    private void AggressiveCleanup()
+    {
+        // Полностью выключаем сеть
+        if (NetworkServer.active) NetworkServer.Shutdown();
+        if (NetworkClient.active) NetworkClient.Shutdown();
+
+        // Уничтожаем все NetworkManager
+        var managers = Object.FindObjectsByType<NetworkManager>(FindObjectsSortMode.None);
+        foreach (var m in managers)
+        {
+            if (m != null)
+                Object.DestroyImmediate(m.gameObject);
+        }
+
+        // Уничтожаем все KcpTransport
+        var transports = Object.FindObjectsByType<kcp2k.KcpTransport>(FindObjectsSortMode.None);
+        foreach (var t in transports)
+        {
+            if (t != null)
+                Object.DestroyImmediate(t.gameObject);
+        }
+
+        // Сбрасываем важные Singletons
+        ResetSingleton<UIManager>();
+        ResetSingleton<GameResources>();
+        ResetSingleton<SessionManager>();
+        ResetSingleton<AudioManager>();
+
+        // Очищаем статические данные Mirror
+        Player.ActivePlayers.Clear();
+        NetworkManager.startPositions.Clear();
+    }
+
+    private void ResetSingleton<T>() where T : MonoBehaviour
+    {
+        var field = typeof(T).GetField("Instance",
+            BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+        field?.SetValue(null, null);
     }
 }

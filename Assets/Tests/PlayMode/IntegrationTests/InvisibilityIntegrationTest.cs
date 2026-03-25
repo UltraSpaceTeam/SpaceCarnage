@@ -17,9 +17,8 @@ public class InvisibilityIntegrationTests
     {
         Debug.Log("[Test 09] === SETUP ===");
 
-        if (NetworkServer.active) NetworkServer.Shutdown();
-        if (NetworkClient.active) NetworkClient.Shutdown();
-        Player.ActivePlayers.Clear();
+        // Полная агрессивная очистка перед запуском теста
+        AggressiveCleanup();
 
         yield return SceneManager.LoadSceneAsync("TestMultiplayerScene", LoadSceneMode.Single);
         yield return new WaitForSeconds(0.6f);
@@ -53,8 +52,7 @@ public class InvisibilityIntegrationTests
     [UnityTearDown]
     public IEnumerator TearDown()
     {
-        var nm = Object.FindAnyObjectByType<NetworkManager>();
-        if (nm != null) nm.StopHost();
+        AggressiveCleanup();
         yield return null;
     }
 
@@ -67,15 +65,13 @@ public class InvisibilityIntegrationTests
         var activateField = controller.GetType().GetField("activateAbility",
             BindingFlags.NonPublic | BindingFlags.Instance);
 
-        // 1. Активируем невидимость
         activateField?.SetValue(controller, true);
-        yield return new WaitForSeconds(2.0f);        // ждём активацию + delay
+        yield return new WaitForSeconds(2.0f);
 
         Assert.IsFalse(IsShipVisible(_hostPlayer), "Ship should be hidden after activating invisibility");
 
         Debug.Log("[Test 09] Invisibility activated - ship model hidden ?");
 
-        // 2. Наносим урон ? невидимость должна сняться
         var health = _hostPlayer.GetComponent<Health>();
         health.TakeDamage(10f, DamageContext.Weapon(999, "TestEnemy", "TestGun"));
 
@@ -85,11 +81,8 @@ public class InvisibilityIntegrationTests
 
         Debug.Log("[Test 09] Invisibility correctly disabled on damage ?");
 
-        // 3. Ждём окончания кулдауна (InvisAbility.cooldown обычно 20 сек, но для теста ускоряем)
-        //    Для теста сбрасываем кулдаун через рефлексию
         ResetAbilityCooldown(controller);
 
-        // 4. Повторная активация
         activateField?.SetValue(controller, true);
         yield return new WaitForSeconds(2.0f);
 
@@ -119,7 +112,6 @@ public class InvisibilityIntegrationTests
         return false;
     }
 
-    // Сбрасываем кулдаун способности для теста (чтобы не ждать 20 секунд)
     private void ResetAbilityCooldown(PlayerController controller)
     {
         var readyTimeField = controller.GetType().GetField("abilityReadyTime",
@@ -127,7 +119,48 @@ public class InvisibilityIntegrationTests
 
         if (readyTimeField != null)
         {
-            readyTimeField.SetValue(controller, NetworkTime.time - 1.0); // готово к использованию
+            readyTimeField.SetValue(controller, NetworkTime.time - 1.0);
         }
+    }
+
+    // ====================== АГРЕССИВНАЯ ОЧИСТКА ======================
+    private void AggressiveCleanup()
+    {
+        // Полностью выключаем сеть
+        if (NetworkServer.active) NetworkServer.Shutdown();
+        if (NetworkClient.active) NetworkClient.Shutdown();
+
+        // Уничтожаем все NetworkManager
+        var managers = Object.FindObjectsByType<NetworkManager>(FindObjectsSortMode.None);
+        foreach (var m in managers)
+        {
+            if (m != null)
+                Object.DestroyImmediate(m.gameObject);
+        }
+
+        // Уничтожаем все KcpTransport
+        var transports = Object.FindObjectsByType<kcp2k.KcpTransport>(FindObjectsSortMode.None);
+        foreach (var t in transports)
+        {
+            if (t != null)
+                Object.DestroyImmediate(t.gameObject);
+        }
+
+        // Сбрасываем важные Singletons
+        ResetSingleton<UIManager>();
+        ResetSingleton<GameResources>();
+        ResetSingleton<SessionManager>();
+        ResetSingleton<AudioManager>();
+
+        // Очищаем статические данные Mirror
+        Player.ActivePlayers.Clear();
+        NetworkManager.startPositions.Clear();
+    }
+
+    private void ResetSingleton<T>() where T : MonoBehaviour
+    {
+        var field = typeof(T).GetField("Instance",
+            BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+        field?.SetValue(null, null);
     }
 }

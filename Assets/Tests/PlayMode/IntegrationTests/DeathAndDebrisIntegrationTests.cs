@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Linq;
+using System.Reflection;
 using Mirror;
 using NUnit.Framework;
 using UnityEngine;
@@ -16,8 +17,8 @@ public class DeathAndDebrisIntegrationTests
     {
         Debug.Log("[Test 06] === SETUP ===");
 
-        if (NetworkServer.active) NetworkServer.Shutdown();
-        if (NetworkClient.active) NetworkClient.Shutdown();
+        // Полная очистка перед запуском теста
+        AggressiveCleanup();
 
         yield return SceneManager.LoadSceneAsync("TestMultiplayerScene", LoadSceneMode.Single);
         yield return new WaitForSeconds(0.6f);
@@ -36,7 +37,6 @@ public class DeathAndDebrisIntegrationTests
         _health = _hostPlayer.GetComponent<Health>();
         Assert.NotNull(_health, "Health component not found");
 
-        // Даём нормальную сборку корабля
         EquipBasicShip(_hostPlayer);
 
         yield return new WaitForSeconds(0.8f);
@@ -47,8 +47,7 @@ public class DeathAndDebrisIntegrationTests
     [UnityTearDown]
     public IEnumerator TearDown()
     {
-        var nm = Object.FindAnyObjectByType<NetworkManager>();
-        if (nm != null) nm.StopHost();
+        AggressiveCleanup();
         yield return null;
     }
 
@@ -57,25 +56,21 @@ public class DeathAndDebrisIntegrationTests
     {
         Debug.Log("[Test 06] === TEST START ===");
 
-        // Запоминаем начальное состояние
         int debrisCountBefore = CountDebrisObjects();
 
-        // Наносим смертельный урон
         _health.TakeDamage(9999f, DamageContext.Weapon(999999, "TestEnemy", "Rocket"));
 
         yield return new WaitForSeconds(1.2f);
 
-        // Проверяем, что игрок умер
         Assert.IsTrue(_health.IsDead, "Player did not die after taking fatal damage");
 
-        // Проверяем появление обломков
         int debrisCountAfter = CountDebrisObjects();
         Assert.Greater(debrisCountAfter, debrisCountBefore, "Debris was not spawned after player death");
 
-        // Проверяем наличие VFX взрыва (ищем ParticleSystem)
         bool explosionVFXExists = Object.FindObjectsByType<ParticleSystem>(FindObjectsSortMode.None)
-            .Any(ps => ps != null && ps.gameObject.name.ToLower().Contains("explosion") ||
-                       ps.gameObject.name.ToLower().Contains("explode"));
+            .Any(ps => ps != null &&
+                       (ps.gameObject.name.ToLower().Contains("explosion") ||
+                        ps.gameObject.name.ToLower().Contains("explode")));
 
         Assert.IsTrue(explosionVFXExists, "Explosion VFX was not spawned after death");
 
@@ -102,6 +97,47 @@ public class DeathAndDebrisIntegrationTests
         return Object.FindObjectsByType<Rigidbody>(FindObjectsSortMode.None)
             .Count(rb => rb != null &&
                          rb.gameObject != _hostPlayer.gameObject &&
-                         rb.transform.parent == null); // обломки обычно без parent
+                         rb.transform.parent == null);
+    }
+
+    // ====================== АГРЕССИВНАЯ ОЧИСТКА ======================
+    private void AggressiveCleanup()
+    {
+        // Полностью выключаем сеть
+        if (NetworkServer.active) NetworkServer.Shutdown();
+        if (NetworkClient.active) NetworkClient.Shutdown();
+
+        // Уничтожаем все NetworkManager
+        var managers = Object.FindObjectsByType<NetworkManager>(FindObjectsSortMode.None);
+        foreach (var m in managers)
+        {
+            if (m != null)
+                Object.DestroyImmediate(m.gameObject);
+        }
+
+        // Уничтожаем все KcpTransport
+        var transports = Object.FindObjectsByType<kcp2k.KcpTransport>(FindObjectsSortMode.None);
+        foreach (var t in transports)
+        {
+            if (t != null)
+                Object.DestroyImmediate(t.gameObject);
+        }
+
+        // Сбрасываем важные Singletons
+        ResetSingleton<UIManager>();
+        ResetSingleton<GameResources>();
+        ResetSingleton<SessionManager>();
+        ResetSingleton<AudioManager>();
+
+        // Очищаем статические данные Mirror
+        Player.ActivePlayers.Clear();
+        NetworkManager.startPositions.Clear();
+    }
+
+    private void ResetSingleton<T>() where T : MonoBehaviour
+    {
+        var field = typeof(T).GetField("Instance",
+            BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+        field?.SetValue(null, null);
     }
 }

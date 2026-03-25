@@ -17,9 +17,8 @@ public class MatchEndIntegrationTests
     {
         Debug.Log("[Test 10] === SETUP ===");
 
-        if (NetworkServer.active) NetworkServer.Shutdown();
-        if (NetworkClient.active) NetworkClient.Shutdown();
-        Player.ActivePlayers.Clear();
+        // Полная агрессивная очистка перед тестом
+        AggressiveCleanup();
 
         yield return SceneManager.LoadSceneAsync("TestMultiplayerScene", LoadSceneMode.Single);
         yield return new WaitForSeconds(0.6f);
@@ -38,7 +37,7 @@ public class MatchEndIntegrationTests
         _uiManager = Object.FindAnyObjectByType<UIManager>();
         Assert.NotNull(_uiManager, "UIManager not found in scene");
 
-        // Даём игроку нормальную сборку (чтобы не было предупреждений)
+        // Экипируем базовый корабль
         var assembler = _hostPlayer.GetComponent<ShipAssembler>();
         var hull = GameResources.Instance?.partDatabase.hulls.FirstOrDefault();
         var weapon = GameResources.Instance?.partDatabase.weapons.FirstOrDefault();
@@ -56,8 +55,7 @@ public class MatchEndIntegrationTests
     [UnityTearDown]
     public IEnumerator TearDown()
     {
-        var nm = Object.FindAnyObjectByType<NetworkManager>();
-        if (nm != null) nm.StopHost();
+        AggressiveCleanup();
         yield return null;
     }
 
@@ -66,27 +64,20 @@ public class MatchEndIntegrationTests
     {
         Debug.Log("[Test 10] === TEST START ===");
 
-        // 1. Симулируем окончание матча через SessionManager (самый правильный способ)
         var sessionManager = Object.FindAnyObjectByType<SessionManager>();
         Assert.NotNull(sessionManager, "SessionManager not found");
 
-        // Вызываем завершение матча (как это делает SessionManager в реальности)
-        var endMatchMethod = typeof(SessionManager).GetMethod("RpcShowEndMatchLeaderboard",
-            BindingFlags.NonPublic | BindingFlags.Instance); // или напрямую через RPC
-
-        // Лучше вызвать публичный RPC на игроке
+        // Вызываем RPC показа лидерборда
         _hostPlayer.RpcShowEndMatchLeaderboard();
 
         yield return new WaitForSeconds(0.8f);
 
-        // 2. Проверяем, что лидерборд показан
         Assert.IsTrue(_uiManager.isEndMatch, "isEndMatch flag was not set");
         Assert.IsTrue(IsLeaderboardVisible(), "Leaderboard panel is not visible after match end");
 
         Debug.Log("[Test 10] End match leaderboard shown successfully ?");
 
-        // 3. Проверяем переход в меню (в реальном коде после показа лидерборда происходит возврат в ShipEditor)
-        //    Здесь мы просто проверяем, что RpcHideEndMatchLeaderboard существует и UI готов к переходу
+        // Скрываем лидерборд
         _hostPlayer.RpcHideEndMatchLeaderboard();
 
         yield return new WaitForSeconds(0.5f);
@@ -99,7 +90,6 @@ public class MatchEndIntegrationTests
 
     private bool IsLeaderboardVisible()
     {
-        // Ищем панель лидерборда через UIManager
         var leaderboardField = typeof(UIManager).GetField("leaderboardPanel",
             BindingFlags.NonPublic | BindingFlags.Instance);
 
@@ -109,5 +99,46 @@ public class MatchEndIntegrationTests
         }
 
         return false;
+    }
+
+    // ====================== АГРЕССИВНАЯ ОЧИСТКА ======================
+    private void AggressiveCleanup()
+    {
+        // Полностью выключаем сеть
+        if (NetworkServer.active) NetworkServer.Shutdown();
+        if (NetworkClient.active) NetworkClient.Shutdown();
+
+        // Уничтожаем все NetworkManager
+        var managers = Object.FindObjectsByType<NetworkManager>(FindObjectsSortMode.None);
+        foreach (var m in managers)
+        {
+            if (m != null)
+                Object.DestroyImmediate(m.gameObject);
+        }
+
+        // Уничтожаем все KcpTransport
+        var transports = Object.FindObjectsByType<kcp2k.KcpTransport>(FindObjectsSortMode.None);
+        foreach (var t in transports)
+        {
+            if (t != null)
+                Object.DestroyImmediate(t.gameObject);
+        }
+
+        // Сбрасываем важные Singletons
+        ResetSingleton<UIManager>();
+        ResetSingleton<GameResources>();
+        ResetSingleton<SessionManager>();
+        ResetSingleton<AudioManager>();
+
+        // Очищаем статические данные Mirror
+        Player.ActivePlayers.Clear();
+        NetworkManager.startPositions.Clear();
+    }
+
+    private void ResetSingleton<T>() where T : MonoBehaviour
+    {
+        var field = typeof(T).GetField("Instance",
+            BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+        field?.SetValue(null, null);
     }
 }

@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Linq;
+using System.Reflection;
 using Mirror;
 using NUnit.Framework;
 using TMPro;
@@ -14,14 +15,14 @@ public class MutualKillIntegrationTests
     {
         Debug.Log("[Test 12] === SETUP ===");
 
-        if (NetworkServer.active) NetworkServer.Shutdown();
-        if (NetworkClient.active) NetworkClient.Shutdown();
+        // Полная агрессивная очистка перед тестом
+        AggressiveCleanup();
 
         yield return SceneManager.LoadSceneAsync("TestMultiplayerScene", LoadSceneMode.Single);
         yield return new WaitForSeconds(0.6f);
 
         var nm = Object.FindAnyObjectByType<NetworkManager>();
-        Assert.NotNull(nm);
+        Assert.NotNull(nm, "NetworkManager not found");
 
         nm.StartHost();
         yield return new WaitForSeconds(1.2f);
@@ -32,8 +33,7 @@ public class MutualKillIntegrationTests
     [UnityTearDown]
     public IEnumerator TearDown()
     {
-        var nm = Object.FindAnyObjectByType<NetworkManager>();
-        if (nm != null) nm.StopHost();
+        AggressiveCleanup();
         yield return null;
     }
 
@@ -44,18 +44,17 @@ public class MutualKillIntegrationTests
 
         int before = CountKillFeedEntries();
 
-        // Симулируем взаимное убийство
         var ctx1 = DamageContext.Weapon(999999, "PlayerB", "Rocket");
         var ctx2 = DamageContext.Weapon(888888, "PlayerA", "Rocket");
 
         var uiManager = Object.FindAnyObjectByType<UIManager>();
-        Assert.NotNull(uiManager);
+        Assert.NotNull(uiManager, "UIManager not found");
 
         uiManager.AddKillFeedEntry(ctx1, "PlayerA");
-        yield return new WaitForSeconds(0.15f);   // небольшая задержка между добавлениями
+        yield return new WaitForSeconds(0.15f);
 
         uiManager.AddKillFeedEntry(ctx2, "PlayerB");
-        yield return new WaitForSeconds(0.8f);    // даём время на создание и??
+        yield return new WaitForSeconds(0.8f);
 
         int after = CountKillFeedEntries();
 
@@ -66,10 +65,8 @@ public class MutualKillIntegrationTests
         Debug.Log("[Test 12] === PASSED ===");
     }
 
-    // Самый надёжный способ подсчёта — ищем все TextMeshProUGUI внутри kill-feed области
     private int CountKillFeedEntries()
     {
-        // Ищем все активные TextMeshProUGUI на сцене
         var allTexts = Object.FindObjectsByType<TextMeshProUGUI>(FindObjectsSortMode.None);
 
         int count = 0;
@@ -78,12 +75,53 @@ public class MutualKillIntegrationTests
             if (text == null) continue;
 
             string txt = text.text.ToLower();
-            if (txt.Contains("убил") || txt.Contains("killed") || txt.Contains("rocket") || txt.Contains("player"))
+            if (txt.Contains("killed") || txt.Contains("убил") || txt.Contains("rocket") || txt.Contains("player"))
             {
                 count++;
             }
         }
 
         return count;
+    }
+
+    // ====================== АГРЕССИВНАЯ ОЧИСТКА ======================
+    private void AggressiveCleanup()
+    {
+        // Полностью выключаем сеть
+        if (NetworkServer.active) NetworkServer.Shutdown();
+        if (NetworkClient.active) NetworkClient.Shutdown();
+
+        // Уничтожаем все NetworkManager
+        var managers = Object.FindObjectsByType<NetworkManager>(FindObjectsSortMode.None);
+        foreach (var m in managers)
+        {
+            if (m != null)
+                Object.DestroyImmediate(m.gameObject);
+        }
+
+        // Уничтожаем все KcpTransport
+        var transports = Object.FindObjectsByType<kcp2k.KcpTransport>(FindObjectsSortMode.None);
+        foreach (var t in transports)
+        {
+            if (t != null)
+                Object.DestroyImmediate(t.gameObject);
+        }
+
+        // Сбрасываем важные Singletons
+        ResetSingleton<UIManager>();
+        ResetSingleton<GameResources>();
+        ResetSingleton<SessionManager>();
+        ResetSingleton<AudioManager>();
+
+        // Очищаем статические данные
+        Player.ActivePlayers.Clear();
+        NetworkManager.startPositions.Clear();
+    }
+
+    private void ResetSingleton<T>() where T : MonoBehaviour
+    {
+        var field = typeof(T).GetField("Instance",
+            BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+        field?.SetValue(null, null);
     }
 }

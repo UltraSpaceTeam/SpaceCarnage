@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Linq;
+using System.Reflection;
 using Mirror;
 using NUnit.Framework;
 using UnityEngine;
@@ -16,14 +17,14 @@ public class BorderDamageIntegrationTests
     {
         Debug.Log("[Test 13] === SETUP ===");
 
-        if (NetworkServer.active) NetworkServer.Shutdown();
-        if (NetworkClient.active) NetworkClient.Shutdown();
+        // Полная очистка перед запуском этого теста
+        AggressiveCleanup();
 
         yield return SceneManager.LoadSceneAsync("TestMultiplayerScene", LoadSceneMode.Single);
         yield return new WaitForSeconds(0.6f);
 
         var nm = Object.FindAnyObjectByType<NetworkManager>();
-        Assert.NotNull(nm);
+        Assert.NotNull(nm, "NetworkManager not found");
 
         nm.StartHost();
         yield return new WaitForSeconds(1.5f);
@@ -46,8 +47,7 @@ public class BorderDamageIntegrationTests
     [UnityTearDown]
     public IEnumerator TearDown()
     {
-        var nm = Object.FindAnyObjectByType<NetworkManager>();
-        if (nm != null) nm.StopHost();
+        AggressiveCleanup();
         yield return null;
     }
 
@@ -59,24 +59,21 @@ public class BorderDamageIntegrationTests
         float startHealth = _health.GetHealthPercentage();
 
         // Выносим игрока далеко за границу
-        _player.transform.position = new Vector3(0, 0, BorderConfiguration.borderRadius + 100f);
+        _player.transform.position = new Vector3(0, 0, BorderConfiguration.borderRadius + 1000f);
 
-        // Ждём смерти (при 10 HP/сек нужно ~10-12 секунд)
         yield return new WaitForSeconds(13f);
 
         Assert.IsTrue(_health.IsDead, "Player did not die from border damage");
 
         Debug.Log($"[Test 13] Player died from border damage (health {startHealth * 100:F0}% ? 0%) ?");
 
-        // Ждём немного, чтобы обломки точно появились
         yield return new WaitForSeconds(1.0f);
 
-        // Проверяем появление обломков (ищем объекты с Rigidbody, которые не являются игроком)
         bool debrisSpawned = Object.FindObjectsByType<Rigidbody>(FindObjectsSortMode.None)
             .Any(rb => rb != null
                     && rb.gameObject != _player.gameObject
                     && !rb.gameObject.name.Contains("Player")
-                    && rb.gameObject.transform.parent == null);   // обломки обычно без parent
+                    && rb.gameObject.transform.parent == null);
 
         Assert.IsTrue(debrisSpawned, "Debris (objects with Rigidbody) was not spawned after death");
 
@@ -96,5 +93,45 @@ public class BorderDamageIntegrationTests
         if (hull != null) assembler.EquipHull(hull);
         if (weapon != null) assembler.EquipWeapon(weapon);
         if (engine != null) assembler.EquipEngine(engine);
+    }
+
+    // ====================== АГРЕССИВНАЯ ОЧИСТКА ======================
+    private void AggressiveCleanup()
+    {
+        // Полностью выключаем сеть
+        if (NetworkServer.active) NetworkServer.Shutdown();
+        if (NetworkClient.active) NetworkClient.Shutdown();
+
+        // Уничтожаем ВСЕ NetworkManager
+        var managers = Object.FindObjectsByType<NetworkManager>(FindObjectsSortMode.None);
+        foreach (var m in managers)
+        {
+            if (m != null)
+                Object.DestroyImmediate(m.gameObject);
+        }
+
+        // Уничтожаем ВСЕ KcpTransport
+        var transports = Object.FindObjectsByType<kcp2k.KcpTransport>(FindObjectsSortMode.None);
+        foreach (var t in transports)
+        {
+            if (t != null)
+                Object.DestroyImmediate(t.gameObject);
+        }
+
+        // Сбрасываем важные Singletons
+        ResetSingleton<UIManager>();
+        ResetSingleton<GameResources>();
+        ResetSingleton<SessionManager>();
+
+        // Очищаем статические данные Mirror
+        Player.ActivePlayers.Clear();
+        NetworkManager.startPositions.Clear();
+    }
+
+    private void ResetSingleton<T>() where T : MonoBehaviour
+    {
+        var field = typeof(T).GetField("Instance",
+            BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+        field?.SetValue(null, null);
     }
 }

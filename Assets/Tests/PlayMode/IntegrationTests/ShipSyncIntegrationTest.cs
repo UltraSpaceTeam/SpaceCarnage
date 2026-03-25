@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Linq;
+using System.Reflection;
 using Mirror;
 using NUnit.Framework;
 using UnityEngine;
@@ -15,8 +16,8 @@ public class ShipSyncIntegrationTests
     {
         Debug.Log("[Test 05] === SETUP ===");
 
-        if (NetworkServer.active) NetworkServer.Shutdown();
-        if (NetworkClient.active) NetworkClient.Shutdown();
+        // Полная агрессивная очистка перед тестом
+        AggressiveCleanup();
 
         yield return SceneManager.LoadSceneAsync("TestMultiplayerScene", LoadSceneMode.Single);
         yield return new WaitForSeconds(0.6f);
@@ -32,7 +33,6 @@ public class ShipSyncIntegrationTests
 
         Assert.NotNull(_hostPlayer, "Host player not found");
 
-        // Даём хосту нормальную сборку
         EquipBasicShip(_hostPlayer);
 
         yield return new WaitForSeconds(0.8f);
@@ -43,8 +43,7 @@ public class ShipSyncIntegrationTests
     [UnityTearDown]
     public IEnumerator TearDown()
     {
-        var nm = Object.FindAnyObjectByType<NetworkManager>();
-        if (nm != null) nm.StopHost();
+        AggressiveCleanup();
         yield return null;
     }
 
@@ -56,7 +55,6 @@ public class ShipSyncIntegrationTests
         var hostAssembler = _hostPlayer.GetComponent<ShipAssembler>();
         var database = GameResources.Instance.partDatabase;
 
-        // Выбираем конкретные части
         var selectedHull = database.hulls.FirstOrDefault();
         var selectedWeapon = database.weapons.FirstOrDefault();
         var selectedEngine = database.engines.FirstOrDefault();
@@ -65,14 +63,12 @@ public class ShipSyncIntegrationTests
         Assert.NotNull(selectedWeapon, "Weapon not found in database");
         Assert.NotNull(selectedEngine, "Engine not found in database");
 
-        // Устанавливаем сборку на хосте
         hostAssembler.EquipHull(selectedHull);
         hostAssembler.EquipWeapon(selectedWeapon);
         hostAssembler.EquipEngine(selectedEngine);
 
         yield return new WaitForSeconds(1.2f);
 
-        // Проверяем, что ShipNetworkSync применил те же части
         var sync = _hostPlayer.GetComponent<ShipNetworkSync>();
         Assert.NotNull(sync, "ShipNetworkSync not found on player");
 
@@ -96,5 +92,46 @@ public class ShipSyncIntegrationTests
         if (hull != null) assembler.EquipHull(hull);
         if (weapon != null) assembler.EquipWeapon(weapon);
         if (engine != null) assembler.EquipEngine(engine);
+    }
+
+    // ====================== АГРЕССИВНАЯ ОЧИСТКА ======================
+    private void AggressiveCleanup()
+    {
+        // Полностью выключаем сеть
+        if (NetworkServer.active) NetworkServer.Shutdown();
+        if (NetworkClient.active) NetworkClient.Shutdown();
+
+        // Уничтожаем все NetworkManager
+        var managers = Object.FindObjectsByType<NetworkManager>(FindObjectsSortMode.None);
+        foreach (var m in managers)
+        {
+            if (m != null)
+                Object.DestroyImmediate(m.gameObject);
+        }
+
+        // Уничтожаем все KcpTransport
+        var transports = Object.FindObjectsByType<kcp2k.KcpTransport>(FindObjectsSortMode.None);
+        foreach (var t in transports)
+        {
+            if (t != null)
+                Object.DestroyImmediate(t.gameObject);
+        }
+
+        // Сбрасываем важные Singletons
+        ResetSingleton<UIManager>();
+        ResetSingleton<GameResources>();
+        ResetSingleton<SessionManager>();
+        ResetSingleton<AudioManager>();
+
+        // Очищаем статические данные Mirror
+        Player.ActivePlayers.Clear();
+        NetworkManager.startPositions.Clear();
+    }
+
+    private void ResetSingleton<T>() where T : MonoBehaviour
+    {
+        var field = typeof(T).GetField("Instance",
+            BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+        field?.SetValue(null, null);
     }
 }

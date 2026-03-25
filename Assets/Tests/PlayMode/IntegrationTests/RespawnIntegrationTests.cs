@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Linq;
+using System.Reflection;
 using Mirror;
 using NUnit.Framework;
 using UnityEngine;
@@ -16,8 +17,8 @@ public class RespawnIntegrationTests
     {
         Debug.Log("[Test 07] === SETUP ===");
 
-        if (NetworkServer.active) NetworkServer.Shutdown();
-        if (NetworkClient.active) NetworkClient.Shutdown();
+        // Полная агрессивная очистка перед тестом
+        AggressiveCleanup();
 
         yield return SceneManager.LoadSceneAsync("TestMultiplayerScene", LoadSceneMode.Single);
         yield return new WaitForSeconds(0.6f);
@@ -36,7 +37,6 @@ public class RespawnIntegrationTests
         _health = _hostPlayer.GetComponent<Health>();
         Assert.NotNull(_health, "Health component not found");
 
-        // Даём нормальную сборку корабля
         EquipBasicShip(_hostPlayer);
 
         yield return new WaitForSeconds(0.8f);
@@ -47,8 +47,7 @@ public class RespawnIntegrationTests
     [UnityTearDown]
     public IEnumerator TearDown()
     {
-        var nm = Object.FindAnyObjectByType<NetworkManager>();
-        if (nm != null) nm.StopHost();
+        AggressiveCleanup();
         yield return null;
     }
 
@@ -75,7 +74,7 @@ public class RespawnIntegrationTests
         // Проверяем восстановление здоровья
         Assert.AreEqual(1f, _health.GetHealthPercentage(), 0.01f, "Health was not fully restored after respawn");
 
-        // Проверяем неуязвимость (в течение 3 секунд урон не должен проходить)
+        // Проверяем неуязвимость
         float healthBeforeInvulnTest = _health.GetHealthPercentage();
         _health.TakeDamage(50f, DamageContext.Weapon(999999, "TestEnemy", "Rocket"));
         yield return new WaitForSeconds(0.5f);
@@ -99,5 +98,46 @@ public class RespawnIntegrationTests
         if (hull != null) assembler.EquipHull(hull);
         if (weapon != null) assembler.EquipWeapon(weapon);
         if (engine != null) assembler.EquipEngine(engine);
+    }
+
+    // ====================== АГРЕССИВНАЯ ОЧИСТКА ======================
+    private void AggressiveCleanup()
+    {
+        // Полностью выключаем сеть
+        if (NetworkServer.active) NetworkServer.Shutdown();
+        if (NetworkClient.active) NetworkClient.Shutdown();
+
+        // Уничтожаем все NetworkManager
+        var managers = Object.FindObjectsByType<NetworkManager>(FindObjectsSortMode.None);
+        foreach (var m in managers)
+        {
+            if (m != null)
+                Object.DestroyImmediate(m.gameObject);
+        }
+
+        // Уничтожаем все KcpTransport
+        var transports = Object.FindObjectsByType<kcp2k.KcpTransport>(FindObjectsSortMode.None);
+        foreach (var t in transports)
+        {
+            if (t != null)
+                Object.DestroyImmediate(t.gameObject);
+        }
+
+        // Сбрасываем важные Singletons
+        ResetSingleton<UIManager>();
+        ResetSingleton<GameResources>();
+        ResetSingleton<SessionManager>();
+        ResetSingleton<AudioManager>();
+
+        // Очищаем статические данные Mirror
+        Player.ActivePlayers.Clear();
+        NetworkManager.startPositions.Clear();
+    }
+
+    private void ResetSingleton<T>() where T : MonoBehaviour
+    {
+        var field = typeof(T).GetField("Instance",
+            BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+        field?.SetValue(null, null);
     }
 }
