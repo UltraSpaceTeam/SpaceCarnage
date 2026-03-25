@@ -39,7 +39,7 @@ public class DamagePlayerIntegrationTests
 
         yield return new WaitForSeconds(0.8f);
 
-        Debug.Log("[Test 15] Setup OK - Host player ready");
+        Debug.Log("[DamagePlayerIntegrationTests] Setup OK - Host player ready");
     }
 
     [UnityTearDown]
@@ -51,7 +51,7 @@ public class DamagePlayerIntegrationTests
     }
 
     [UnityTest]
-    public IEnumerator Shield_Activation_RpcShownToAllClients_And_AbsorbsDamage()
+    public IEnumerator DamageAfterRespawn_NoDamageDealt_RespawnSuccess()
     {
         Debug.Log("[Test 15] === TEST START ===");
 		var controller = _hostPlayer.GetComponent<PlayerController>();
@@ -80,16 +80,45 @@ public class DamagePlayerIntegrationTests
 
         float healthAfter = health.GetHealthPercentage();
         Assert.AreEqual(healthBefore, healthAfter, 0.001f,
-            "Health decreased — shield did not absorb the damage!");
+            "Health decreased — respawn damage cooldown is not working!");
 
         Debug.Log("[Test 15] === PASSED ===");
     }
 
-    private bool IsShieldVisible(Player player)
+    [UnityTest]
+    public IEnumerator DamageMoreThanShield_HealthDamaged()
     {
-        var field = typeof(Player).GetField("currentShieldInstance",
-            BindingFlags.NonPublic | BindingFlags.Instance);
+        Debug.Log("[Test 14] === TEST START ===");
+		var controller = _hostPlayer.GetComponent<PlayerController>();
+		var health = _hostPlayer.GetComponent<Health>();
+		
+        var assembler = _hostPlayer.GetComponent<ShipAssembler>();
+        var shieldEngine = GameResources.Instance?.partDatabase.engines
+            .FirstOrDefault(e => e.ability is ShieldAbility);
 
-        return field?.GetValue(player) is GameObject go && go.activeInHierarchy;
+        Assert.NotNull(shieldEngine, "Shield engine not found in database");
+
+        assembler.EquipEngine(shieldEngine);
+        yield return new WaitForSeconds(0.8f);	
+		
+        var activateField = controller.GetType().GetField("activateAbility",
+            BindingFlags.NonPublic | BindingFlags.Instance);
+        activateField?.SetValue(controller, true);
+
+        yield return new WaitForSeconds(1.0f);		
+		
+		ShieldAbility shield = ScriptableObject.CreateInstance<ShieldAbility>();
+		
+        float healthBefore = health.GetHealthPercentage();
+        health.TakeDamage(shield.maxShieldHealth + 20, DamageContext.Weapon(0, "TestEnemy", "TestGun"));
+
+        yield return new WaitForSeconds(0.5f);
+
+        float healthAfter = health.GetHealthPercentage();
+        Assert.Greater(healthBefore, healthAfter,
+            "Health decreased — shield did absorb too many the damage!");
+
+        Debug.Log("[Test 14] === PASSED ===");
     }
+
 }
