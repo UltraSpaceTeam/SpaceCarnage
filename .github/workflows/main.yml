@@ -106,8 +106,7 @@ jobs:
           xmlstarlet sel -t \
           -m "//test-suite[contains(@name, 'Integration')]" \
           -o "📦 " -v "@name" \
-          -o " (" -v "@result" \
-          -o ") - " -v "@duration" \
+          -o "- " -v "@duration" \
           -o "s" -n \
           -m "./test-case" \
           -o "  ✅ " -v "@name" \
