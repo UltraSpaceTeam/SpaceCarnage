@@ -16,7 +16,6 @@ public class ShieldIntegrationTests
     {
         Debug.Log("[Test 08] === SETUP ===");
 
-        // Полная агрессивная очистка перед запуском теста
         AggressiveCleanup();
 
         yield return SceneManager.LoadSceneAsync("TestMultiplayerScene", LoadSceneMode.Single);
@@ -91,14 +90,11 @@ public class ShieldIntegrationTests
         return field?.GetValue(player) is GameObject go && go.activeInHierarchy;
     }
 
-    // ====================== АГРЕССИВНАЯ ОЧИСТКА ======================
     private void AggressiveCleanup()
     {
-        // Полностью выключаем сеть
         if (NetworkServer.active) NetworkServer.Shutdown();
         if (NetworkClient.active) NetworkClient.Shutdown();
 
-        // Уничтожаем все NetworkManager
         var managers = Object.FindObjectsByType<NetworkManager>(FindObjectsSortMode.None);
         foreach (var m in managers)
         {
@@ -106,7 +102,6 @@ public class ShieldIntegrationTests
                 Object.DestroyImmediate(m.gameObject);
         }
 
-        // Уничтожаем все KcpTransport
         var transports = Object.FindObjectsByType<kcp2k.KcpTransport>(FindObjectsSortMode.None);
         foreach (var t in transports)
         {
@@ -114,13 +109,11 @@ public class ShieldIntegrationTests
                 Object.DestroyImmediate(t.gameObject);
         }
 
-        // Сбрасываем важные Singletons
         ResetSingleton<UIManager>();
         ResetSingleton<GameResources>();
         ResetSingleton<SessionManager>();
         ResetSingleton<AudioManager>();
 
-        // Очищаем статические данные Mirror
         Player.ActivePlayers.Clear();
         NetworkManager.startPositions.Clear();
     }
