@@ -109,9 +109,27 @@ jobs:
           -o "- " -v "@duration" \
           -o "s" -n \
           -m "./test-case" \
-          -o "  ✅ " -v "@name" \
-          -o " (" -v "@duration" \
-          -o "s)" -n \
+          -i "@result='Passed'" -o "   ✅" -b \
+          -i "@result='Failed'" -o "   ❌" -b \
+          -o " " -v "@name" -n \
+          "$XML" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY            
+
+      - name: Extract System test results
+        run: |
+          XML=$(find "artifacts" -name '*.xml' | head -n 1)
+          echo "## System Tests Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          xmlstarlet sel -t \
+          -m "//test-suite[contains(@name, 'SystemTest')]" \
+          -o "📦 " -v "@name" \
+          -o "- " -v "@duration" \
+          -o "s" -n \
+          -m "./test-case" \
+          -i "@result='Passed'" -o "   ✅" -b \
+          -i "@result='Failed'" -o "   ❌" -b \
+          -o " " -v "@name" -n \
           "$XML" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY            
             
