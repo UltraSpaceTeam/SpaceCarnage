@@ -34,6 +34,7 @@ public class FullGameCycleSystemTest
     [UnityTearDown]
     public IEnumerator TearDown()
     {
+        SetDefaultMatchTimers();
         AggressiveCleanup();
         yield return null;
     }
@@ -134,6 +135,17 @@ public class FullGameCycleSystemTest
         Debug.Log("[System Test 01] Match timers shortened to 8s + 5s");
     }
 
+    private void SetDefaultMatchTimers()
+    {
+        var sessionManager = UnityEngine.Object.FindAnyObjectByType<SessionManager>();
+        if (sessionManager == null) return;
+
+        SetStaticFloat(sessionManager, "MatchDuration", 600f);
+        SetStaticFloat(sessionManager, "EndingDuration", 30f);
+
+        Debug.Log("[System Test 01] Match timers restored to 600s + 30s");
+    }
+
     private void SetStaticFloat(object obj, string fieldName, float value)
     {
         var field = obj.GetType().GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance);
@@ -185,13 +197,27 @@ public class FullGameCycleSystemTest
         if (NetworkServer.active) NetworkServer.Shutdown();
         if (NetworkClient.active) NetworkClient.Shutdown();
 
+        var session = UnityEngine.Object.FindAnyObjectByType<SessionManager>();
+        if (session != null)
+        {
+            session.StopAllCoroutines();
+            UnityEngine.Object.DestroyImmediate(session.gameObject);
+        }
+
         var managers = UnityEngine.Object.FindObjectsByType<NetworkManager>(FindObjectsSortMode.None);
         foreach (var m in managers)
             if (m != null) UnityEngine.Object.DestroyImmediate(m.gameObject);
 
+        var transports = UnityEngine.Object.FindObjectsByType<kcp2k.KcpTransport>(FindObjectsSortMode.None);
+        foreach (var t in transports)
+            if (t != null) UnityEngine.Object.DestroyImmediate(t.gameObject);
+
         ResetSingleton<UIManager>();
-        ResetSingleton<GameResources>();
         ResetSingleton<SessionManager>();
+        ResetSingleton<GameResources>();
+
+        Player.ActivePlayers.Clear();
+        NetworkManager.startPositions.Clear();
     }
 
     private void ResetSingleton<T>() where T : MonoBehaviour
