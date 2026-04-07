@@ -109,8 +109,8 @@ jobs:
           -o "- " -v "@duration" \
           -o "s" -n \
           -m "./test-case" \
-          -i "@result='Passed'" -o "✅" -b \
-          -i "@result='Failed'" -o "❌" -b \
+          -i "@result='Passed'" -o "   ✅" -b \
+          -i "@result='Failed'" -o "   ❌" -b \
           -o " " -v "@name" -n \
           "$XML" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY            
@@ -127,8 +127,8 @@ jobs:
           -o "- " -v "@duration" \
           -o "s" -n \
           -m "./test-case" \
-          -i "@result='Passed'" -o "✅" -b \
-          -i "@result='Failed'" -o "❌" -b \
+          -i "@result='Passed'" -o "   ✅" -b \
+          -i "@result='Failed'" -o "   ❌" -b \
           -o " " -v "@name" -n \
           "$XML" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY            
