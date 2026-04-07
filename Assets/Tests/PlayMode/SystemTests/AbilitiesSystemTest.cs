@@ -63,7 +63,6 @@ public class AbilitiesSystemTest
         var engines = GameResources.Instance?.partDatabase.engines;
         Assert.NotNull(engines);
 
-        // Щит
         var shieldEngine = engines.FirstOrDefault(e => e.ability is ShieldAbility);
         Assert.NotNull(shieldEngine);
         _assembler.EquipEngine(shieldEngine);
@@ -82,7 +81,6 @@ public class AbilitiesSystemTest
 
         Debug.Log("[System Test 04] Shield passed");
 
-        // Невидимость
         var invisEngine = engines.FirstOrDefault(e => e.ability is InvisAbility);
         Assert.NotNull(invisEngine);
         _assembler.EquipEngine(invisEngine);
@@ -100,7 +98,6 @@ public class AbilitiesSystemTest
 
         Debug.Log("[System Test 04] Invisibility passed");
 
-        // Рывок
         var dashEngine = engines.FirstOrDefault(e => e.ability is DashAbility);
         Assert.NotNull(dashEngine);
         _assembler.EquipEngine(dashEngine);
