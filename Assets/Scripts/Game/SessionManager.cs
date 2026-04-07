@@ -20,8 +20,9 @@ public class SessionManager : MonoBehaviour
     private enum MatchState { Waiting, Playing, Finished }
     private MatchState currentState = MatchState.Waiting;
 
-    private const float MatchDuration = 600f;
-    private const float EndingDuration = 30f;
+    private static float MatchDuration = 600f;
+    private static float EndingDuration = 30f;
+
     private float stateTimer = 0f;
 
     private double matchStartTime;
