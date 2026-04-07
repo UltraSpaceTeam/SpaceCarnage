@@ -109,9 +109,9 @@ jobs:
           -o "- " -v "@duration" \
           -o "s" -n \
           -m "./test-case" \
-          -i "@result='passed'" -o "✅" -b \
-          -i "@result='failed'" -o "❌" -b \
-          -o " " -v "@name" \
+          -i "@result='Passed'" -o "✅" -b \
+          -i "@result='Failed'" -o "❌" -b \
+          -o " " -v "@name" -n \
           "$XML" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY            
 
@@ -122,14 +122,14 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
           xmlstarlet sel -t \
-          -m "//test-suite[contains(@name, 'System')]" \
+          -m "//test-suite[contains(@name, 'SystemTest')]" \
           -o "📦 " -v "@name" \
           -o "- " -v "@duration" \
           -o "s" -n \
           -m "./test-case" \
-          -i "@result='passed'" -o "✅" -b \
-          -i "@result='failed'" -o "❌" -b \
-          -o " " -v "@name" \
+          -i "@result='Passed'" -o "✅" -b \
+          -i "@result='Failed'" -o "❌" -b \
+          -o " " -v "@name" -n \
           "$XML" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY            
             
