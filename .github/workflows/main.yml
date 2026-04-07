@@ -115,7 +115,7 @@ jobs:
           "$XML" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY            
 
-      - name: Extract Integration test results
+      - name: Extract System test results
         run: |
           XML=$(find "artifacts" -name '*.xml' | head -n 1)
           echo "## System Tests Results" >> $GITHUB_STEP_SUMMARY
