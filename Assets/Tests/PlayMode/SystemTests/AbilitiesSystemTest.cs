@@ -33,19 +33,23 @@ public class AbilitiesSystemTest
         Assert.NotNull(transport, "KcpTransport not found");
         Transport.active = transport;
 
-        nm.StartHost();
-
-        // Подписываемся на события KCP чтобы увидеть что происходит
         transport.OnServerConnectedWithAddress += (connId, address) =>
             Debug.Log($"[System Test 04] KCP Server: client connected, connId={connId} address={address}");
         transport.OnServerError += (connId, error, msg) =>
             Debug.Log($"[System Test 04] KCP Server ERROR: connId={connId} error={error} msg={msg}");
+        transport.OnServerDisconnected += (connId) =>
+            Debug.Log($"[System Test 04] KCP Server: client DISCONNECTED, connId={connId}");
         transport.OnClientConnected += () =>
             Debug.Log($"[System Test 04] KCP Client: connected!");
         transport.OnClientError += (error, msg) =>
             Debug.Log($"[System Test 04] KCP Client ERROR: error={error} msg={msg}");
         transport.OnClientDisconnected += () =>
             Debug.Log($"[System Test 04] KCP Client: disconnected");
+
+        Debug.Log($"[System Test 04] maxConnections: {nm.maxConnections}");
+        Debug.Log($"[System Test 04] networkAddress: {nm.networkAddress}");
+
+        nm.StartHost();
 
         float timeout = 10f;
         float elapsed = 0f;
