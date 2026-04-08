@@ -113,7 +113,7 @@ jobs:
           XML=$(find "artifacts" -name 'PlaymodeTest-Results.xml' | head -n 1)
           echo "## Integration Tests Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-	  if [ -z "$XML" ]; then
+          if [ -z "$XML" ]; then
             echo "⚠️ No test results found (PlaymodeTest-Results.xml missing)" >> $GITHUB_STEP_SUMMARY
             exit 0
           fi
@@ -135,7 +135,7 @@ jobs:
           XML=$(find "artifacts" -name 'SystemTest-Results.xml' | head -n 1)
           echo "## System Tests Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-	  if [ -z "$XML" ]; then
+          if [ -z "$XML" ]; then
             echo "⚠️ No test results found (SystemTest-Results.xml missing)" >> $GITHUB_STEP_SUMMARY
             exit 0
           fi
