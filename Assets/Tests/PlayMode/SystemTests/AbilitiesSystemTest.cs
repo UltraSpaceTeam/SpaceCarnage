@@ -27,28 +27,45 @@ public class AbilitiesSystemTest
         yield return new WaitForSeconds(0.8f);
 
         var nm = Object.FindAnyObjectByType<NetworkManager>();
-        Assert.NotNull(nm);
+        Assert.NotNull(nm, "NetworkManager not found");
+
+        // ”беждаемс€ что Transport активен
+        var transport = nm.GetComponent<Transport>();
+        Assert.NotNull(transport, "Transport not found on NetworkManager");
+        Assert.IsTrue(transport.enabled, "Transport is disabled");
+        Transport.active = transport;
+
+        Debug.Log($"[System Test 04] Transport: {transport.GetType().Name}");
 
         nm.StartHost();
-        yield return new WaitForSeconds(0.5f);
+
+        // ∆дЄм пока клиент реально подключитс€, не только сервер встанет
+        float timeout = 10f;
+        float elapsed = 0f;
+        while (!NetworkClient.isConnected && elapsed < timeout)
+        {
+            yield return new WaitForSeconds(0.1f);
+            elapsed += 0.1f;
+        }
 
         Debug.Log($"[System Test 04] NetworkServer.active: {NetworkServer.active}");
         Debug.Log($"[System Test 04] NetworkClient.active: {NetworkClient.active}");
         Debug.Log($"[System Test 04] NetworkClient.isConnected: {NetworkClient.isConnected}");
+        Debug.Log($"[System Test 04] Client connected after {elapsed:F1}s");
 
-        float timeout = 10f;
-        float elapsed = 0f;
+        Assert.IsTrue(NetworkClient.isConnected, "NetworkClient failed to connect to host");
+
+        // »щем игрока только после того как клиент подключилс€
+        elapsed = 0f;
         while (elapsed < timeout)
         {
-            var allPlayers = Object.FindObjectsByType<Player>(FindObjectsSortMode.None);
-            Debug.Log($"[System Test 04] t={elapsed:F1}s | Players found: {allPlayers.Length} | " +
-                      string.Join(", ", allPlayers.Select(p => $"{p.name} isLocal={p.isLocalPlayer} isServer={p.isServer}")));
+            _hostPlayer = Object.FindObjectsByType<Player>(FindObjectsSortMode.None)
+                .FirstOrDefault(p => p.isLocalPlayer);
 
-            _hostPlayer = allPlayers.FirstOrDefault(p => p.isLocalPlayer);
             if (_hostPlayer != null) break;
 
-            yield return new WaitForSeconds(0.5f);
-            elapsed += 0.5f;
+            yield return new WaitForSeconds(0.1f);
+            elapsed += 0.1f;
         }
 
         Assert.NotNull(_hostPlayer, $"Host player did not spawn within {timeout}s");
