@@ -35,6 +35,18 @@ public class AbilitiesSystemTest
 
         nm.StartHost();
 
+        // Подписываемся на события KCP чтобы увидеть что происходит
+        transport.OnServerConnectedWithAddress += (connId, address) =>
+            Debug.Log($"[System Test 04] KCP Server: client connected, connId={connId} address={address}");
+        transport.OnServerError += (connId, error, msg) =>
+            Debug.Log($"[System Test 04] KCP Server ERROR: connId={connId} error={error} msg={msg}");
+        transport.OnClientConnected += () =>
+            Debug.Log($"[System Test 04] KCP Client: connected!");
+        transport.OnClientError += (error, msg) =>
+            Debug.Log($"[System Test 04] KCP Client ERROR: error={error} msg={msg}");
+        transport.OnClientDisconnected += () =>
+            Debug.Log($"[System Test 04] KCP Client: disconnected");
+
         float timeout = 10f;
         float elapsed = 0f;
         while (!NetworkClient.isConnected && elapsed < timeout)
