@@ -57,6 +57,9 @@ jobs:
           key: Library-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
           restore-keys: |
             Library-
+
+      - name: Create artifacts directory
+        run: mkdir -p artifacts
       
       - name: Run Playmode Tests
         id: run-tests
@@ -68,9 +71,9 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           testMode: PlayMode
-          customParameters: -testCategory Uncategorized -testResults artifacts/PlaymodeTest-Results.xml
+          customParameters: -testCategory "Uncategorized;Integration" -testResults artifacts/PlaymodeTest-Results.xml
 
-      - name: Run Playmode Tests
+      - name: Run System Tests
         id: run-system-tests
         continue-on-error: true
         uses: game-ci/unity-test-runner@v4
@@ -87,16 +90,18 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Unity-${{ matrix.targetPlatform.platform }}-Playmode-${{ github.sha }}
-          path: ${{ steps.run-tests.outputs.artifactsPath }}
+          path: artifacts/PlaymodeTest-Results.xml
           retention-days: 7
+	  if-no-files-found: warn
 
       - name: Upload System Test Results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: Unity-${{ matrix.targetPlatform.platform }}-SystemTest-${{ github.sha }}
-          path: ${{ steps.run-system-tests.outputs.artifactsPath }}
+          path: artifacts/SystemTest-Results.xml
           retention-days: 7
+	  if-no-files-found: warn
         
       - name: Install xmlstarlet
         run: sudo apt-get update && sudo apt-get install -y xmlstarlet
@@ -108,6 +113,10 @@ jobs:
           XML=$(find "artifacts" -name 'PlaymodeTest-Results.xml' | head -n 1)
           echo "## Integration Tests Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
+	  if [ -z "$XML" ]; then
+            echo "⚠️ No test results found (PlaymodeTest-Results.xml missing)" >> $GITHUB_STEP_SUMMARY
+            exit 0
+          fi
           echo '```' >> $GITHUB_STEP_SUMMARY
           xmlstarlet sel -t \
           -m "//test-suite[contains(@name, 'Integration')]" \
@@ -126,6 +135,10 @@ jobs:
           XML=$(find "artifacts" -name 'SystemTest-Results.xml' | head -n 1)
           echo "## System Tests Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
+	  if [ -z "$XML" ]; then
+            echo "⚠️ No test results found (SystemTest-Results.xml missing)" >> $GITHUB_STEP_SUMMARY
+            exit 0
+          fi
           echo '```' >> $GITHUB_STEP_SUMMARY
           xmlstarlet sel -t \
           -m "//test-suite[contains(@name, 'SystemTest')]" \
