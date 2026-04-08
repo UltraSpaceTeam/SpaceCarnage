@@ -68,7 +68,7 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           testMode: PlayMode
-          customParameters: -testCategory Uncategorized -testResults PlaymodeTest-Results.xml
+          customParameters: -testCategory Uncategorized -testResults artifacts/PlaymodeTest-Results.xml
 
       - name: Run Playmode Tests
         id: run-system-tests
@@ -80,7 +80,7 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           testMode: PlayMode
-          customParameters: -testCategory SystemTest -testResults SystemTest-Results.xml
+          customParameters: -testCategory SystemTest -testResults artifacts/SystemTest-Results.xml
       
       - name: Upload Playmode Test Results
         if: always()
@@ -104,7 +104,8 @@ jobs:
       - name: Extract Integration test results
         run: |
           ls -la
-          XML=$(find -name 'PlaymodeTest-Results.xml' | head -n 1)
+          ls -la artifacts
+          XML=$(find "artifacts" -name 'PlaymodeTest-Results.xml' | head -n 1)
           echo "## Integration Tests Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
@@ -122,7 +123,7 @@ jobs:
 
       - name: Extract System test results
         run: |
-          XML=$(find -name 'SystemTest-Results.xml' | head -n 1)
+          XML=$(find "artifacts" -name 'SystemTest-Results.xml' | head -n 1)
           echo "## System Tests Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
