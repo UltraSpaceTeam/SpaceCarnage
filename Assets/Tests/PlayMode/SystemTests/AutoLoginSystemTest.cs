@@ -32,8 +32,8 @@ public class AutoLoginSystemTest
 
         _configPath = Path.Combine(Application.persistentDataPath, "user_config.cfg");
 
-        RepairConfigFile();      // Чиним конфиг
-        DisableAutoLogin();      // Отключаем автологин
+        RepairConfigFile();
+        DisableAutoLogin();
 
         yield return SceneManager.LoadSceneAsync("LoginScene", LoadSceneMode.Single);
         yield return new WaitForSeconds(3.0f);
@@ -57,7 +57,7 @@ public class AutoLoginSystemTest
     [UnityTearDown]
     public IEnumerator TearDown()
     {
-        RepairConfigFile();      // Чиним после теста
+        RepairConfigFile();
         AggressiveCleanup();
         yield return null;
     }
@@ -67,7 +67,6 @@ public class AutoLoginSystemTest
     {
         Debug.Log("[System Test 14] === TEST START: Полная работа системы автологина ===");
 
-        // Шаг 1: Создаём валидный токен
         yield return PerformValidLogin();
         yield return new WaitForSeconds(3.0f);
 
@@ -76,7 +75,6 @@ public class AutoLoginSystemTest
 
         Debug.Log("[System Test 14] Шаг 1: Автологин с валидным токеном — PASSED");
 
-        // Шаг 2: Повреждаем конфиг
         Debug.Log("[System Test 14] === Шаг 2: Повреждаем конфигурационный файл ===");
 
         LogAssert.Expect(LogType.Error, new System.Text.RegularExpressions.Regex("Failed to load config", System.Text.RegularExpressions.RegexOptions.IgnoreCase));
@@ -90,7 +88,6 @@ public class AutoLoginSystemTest
 
         Debug.Log("[System Test 14] Шаг 2: Повреждённый конфиг — автологин отключён корректно");
 
-        // Шаг 3-4: Ручной логин
         yield return PerformValidLogin();
         yield return new WaitForSeconds(3.5f);
 
@@ -103,8 +100,6 @@ public class AutoLoginSystemTest
 
         Debug.Log("[System Test 14] === TEST PASSED: Система автологина работает полностью корректно ===");
     }
-
-    // ====================== Вспомогательные методы ======================
 
     private void RepairConfigFile()
     {

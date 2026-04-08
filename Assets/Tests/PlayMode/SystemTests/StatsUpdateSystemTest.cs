@@ -302,9 +302,20 @@ public class StatsUpdateSystemTest
         if (NetworkServer.active) NetworkServer.Shutdown();
         if (NetworkClient.active) NetworkClient.Shutdown();
 
+        var session = UnityEngine.Object.FindAnyObjectByType<SessionManager>();
+        if (session != null)
+        {
+            session.StopAllCoroutines();
+            UnityEngine.Object.DestroyImmediate(session.gameObject);
+        }
+
         var managers = UnityEngine.Object.FindObjectsByType<NetworkManager>(FindObjectsSortMode.None);
         foreach (var m in managers)
             if (m != null) UnityEngine.Object.DestroyImmediate(m.gameObject);
+
+        var transports = UnityEngine.Object.FindObjectsByType<kcp2k.KcpTransport>(FindObjectsSortMode.None);
+        foreach (var t in transports)
+            if (t != null) UnityEngine.Object.DestroyImmediate(t.gameObject);
 
         ResetSingleton<UIManager>();
         ResetSingleton<SessionManager>();

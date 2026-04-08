@@ -122,6 +122,13 @@ public class ShieldFullFunctionalitySystemTest
         if (NetworkServer.active) NetworkServer.Shutdown();
         if (NetworkClient.active) NetworkClient.Shutdown();
 
+        var session = UnityEngine.Object.FindAnyObjectByType<SessionManager>();
+        if (session != null)
+        {
+            session.StopAllCoroutines();
+            UnityEngine.Object.DestroyImmediate(session.gameObject);
+        }
+
         var managers = Object.FindObjectsByType<NetworkManager>(FindObjectsSortMode.None);
         foreach (var m in managers)
             if (m != null) Object.DestroyImmediate(m.gameObject);
