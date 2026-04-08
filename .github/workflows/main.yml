@@ -68,10 +68,19 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           testMode: PlayMode
-      
-      - name: Determine Test Outcome
-        id: test-outcome
-        run: echo "failed=${{ steps.run-tests.outcome != 'success' }}" >> $GITHUB_OUTPUT
+          customParameters: -testCategory Uncategorized
+
+      - name: Run Playmode Tests
+        id: run-system-tests
+        continue-on-error: true
+        uses: game-ci/unity-test-runner@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          testMode: PlayMode
+          customParameters: -testCategory SystemTest
         
       - name: Upload Playmode Test Results
         if: always()
@@ -80,26 +89,21 @@ jobs:
           name: Unity-${{ matrix.targetPlatform.platform }}-Playmode-${{ github.sha }}
           path: ${{ steps.run-tests.outputs.artifactsPath }}
           retention-days: 7
+
+      - name: Upload System Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Unity-${{ matrix.targetPlatform.platform }}-SystemTest-${{ github.sha }}
+          path: ${{ steps.run-system-tests.outputs.artifactsPath }}
+          retention-days: 7
         
       - name: Install xmlstarlet
         run: sudo apt-get update && sudo apt-get install -y xmlstarlet
 
-      - name: Check Integration tests
-        id: check_integration
-        run: |
-          # Проверяем, есть ли проваленные Integration тесты
-          XML=$(find "artifacts" -name '*.xml' | head -n 1)
-          FAILED_COUNT=$(xmlstarlet sel -t -v "count(//test-suite[contains(@name, 'Integration')]/test-case[@result='Failed'])" "$XML")
-          
-          if [ "$FAILED_COUNT" -gt 0 ]; then
-          echo "❌ Found $FAILED_COUNT failed Integration tests"
-          else
-          echo "✅ All Integration tests passed"
-          fi
-      
       - name: Extract Integration test results
         run: |
-          XML=$(find "artifacts" -name '*.xml' | head -n 1)
+          XML=$(find "artifacts" -name '*Playmode*.xml' | head -n 1)
           echo "## Integration Tests Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
@@ -117,7 +121,7 @@ jobs:
 
       - name: Extract System test results
         run: |
-          XML=$(find "artifacts" -name '*.xml' | head -n 1)
+          XML=$(find "artifacts" -name '*SystemTest*.xml' | head -n 1)
           echo "## System Tests Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY

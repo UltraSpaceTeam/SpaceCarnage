@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 
+[Category("SystemTest")]
 public class AbilitiesSystemTest
 {
     private Player _hostPlayer;
