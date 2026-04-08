@@ -92,7 +92,7 @@ jobs:
           name: Unity-${{ matrix.targetPlatform.platform }}-Playmode-${{ github.sha }}
           path: artifacts/PlaymodeTest-Results.xml
           retention-days: 7
-	  if-no-files-found: warn
+          if-no-files-found: warn
 
       - name: Upload System Test Results
         if: always()
@@ -101,7 +101,7 @@ jobs:
           name: Unity-${{ matrix.targetPlatform.platform }}-SystemTest-${{ github.sha }}
           path: artifacts/SystemTest-Results.xml
           retention-days: 7
-	  if-no-files-found: warn
+          if-no-files-found: warn
         
       - name: Install xmlstarlet
         run: sudo apt-get update && sudo apt-get install -y xmlstarlet
