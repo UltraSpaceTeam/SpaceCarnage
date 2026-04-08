@@ -104,7 +104,7 @@ jobs:
       - name: Extract Integration test results
         run: |
           ls -la
-          XML=$(find "artifacts" -name '*.xml' | head -n 1)
+          XML=$(find -name 'PlaymodeTest-Results.xml' | head -n 1)
           echo "## Integration Tests Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
@@ -122,7 +122,7 @@ jobs:
 
       - name: Extract System test results
         run: |
-          XML=$(find "artifacts" -name '*.xml' | head -n 1)
+          XML=$(find -name 'SystemTest-Results.xml' | head -n 1)
           echo "## System Tests Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
