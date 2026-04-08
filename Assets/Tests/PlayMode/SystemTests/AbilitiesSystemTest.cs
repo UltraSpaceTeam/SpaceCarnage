@@ -30,18 +30,25 @@ public class AbilitiesSystemTest
         Assert.NotNull(nm);
 
         nm.StartHost();
+        yield return new WaitForSeconds(0.5f);
+
+        Debug.Log($"[System Test 04] NetworkServer.active: {NetworkServer.active}");
+        Debug.Log($"[System Test 04] NetworkClient.active: {NetworkClient.active}");
+        Debug.Log($"[System Test 04] NetworkClient.isConnected: {NetworkClient.isConnected}");
 
         float timeout = 10f;
         float elapsed = 0f;
         while (elapsed < timeout)
         {
-            _hostPlayer = Object.FindObjectsByType<Player>(FindObjectsSortMode.None)
-                .FirstOrDefault(p => p.isLocalPlayer);
+            var allPlayers = Object.FindObjectsByType<Player>(FindObjectsSortMode.None);
+            Debug.Log($"[System Test 04] t={elapsed:F1}s | Players found: {allPlayers.Length} | " +
+                      string.Join(", ", allPlayers.Select(p => $"{p.name} isLocal={p.isLocalPlayer} isServer={p.isServer}")));
 
+            _hostPlayer = allPlayers.FirstOrDefault(p => p.isLocalPlayer);
             if (_hostPlayer != null) break;
 
-            yield return new WaitForSeconds(0.1f);
-            elapsed += 0.1f;
+            yield return new WaitForSeconds(0.5f);
+            elapsed += 0.5f;
         }
 
         Assert.NotNull(_hostPlayer, $"Host player did not spawn within {timeout}s");
