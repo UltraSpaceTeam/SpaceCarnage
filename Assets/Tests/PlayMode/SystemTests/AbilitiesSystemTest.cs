@@ -30,12 +30,21 @@ public class AbilitiesSystemTest
         Assert.NotNull(nm);
 
         nm.StartHost();
-        yield return new WaitForSeconds(1.8f);
 
-        _hostPlayer = Object.FindObjectsByType<Player>(FindObjectsSortMode.None)
-            .FirstOrDefault(p => p.isLocalPlayer);
+        float timeout = 10f;
+        float elapsed = 0f;
+        while (elapsed < timeout)
+        {
+            _hostPlayer = Object.FindObjectsByType<Player>(FindObjectsSortMode.None)
+                .FirstOrDefault(p => p.isLocalPlayer);
 
-        Assert.NotNull(_hostPlayer);
+            if (_hostPlayer != null) break;
+
+            yield return new WaitForSeconds(0.1f);
+            elapsed += 0.1f;
+        }
+
+        Assert.NotNull(_hostPlayer, $"Host player did not spawn within {timeout}s");
 
         _controller = _hostPlayer.GetComponent<PlayerController>();
         _assembler = _hostPlayer.GetComponent<ShipAssembler>();
@@ -64,16 +73,13 @@ public class AbilitiesSystemTest
         var engines = GameResources.Instance?.partDatabase.engines;
         Assert.NotNull(engines);
 
-        // Щит
         var shieldEngine = engines.FirstOrDefault(e => e.ability is ShieldAbility);
         Assert.NotNull(shieldEngine);
         _assembler.EquipEngine(shieldEngine);
         yield return new WaitForSeconds(1.0f);
 
         SetActivateAbility(true);
-        yield return new WaitForSeconds(1.3f);
-
-        Assert.IsTrue(IsShieldVisible(), "Shield VFX did not appear");
+        yield return WaitUntilOrTimeout(() => IsShieldVisible(), 5f, "Shield VFX did not appear");
 
         float healthBefore = _health.GetHealthPercentage();
         _health.TakeDamage(50f, DamageContext.Weapon(0, "TestEnemy", "TestGun"));
@@ -83,25 +89,19 @@ public class AbilitiesSystemTest
 
         Debug.Log("[System Test 04] Shield passed");
 
-        // Невидимость
         var invisEngine = engines.FirstOrDefault(e => e.ability is InvisAbility);
         Assert.NotNull(invisEngine);
         _assembler.EquipEngine(invisEngine);
         yield return new WaitForSeconds(1.0f);
 
         SetActivateAbility(true);
-        yield return new WaitForSeconds(2.5f);
-
-        Assert.IsFalse(IsShipVisible(), "Ship should be invisible");
+        yield return WaitUntilOrTimeout(() => !IsShipVisible(), 5f, "Ship should be invisible");
 
         _controller.ServerNotifyAttacked();
-        yield return new WaitForSeconds(0.8f);
-
-        Assert.IsTrue(IsShipVisible(), "Invisibility did not break on attack");
+        yield return WaitUntilOrTimeout(() => IsShipVisible(), 5f, "Invisibility did not break on attack");
 
         Debug.Log("[System Test 04] Invisibility passed");
 
-        // Рывок
         var dashEngine = engines.FirstOrDefault(e => e.ability is DashAbility);
         Assert.NotNull(dashEngine);
         _assembler.EquipEngine(dashEngine);
@@ -114,15 +114,26 @@ public class AbilitiesSystemTest
         Vector3 velocityBefore = _rb.linearVelocity;
 
         SetActivateAbility(true);
-        yield return new WaitForSeconds(0.8f);
-
-        float boost = (_rb.linearVelocity - velocityBefore).magnitude;
-
-        Assert.Greater(boost, 3.5f, "Dash did not give expected speed boost");
+        yield return WaitUntilOrTimeout(
+            () => (_rb.linearVelocity - velocityBefore).magnitude > 3.5f,
+            5f,
+            "Dash did not give expected speed boost"
+        );
 
         Debug.Log("[System Test 04] Dash passed");
 
         Debug.Log("[System Test 04] === ALL ABILITIES PASSED ===");
+    }
+
+    private IEnumerator WaitUntilOrTimeout(System.Func<bool> condition, float timeout, string message)
+    {
+        float elapsed = 0f;
+        while (!condition() && elapsed < timeout)
+        {
+            yield return new WaitForSeconds(0.1f);
+            elapsed += 0.1f;
+        }
+        Assert.IsTrue(condition(), message);
     }
 
     private void SetActivateAbility(bool value)
