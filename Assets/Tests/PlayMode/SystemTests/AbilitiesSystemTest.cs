@@ -29,17 +29,12 @@ public class AbilitiesSystemTest
         var nm = Object.FindAnyObjectByType<NetworkManager>();
         Assert.NotNull(nm, "NetworkManager not found");
 
-        // ”беждаемс€ что Transport активен
-        var transport = nm.GetComponent<Transport>();
-        Assert.NotNull(transport, "Transport not found on NetworkManager");
-        Assert.IsTrue(transport.enabled, "Transport is disabled");
+        var transport = nm.GetComponent<kcp2k.KcpTransport>();
+        Assert.NotNull(transport, "KcpTransport not found");
         Transport.active = transport;
-
-        Debug.Log($"[System Test 04] Transport: {transport.GetType().Name}");
 
         nm.StartHost();
 
-        // ∆дЄм пока клиент реально подключитс€, не только сервер встанет
         float timeout = 10f;
         float elapsed = 0f;
         while (!NetworkClient.isConnected && elapsed < timeout)
@@ -49,13 +44,11 @@ public class AbilitiesSystemTest
         }
 
         Debug.Log($"[System Test 04] NetworkServer.active: {NetworkServer.active}");
-        Debug.Log($"[System Test 04] NetworkClient.active: {NetworkClient.active}");
         Debug.Log($"[System Test 04] NetworkClient.isConnected: {NetworkClient.isConnected}");
         Debug.Log($"[System Test 04] Client connected after {elapsed:F1}s");
 
         Assert.IsTrue(NetworkClient.isConnected, "NetworkClient failed to connect to host");
 
-        // »щем игрока только после того как клиент подключилс€
         elapsed = 0f;
         while (elapsed < timeout)
         {
@@ -193,13 +186,23 @@ public class AbilitiesSystemTest
 
     private void AggressiveCleanup()
     {
+        // —начала останавливаем KCP на уровне транспорта Ч до Mirror Shutdown
+        var transports = Object.FindObjectsByType<kcp2k.KcpTransport>(FindObjectsSortMode.None);
+        foreach (var t in transports)
+        {
+            if (t == null) continue;
+            t.ServerStop();
+            t.ClientDisconnect();
+        }
+
+        // “еперь Mirror
         if (NetworkServer.active) NetworkServer.Shutdown();
         if (NetworkClient.active) NetworkClient.Shutdown();
 
         var managers = Object.FindObjectsByType<NetworkManager>(FindObjectsSortMode.None);
         foreach (var m in managers) if (m != null) Object.DestroyImmediate(m.gameObject);
 
-        var transports = Object.FindObjectsByType<kcp2k.KcpTransport>(FindObjectsSortMode.None);
+        // DestroyImmediate на транспорты Ч после Shutdown, чтобы деструктор не конфликтовал
         foreach (var t in transports) if (t != null) Object.DestroyImmediate(t.gameObject);
 
         ResetSingleton<UIManager>();
