@@ -47,9 +47,9 @@ public class MatchCompletionSystemTest
     {
         Debug.Log("[System Test 02] === TEST START ===");
 
-        LogAssert.Expect(LogType.Log, new Regex(@"\[API RAW RESPONSE\].*Session not found", RegexOptions.IgnoreCase));
-        LogAssert.Expect(LogType.Error, new Regex(@"\[API ERROR\].*Session not found", RegexOptions.IgnoreCase));
-        LogAssert.Expect(LogType.Error, new Regex(@"\[API\] Result Error.*Session not found", RegexOptions.IgnoreCase));
+        //LogAssert.Expect(LogType.Log, new Regex(@"\[API RAW RESPONSE\].*Session not found", RegexOptions.IgnoreCase));
+        //LogAssert.Expect(LogType.Error, new Regex(@"\[API ERROR\].*Session not found", RegexOptions.IgnoreCase));
+        //LogAssert.Expect(LogType.Error, new Regex(@"\[API\] Result Error.*Session not found", RegexOptions.IgnoreCase));
 
         yield return new WaitForSeconds(2.0f);
         Assert.IsTrue(IsMatchPlaying(), "Match did not start");
