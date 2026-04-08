@@ -58,8 +58,9 @@ public class SessionManager : MonoBehaviour
     {
         bool isHeadless = Application.isBatchMode;
         bool forceAuto = GetArg("-autoStart", "false") == "true";
+        bool isTest = GetArg("-isTest", "false") == "true";
 
-        if (isHeadless || forceAuto)
+        if (!isTest && (isHeadless || forceAuto))
         {
             _ = StartDedicatedServer();
         }

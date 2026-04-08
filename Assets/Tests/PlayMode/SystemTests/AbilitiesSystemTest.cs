@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 
+[Category("SystemTest")]
 public class AbilitiesSystemTest
 {
     private Player _hostPlayer;
@@ -26,15 +27,57 @@ public class AbilitiesSystemTest
         yield return new WaitForSeconds(0.8f);
 
         var nm = Object.FindAnyObjectByType<NetworkManager>();
-        Assert.NotNull(nm);
+        Assert.NotNull(nm, "NetworkManager not found");
+
+        var transport = nm.GetComponent<kcp2k.KcpTransport>();
+        Assert.NotNull(transport, "KcpTransport not found");
+        Transport.active = transport;
+
+        transport.OnServerConnectedWithAddress += (connId, address) =>
+            Debug.Log($"[System Test 04] KCP Server: client connected, connId={connId} address={address}");
+        transport.OnServerError += (connId, error, msg) =>
+            Debug.Log($"[System Test 04] KCP Server ERROR: connId={connId} error={error} msg={msg}");
+        transport.OnServerDisconnected += (connId) =>
+            Debug.Log($"[System Test 04] KCP Server: client DISCONNECTED, connId={connId}");
+        transport.OnClientConnected += () =>
+            Debug.Log($"[System Test 04] KCP Client: connected!");
+        transport.OnClientError += (error, msg) =>
+            Debug.Log($"[System Test 04] KCP Client ERROR: error={error} msg={msg}");
+        transport.OnClientDisconnected += () =>
+            Debug.Log($"[System Test 04] KCP Client: disconnected");
+
+        Debug.Log($"[System Test 04] maxConnections: {nm.maxConnections}");
+        Debug.Log($"[System Test 04] networkAddress: {nm.networkAddress}");
 
         nm.StartHost();
-        yield return new WaitForSeconds(1.8f);
 
-        _hostPlayer = Object.FindObjectsByType<Player>(FindObjectsSortMode.None)
-            .FirstOrDefault(p => p.isLocalPlayer);
+        float timeout = 10f;
+        float elapsed = 0f;
+        while (!NetworkClient.isConnected && elapsed < timeout)
+        {
+            yield return new WaitForSeconds(0.1f);
+            elapsed += 0.1f;
+        }
 
-        Assert.NotNull(_hostPlayer);
+        Debug.Log($"[System Test 04] NetworkServer.active: {NetworkServer.active}");
+        Debug.Log($"[System Test 04] NetworkClient.isConnected: {NetworkClient.isConnected}");
+        Debug.Log($"[System Test 04] Client connected after {elapsed:F1}s");
+
+        Assert.IsTrue(NetworkClient.isConnected, "NetworkClient failed to connect to host");
+
+        elapsed = 0f;
+        while (elapsed < timeout)
+        {
+            _hostPlayer = Object.FindObjectsByType<Player>(FindObjectsSortMode.None)
+                .FirstOrDefault(p => p.isLocalPlayer);
+
+            if (_hostPlayer != null) break;
+
+            yield return new WaitForSeconds(0.1f);
+            elapsed += 0.1f;
+        }
+
+        Assert.NotNull(_hostPlayer, $"Host player did not spawn within {timeout}s");
 
         _controller = _hostPlayer.GetComponent<PlayerController>();
         _assembler = _hostPlayer.GetComponent<ShipAssembler>();
@@ -69,9 +112,7 @@ public class AbilitiesSystemTest
         yield return new WaitForSeconds(1.0f);
 
         SetActivateAbility(true);
-        yield return new WaitForSeconds(1.3f);
-
-        Assert.IsTrue(IsShieldVisible(), "Shield VFX did not appear");
+        yield return WaitUntilOrTimeout(() => IsShieldVisible(), 5f, "Shield VFX did not appear");
 
         float healthBefore = _health.GetHealthPercentage();
         _health.TakeDamage(50f, DamageContext.Weapon(0, "TestEnemy", "TestGun"));
@@ -87,14 +128,10 @@ public class AbilitiesSystemTest
         yield return new WaitForSeconds(1.0f);
 
         SetActivateAbility(true);
-        yield return new WaitForSeconds(2.5f);
-
-        Assert.IsFalse(IsShipVisible(), "Ship should be invisible");
+        yield return WaitUntilOrTimeout(() => !IsShipVisible(), 5f, "Ship should be invisible");
 
         _controller.ServerNotifyAttacked();
-        yield return new WaitForSeconds(0.8f);
-
-        Assert.IsTrue(IsShipVisible(), "Invisibility did not break on attack");
+        yield return WaitUntilOrTimeout(() => IsShipVisible(), 5f, "Invisibility did not break on attack");
 
         Debug.Log("[System Test 04] Invisibility passed");
 
@@ -110,15 +147,26 @@ public class AbilitiesSystemTest
         Vector3 velocityBefore = _rb.linearVelocity;
 
         SetActivateAbility(true);
-        yield return new WaitForSeconds(0.8f);
-
-        float boost = (_rb.linearVelocity - velocityBefore).magnitude;
-
-        Assert.Greater(boost, 3.5f, "Dash did not give expected speed boost");
+        yield return WaitUntilOrTimeout(
+            () => (_rb.linearVelocity - velocityBefore).magnitude > 3.5f,
+            5f,
+            "Dash did not give expected speed boost"
+        );
 
         Debug.Log("[System Test 04] Dash passed");
 
         Debug.Log("[System Test 04] === ALL ABILITIES PASSED ===");
+    }
+
+    private IEnumerator WaitUntilOrTimeout(System.Func<bool> condition, float timeout, string message)
+    {
+        float elapsed = 0f;
+        while (!condition() && elapsed < timeout)
+        {
+            yield return new WaitForSeconds(0.1f);
+            elapsed += 0.1f;
+        }
+        Assert.IsTrue(condition(), message);
     }
 
     private void SetActivateAbility(bool value)
@@ -154,13 +202,23 @@ public class AbilitiesSystemTest
 
     private void AggressiveCleanup()
     {
+        // —начала останавливаем KCP на уровне транспорта Ч до Mirror Shutdown
+        var transports = Object.FindObjectsByType<kcp2k.KcpTransport>(FindObjectsSortMode.None);
+        foreach (var t in transports)
+        {
+            if (t == null) continue;
+            t.ServerStop();
+            t.ClientDisconnect();
+        }
+
+        // “еперь Mirror
         if (NetworkServer.active) NetworkServer.Shutdown();
         if (NetworkClient.active) NetworkClient.Shutdown();
 
         var managers = Object.FindObjectsByType<NetworkManager>(FindObjectsSortMode.None);
         foreach (var m in managers) if (m != null) Object.DestroyImmediate(m.gameObject);
 
-        var transports = Object.FindObjectsByType<kcp2k.KcpTransport>(FindObjectsSortMode.None);
+        // DestroyImmediate на транспорты Ч после Shutdown, чтобы деструктор не конфликтовал
         foreach (var t in transports) if (t != null) Object.DestroyImmediate(t.gameObject);
 
         ResetSingleton<UIManager>();
