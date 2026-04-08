@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 
+[Category("SystemTest")]
 public class CollisionDamageSystemTest
 {
     private Player _hostPlayer;

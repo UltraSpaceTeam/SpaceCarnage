@@ -11,6 +11,7 @@ using Mirror;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
+[Category("SystemTest")]
 public class FullGameCycleSystemTest
 {
     private string _currentTestUsername;

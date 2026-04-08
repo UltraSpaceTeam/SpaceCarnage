@@ -9,6 +9,7 @@ using TMPro;
 using Mirror;
 using System.Linq;
 
+[Category("SystemTest")]
 public class ShipEditorPreviewSystemTest
 {
     private ShipEditorUI _shipEditorUI;

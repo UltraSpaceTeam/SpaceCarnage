@@ -8,6 +8,7 @@ using UnityEngine.UI;
 using TMPro;
 using Mirror;
 
+[Category("SystemTest")]
 public class LoginInvalidCredentialsSystemTest
 {
     private TMP_InputField _usernameInput;
