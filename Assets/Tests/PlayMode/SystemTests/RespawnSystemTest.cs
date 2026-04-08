@@ -8,6 +8,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
 
+[Category("SystemTest")]
 public class RespawnSystemTest
 {
     private Player _hostPlayer;
